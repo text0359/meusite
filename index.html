@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jogo de Adedonha (Stop!) Multiplayer Offline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #FFF9FB; color: #872454; overscroll-behavior: none; }
+        .calculator-shadow { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 5px 10px rgba(0, 0, 0, 0.02); }
+        .screen { display: none; }
+        .screen.active { display: flex; flex-direction: column; }
+        .letter-display { background-color: #872454; color: white; width: 80px; height: 80px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; line-height: 1; box-shadow: 0 4px 15px rgba(135, 36, 84, 0.3); flex-shrink: 0; }
+        .btn-primary { background-color: #E95D9A; color: white; font-weight: 600; transition: all 0.2s ease; }
+        .btn-primary:active, .btn-secondary:active, .btn-score:active { transform: scale(0.98); }
+        .btn-primary:hover { background-color: #d24a87; }
+        .btn-primary:disabled { background-color: #f3c5d7; color: #fff; cursor: not-allowed; opacity: 0.7; }
+        .btn-secondary { background-color: #FAD9E6; color: #872454; font-weight: 600; transition: all 0.2s ease; }
+        .btn-secondary:hover { background-color: #f3c5d7; }
+        .input-field { background-color: #FCEFF5; border: 2px solid #FAD9E6; color: #872454; transition: all 0.2s ease; }
+        .input-field:focus { background-color: white; border-color: #E95D9A; outline: none; box-shadow: 0 0 0 3px rgba(233, 93, 154, 0.2); }
+        .timer-bar-bg { background-color: #FAD9E6; }
+        .timer-bar-fg { background-color: #E95D9A; transition: width 1s linear; }
+        .btn-score { background-color: #FAD9E6; color: #872454; transition: all 0.2s ease; border: 2px solid transparent; }
+        .btn-score.selected { background-color: #E95D9A; color: white; border-color: #872454; }
+        .category-checkbox:checked + label { background-color: #872454; color: white; border-color: #872454;}
+        .category-checkbox:disabled:not(:checked) + label { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body class="sm:flex sm:items-center sm:justify-center sm:min-h-screen">
+
+    <div id="app-container" class="h-full w-full">
+        <!-- Start Screen -->
+        <div id="screen-start" class="screen active h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
+            <h2 class="text-4xl font-bold mb-6">Quem está a jogar?</h2>
+            <button id="btn-select-p1-start" class="w-full py-4 px-6 rounded-xl btn-primary text-2xl mb-4">Werveson</button>
+            <button id="btn-select-p2-start" class="w-full py-4 px-6 rounded-xl btn-secondary text-2xl">Leticia</button>
+        </div>
+
+        <!-- Action Select Screen -->
+        <div id="screen-action-select" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
+             <h2 class="text-3xl font-bold mb-2">Olá, <span id="welcome-name"></span>!</h2>
+             <p class="mb-6 text-[#E95D9A]">O que quer fazer?</p>
+             <div class="text-left text-sm bg-rose-50 p-3 rounded-lg my-6">
+                <h3 class="font-bold mb-2 text-center">Como Jogar</h3>
+                <p>• O jogo tem <strong>5 rodadas</strong>.</p>
+                <p>• <strong>Pontos:</strong> 10 (único), 5 (repetido), 0 (inválido).</p>
+                <p>• Um jogador <strong>cria o jogo</strong> para gerar um código e uma letra.</p>
+                <p>• O outro <strong>insere os dados</strong> para começar com as mesmas regras.</p>
+            </div>
+            <button id="btn-new-game" class="w-full py-3 px-6 rounded-xl btn-primary text-xl mb-3">Novo Jogo (Eu começo)</button>
+            <button id="btn-enter-code" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Entrar com Código</button>
+        </div>
+        
+        <!-- Category Select Screen -->
+        <div id="screen-category-select" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
+             <h2 class="text-3xl font-bold mb-4">Criar Novo Jogo</h2>
+            <p class="mb-4">Escolha <b>6</b> categorias para a partida:</p>
+            <div id="category-selection" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4 text-sm h-64 overflow-y-auto p-2 bg-gray-50 rounded-lg"></div>
+            <p id="cat-error" class="text-red-500 text-sm mb-4 hidden">Por favor, selecione exatamente 6 categorias.</p>
+            <button id="btn-generate-code" class="w-full py-3 px-6 rounded-xl btn-primary text-xl" disabled>Gerar Código e Letra</button>
+        </div>
+
+        <!-- Show Code & Letter Screen -->
+        <div id="screen-show-info" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
+            <h2 class="text-3xl font-bold mb-4">Partilhe estes Dados</h2>
+            <p class="mb-4">O seu amigo precisa disto para começar:</p>
+            <div class="mb-6">
+                <label class="font-bold">Código das Categorias</label>
+                <div id="game-code-display" class="text-5xl font-bold tracking-[0.5em] p-4 bg-gray-100 rounded-lg mt-1 cursor-pointer" title="Clique para copiar"></div>
+            </div>
+            <div class="mb-6">
+                <label class="font-bold">Letra da 1ª Rodada</label>
+                <div id="round-letter-display" class="text-5xl font-bold p-4 bg-gray-100 rounded-lg mt-1"></div>
+            </div>
+            <p id="copy-feedback" class="text-sm text-green-600 mb-4 h-5"></p>
+            <button id="btn-start-from-code" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Começar a Jogar</button>
+        </div>
+        
+        <!-- Enter Code Screen -->
+        <div id="screen-enter-code" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
+             <h2 class="text-3xl font-bold mb-4">Entrar no Jogo</h2>
+             <div class="mt-6">
+                <label for="game-code-input" class="block text-sm font-medium mb-1">Código das Categorias</label>
+                <input id="game-code-input" type="text" class="w-full p-4 text-center text-2xl tracking-[1em] uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none" placeholder="----">
+            </div>
+            <div class="mt-4">
+                 <label for="letter-input-join" class="block text-sm font-medium mb-1">Letra da 1ª Rodada</label>
+                <input id="letter-input-join" type="text" maxlength="1" class="w-24 mx-auto p-4 text-center text-4xl uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
+            </div>
+            <p id="join-error" class="text-red-500 text-sm mt-4 hidden">Código ou letra inválidos.</p>
+            <button id="btn-join-with-code" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Confirmar e Entrar</button>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="screen-game" class="screen main-container-mobile sm:calculator-shadow sm:p-8 sm:rounded-3xl sm:w-full sm:max-w-4xl sm:h-auto m-auto">
+            <header class="flex-shrink-0 p-4 sm:p-0 flex justify-between items-center sm:mb-6">
+                <div class="flex items-center gap-4">
+                    <div id="letter-display" class="letter-display">?</div>
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold">Adedonha!</h1>
+                        <p id="round-counter" class="text-base sm:text-lg text-[#E95D9A]">Rodada 1 / 5</p>
+                    </div>
+                </div>
+                 <div class="flex flex-col items-end gap-2">
+                    <button id="sound-toggle-button" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                    </button>
+                    <div id="scores-display" class="text-right text-sm"></div>
+                </div>
+            </header>
+            <main id="categories-grid" class="flex-grow overflow-y-auto p-4 sm:p-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mb-4"></main>
+            <footer class="flex-shrink-0 p-4 sm:p-0 text-center">
+                <div class="mb-4">
+                    <div class="w-full h-4 timer-bar-bg rounded-full overflow-hidden">
+                        <div id="timer-bar" class="h-4 timer-bar-fg" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <button id="stop-button" class="w-full max-w-sm mx-auto py-4 px-6 rounded-2xl btn-primary text-2xl sm:shadow-lg">STOP!</button>
+            </footer>
+        </div>
+        
+        <!-- Next Round Modal -->
+        <div id="modal-next-round" class="screen fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+            <div id="next-round-p1" class="bg-white w-full max-w-sm p-8 rounded-2xl text-center hidden">
+                 <h2 id="next-round-title-p1" class="text-3xl font-bold mb-4">Próxima Rodada</h2>
+                 <p class="mb-4">A letra para esta rodada é:</p>
+                 <div id="next-letter-display" class="text-8xl font-bold p-4 my-4"></div>
+                 <p class="text-sm mb-4">Partilhe com o seu amigo!</p>
+                 <button id="btn-start-next-round-p1" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Começar Rodada</button>
+            </div>
+             <div id="next-round-p2" class="bg-white w-full max-w-sm p-8 rounded-2xl text-center hidden">
+                 <h2 id="next-round-title-p2" class="text-3xl font-bold mb-4">Próxima Rodada</h2>
+                 <p class="mb-4">Qual é a nova letra?</p>
+                <input id="next-letter-input-p2" type="text" maxlength="1" class="w-24 p-4 text-center text-4xl uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
+                <button id="btn-start-next-round-p2" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Começar Rodada</button>
+            </div>
+        </div>
+
+        <!-- Scoring Screen -->
+        <div id="screen-scoring" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-lg text-center p-6 sm:p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
+            <h2 id="scoring-title" class="text-3xl font-bold mb-4">Pontue a Rodada</h2>
+            <div id="scoring-details" class="text-left mb-4 space-y-3 overflow-y-auto flex-grow"></div>
+            <div class="mt-auto pt-4 flex-shrink-0">
+                 <p class="text-lg mb-4">Meus Pontos na Rodada: <span id="round-score-display" class="font-bold">0</span></p>
+                 <button id="btn-sum-scores" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Confirmar Pontos</button>
+            </div>
+        </div>
+
+        <!-- Final Result Screen -->
+        <div id="screen-final-result" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
+            <h2 class="text-3xl font-bold mb-4">Fim de Jogo!</h2>
+            <div id="final-scores-inputs">
+                <p class="mb-4">A sua pontuação final foi: <b id="my-final-score" class="text-2xl"></b></p>
+                <div class="mb-4">
+                    <label id="opponent-score-label" for="opponent-final-score" class="block text-sm font-medium mb-1">Digite a pontuação final do seu oponente</label>
+                    <input id="opponent-final-score" type="number" class="w-full p-2 text-center text-lg rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
+                </div>
+                <button id="btn-show-winner" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Ver Vencedor</button>
+            </div>
+            <div id="winner-declaration" class="hidden">
+                 <p id="winner-message" class="text-4xl font-bold my-8"></p>
+                 <button id="btn-play-again" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Jogar Novamente</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const ALL_CATEGORIES = ["NOME", "COR", "ANIMAL", "FRUTA", "OBJETO", "MARCA", "FILME", "CIDADE", "PAÍS", "VERBO", "ALIMENTO", "PROFISSÃO", "PARTE DO CORPO", "CARRO", "MÚSICA", "SÉRIE DE TV", "CELEBRIDADE", "FLOR", "INSTRUMENTO MUSICAL", "JOGO", "ESPORTE", "BRINQUEDO", "AVE", "GENTÍLICO", "SUPER-HERÓI", "ELETROELETRÔNICO", "CAPITAL"];
+        const ALPHABET = "ABCDEFGHJLMNOPQRSTUVXZ".split('');
+        const ROUND_DURATION = 60;
+        const MAX_ROUNDS = 5;
+        const CATEGORIES_TO_SELECT = 6;
+        
+        const appState = {
+            player1Name: 'Werveson',
+            player2Name: 'Leticia',
+            myPlayerId: 1, // 1 ou 2
+            nextFlow: 'create', // 'create' or 'join'
+            categories: [],
+            gameCode: '',
+            currentRound: 1,
+            currentLetter: '',
+            usedLetters: [],
+            scores: { 1: 0, 2: 0 },
+            timerInterval: null,
+            isMuted: false
+        };
+        
+        // --- Sound Engine ---
+        let toneStarted = false;
+        const polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        const monoSynth = new Tone.Synth().toDestination();
+        const backgroundMusic = new Tone.Loop(time => {
+            monoSynth.triggerAttackRelease("C2", "8n", time);
+            monoSynth.triggerAttackRelease("G2", "8n", time + Tone.Time("8n").toSeconds());
+            monoSynth.triggerAttackRelease("E2", "8n", time + Tone.Time("4n").toSeconds());
+        }, "1m").start(0);
+        
+        function playSound(type) {
+            if (appState.isMuted || !toneStarted) return;
+            try {
+                if (type === 'click') polySynth.triggerAttackRelease(['C5'], '8n');
+                if (type === 'start') polySynth.triggerAttackRelease(['C4', 'E4', 'G4'], '4n');
+                if (type === 'stop') polySynth.triggerAttackRelease(['G4', 'E4', 'C4'], '4n');
+                if (type === 'tick') monoSynth.triggerAttackRelease('A5', '16n');
+                if (type === 'win') polySynth.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '2n');
+                if (type === 'lose') polySynth.triggerAttackRelease(['C3', 'D#3', 'G#3'], '2n');
+            } catch (e) { console.error(e); }
+        }
+        
+        function toggleMusic(play) {
+            if (appState.isMuted || !toneStarted) {
+                Tone.Transport.stop();
+                return;
+            }
+            if (play) Tone.Transport.start();
+            else Tone.Transport.stop();
+        }
+        
+        // --- Navigation ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screen-game') toggleMusic(true);
+            else toggleMusic(false);
+        }
+        
+        // --- Game Logic ---
+        function generateCode(categories) {
+            let mask = 0;
+            categories.forEach(cat => {
+                const index = ALL_CATEGORIES.indexOf(cat);
+                if (index !== -1) mask |= (1 << index);
+            });
+            return mask.toString(36).toUpperCase().padStart(4, '0');
+        }
+
+        function decodeCode(code) {
+            const mask = parseInt(code, 36);
+            if (isNaN(mask)) return null;
+            const categories = [];
+            for (let i = 0; i < ALL_CATEGORIES.length; i++) {
+                if ((mask >> i) & 1) categories.push(ALL_CATEGORIES[i]);
+            }
+            return categories.length === CATEGORIES_TO_SELECT ? categories : null;
+        }
+
+        function generateRandomLetter() {
+            const availableLetters = ALPHABET.filter(l => !appState.usedLetters.includes(l));
+            if (availableLetters.length === 0) {
+                appState.usedLetters = [];
+                return ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+            }
+            return availableLetters[Math.floor(Math.random() * availableLetters.length)];
+        }
+        
+        function setupGame(categories, letter) {
+            appState.categories = categories;
+            appState.currentLetter = letter;
+            appState.currentRound = 1;
+            appState.scores = { 1: 0, 2: 0 };
+            appState.usedLetters = [letter];
+            startRound();
+        }
+        
+        function startRound() {
+            showScreen('screen-game');
+            updateGameUI();
+            startTimer();
+        }
+
+        function updateGameUI() {
+            document.getElementById('letter-display').textContent = appState.currentLetter;
+            document.getElementById('round-counter').textContent = `Rodada ${appState.currentRound} / ${MAX_ROUNDS}`;
+            document.getElementById('scores-display').innerHTML = `
+                <p>${appState.player1Name}: <b>${appState.scores[1]}</b></p>
+                <p>${appState.player2Name}: <b>${appState.scores[2]}</b></p>
+            `;
+            const grid = document.getElementById('categories-grid');
+            grid.innerHTML = appState.categories.map(cat => `
+                <div>
+                    <label class="category-label uppercase">${cat}</label>
+                    <input type="text" data-category="${cat}" class="input-field w-full p-3 rounded-xl mt-1" placeholder="...">
+                </div>
+            `).join('');
+        }
+        
+        function startTimer() {
+            let timeLeft = ROUND_DURATION;
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.transition = 'none';
+            timerBar.style.width = '100%';
+            void timerBar.offsetWidth; 
+            timerBar.style.transition = `width ${ROUND_DURATION}s linear`;
+            timerBar.style.width = '0%';
+            
+            clearInterval(appState.timerInterval);
+            appState.timerInterval = setInterval(() => {
+                timeLeft--;
+                if(timeLeft <= 5 && timeLeft > 0) playSound('tick');
+                if (timeLeft <= 0) stopRound();
+            }, 1000);
+        }
+
+        function stopRound() {
+            clearInterval(appState.timerInterval);
+            playSound('stop');
+            showScreen('screen-scoring');
+            
+            document.getElementById('scoring-title').textContent = `Pontue a Rodada ${appState.currentRound}`;
+            document.getElementById('round-score-display').textContent = '0';
+            const scoringDetails = document.getElementById('scoring-details');
+            const inputs = document.getElementById('categories-grid').querySelectorAll('input');
+            
+            scoringDetails.innerHTML = Array.from(inputs).map(input => `
+                <div class="scoring-item p-3 rounded-lg bg-gray-50" data-score="0">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold">${input.dataset.category}</span>
+                        <span class="text-lg text-[#E95D9A]">${input.value.trim() || '---'}</span>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button class="btn-score px-4 py-2 rounded-lg text-sm" data-points="0">0</button>
+                        <button class="btn-score px-4 py-2 rounded-lg text-sm" data-points="5">5</button>
+                        <button class="btn-score px-4 py-2 rounded-lg text-sm" data-points="10">10</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            scoringDetails.querySelectorAll('.btn-score').forEach(button => {
+                button.addEventListener('click', e => {
+                    const item = e.target.closest('.scoring-item');
+                    item.querySelectorAll('.btn-score').forEach(btn => btn.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    item.dataset.score = e.target.dataset.points;
+                    updateRoundSubtotal();
+                    playSound('click');
+                });
+            });
+        }
+        
+        function updateRoundSubtotal() {
+            let roundSubtotal = 0;
+            document.querySelectorAll('#scoring-details .scoring-item').forEach(item => {
+                roundSubtotal += parseInt(item.dataset.score, 10);
+            });
+            document.getElementById('round-score-display').textContent = roundSubtotal;
+        }
+
+        function sumScores() {
+            let roundScore = 0;
+            document.querySelectorAll('#scoring-details .scoring-item').forEach(item => {
+                roundScore += parseInt(item.dataset.score, 10);
+            });
+            appState.scores[appState.myPlayerId] += roundScore;
+            
+            if (appState.currentRound >= MAX_ROUNDS) {
+                showScreen('screen-final-result');
+                document.getElementById('my-final-score').textContent = appState.scores[appState.myPlayerId];
+                const opponentLabel = document.getElementById('opponent-score-label');
+                const opponentName = appState.myPlayerId === 1 ? appState.player2Name : appState.player1Name;
+                opponentLabel.textContent = `Digite a pontuação final de ${opponentName}`;
+            } else {
+                appState.currentRound++;
+                showScreen('modal-next-round');
+                if (appState.myPlayerId === 1) { // Player 1 generates letter
+                    appState.currentLetter = generateRandomLetter();
+                    appState.usedLetters.push(appState.currentLetter);
+                    document.getElementById('next-round-title-p1').textContent = `Rodada ${appState.currentRound}`;
+                    document.getElementById('next-letter-display').textContent = appState.currentLetter;
+                    document.getElementById('next-round-p1').style.display = 'block';
+                    document.getElementById('next-round-p2').style.display = 'none';
+                } else { // Player 2 inputs letter
+                    document.getElementById('next-round-title-p2').textContent = `Rodada ${appState.currentRound}`;
+                    document.getElementById('next-letter-input-p2').value = '';
+                    document.getElementById('next-round-p1').style.display = 'none';
+                    document.getElementById('next-round-p2').style.display = 'block';
+                }
+            }
+        }
+        
+        // --- Event Listeners Setup ---
+        
+        document.getElementById('btn-select-p1-start').addEventListener('click', () => {
+            playSound('click');
+            appState.myPlayerId = 1;
+            document.getElementById('welcome-name').textContent = appState.player1Name;
+            showScreen('screen-action-select');
+        });
+
+        document.getElementById('btn-select-p2-start').addEventListener('click', () => {
+            playSound('click');
+            appState.myPlayerId = 2;
+            document.getElementById('welcome-name').textContent = appState.player2Name;
+            showScreen('screen-action-select');
+        });
+
+        document.getElementById('btn-new-game').addEventListener('click', () => {
+            playSound('click');
+            const catGrid = document.getElementById('category-selection');
+            catGrid.innerHTML = ALL_CATEGORIES.map(cat => `
+                <div>
+                    <input type="checkbox" id="cat-${cat}" value="${cat}" class="hidden category-checkbox">
+                    <label for="cat-${cat}" class="block p-2 text-center border-2 border-gray-200 rounded-md cursor-pointer transition-colors">${cat}</label>
+                </div>`).join('');
+            catGrid.addEventListener('change', () => {
+                const count = catGrid.querySelectorAll(':checked').length;
+                const generateBtn = document.getElementById('btn-generate-code');
+                generateBtn.disabled = count !== CATEGORIES_TO_SELECT;
+                catGrid.querySelectorAll('.category-checkbox:not(:checked)').forEach(cb => {
+                    cb.disabled = count >= CATEGORIES_TO_SELECT;
+                });
+            });
+            showScreen('screen-category-select');
+        });
+        
+        document.getElementById('btn-enter-code').addEventListener('click', () => {
+             playSound('click');
+             showScreen('screen-enter-code');
+        });
+
+        document.getElementById('btn-generate-code').addEventListener('click', () => {
+            playSound('click');
+            const selected = Array.from(document.querySelectorAll('#category-selection :checked')).map(cb => cb.value);
+            appState.gameCode = generateCode(selected);
+            appState.categories = selected;
+            appState.currentLetter = generateRandomLetter();
+            appState.usedLetters.push(appState.currentLetter);
+            
+            document.getElementById('game-code-display').textContent = appState.gameCode;
+            document.getElementById('round-letter-display').textContent = appState.currentLetter;
+            showScreen('screen-show-info');
+        });
+
+        document.getElementById('game-code-display').addEventListener('click', (e) => {
+            navigator.clipboard.writeText(e.target.textContent).then(() => {
+                const feedback = document.getElementById('copy-feedback');
+                feedback.textContent = 'Código copiado!';
+                setTimeout(() => feedback.textContent = '', 2000);
+            });
+        });
+
+        document.getElementById('btn-start-from-code').addEventListener('click', () => { playSound('start'); setupGame(appState.categories, appState.currentLetter); });
+        
+        document.getElementById('btn-join-with-code').addEventListener('click', () => {
+            const code = document.getElementById('game-code-input').value.toUpperCase();
+            const letter = document.getElementById('letter-input-join').value.toUpperCase();
+            const categories = decodeCode(code);
+            const errorEl = document.getElementById('join-error');
+            
+            if (categories && letter.length === 1 && ALPHABET.includes(letter)) {
+                playSound('start');
+                errorEl.classList.add('hidden');
+                setupGame(categories, letter);
+            } else {
+                errorEl.classList.remove('hidden');
+            }
+        });
+        
+        document.getElementById('btn-start-next-round-p1').addEventListener('click', () => { playSound('start'); startRound(); });
+        document.getElementById('btn-start-next-round-p2').addEventListener('click', () => {
+            const letter = document.getElementById('next-letter-input-p2').value.toUpperCase();
+            if (letter && ALPHABET.includes(letter)) {
+                appState.currentLetter = letter;
+                appState.usedLetters.push(letter);
+                playSound('start');
+                startRound();
+            }
+        });
+        
+        document.getElementById('stop-button').addEventListener('click', () => { stopRound(); });
+        document.getElementById('btn-sum-scores').addEventListener('click', () => { playSound('click'); sumScores(); });
+        
+        document.getElementById('btn-show-winner').addEventListener('click', () => {
+            const myScore = appState.scores[appState.myPlayerId];
+            const opponentScore = parseInt(document.getElementById('opponent-final-score').value, 10);
+            
+            if (isNaN(opponentScore)) return;
+            const winnerMessage = document.getElementById('winner-message');
+            if (myScore > opponentScore) {
+                winnerMessage.textContent = 'Você Ganhou!';
+                winnerMessage.classList.add('text-green-500');
+                playSound('win');
+            } else if (opponentScore > myScore) {
+                 winnerMessage.textContent = 'Você Perdeu!';
+                 winnerMessage.classList.add('text-red-500');
+                 playSound('lose');
+            } else {
+                winnerMessage.textContent = 'Empate!';
+                winnerMessage.classList.remove('text-green-500', 'text-red-500');
+                playSound('click');
+            }
+            document.getElementById('final-scores-inputs').classList.add('hidden');
+            document.getElementById('winner-declaration').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-play-again').addEventListener('click', () => location.reload());
+        
+        document.getElementById('sound-toggle-button').addEventListener('click', () => {
+            appState.isMuted = !appState.isMuted;
+            document.getElementById('sound-on-icon').classList.toggle('hidden', appState.isMuted);
+            document.getElementById('sound-off-icon').classList.toggle('hidden', !appState.isMuted);
+            if (appState.isMuted) toggleMusic(false);
+            else {
+                playSound('click');
+                if (document.getElementById('screen-game').classList.contains('active')) toggleMusic(true);
+            }
+        });
+
+        document.body.addEventListener('click', async () => {
+            if (!toneStarted) { 
+                await Tone.start(); 
+                toneStarted = true;
+                console.log('Contexto de áudio iniciado.');
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
