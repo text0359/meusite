@@ -3,102 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Jogo de Adedonha (Stop!) Multiplayer Offline</title>
+    <title>Adedonha Stop! - Cartas Surpresa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #FFF9FB; color: #872454; overscroll-behavior: none; }
-        .calculator-shadow { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 5px 10px rgba(0, 0, 0, 0.02); }
+        body { font-family: 'Poppins', sans-serif; background-color: #F8F0F4; color: #6D284F; overscroll-behavior: none; }
+        .main-container { background: linear-gradient(180deg, #FFF9FB 0%, #FCEFF5 100%); }
         .screen { display: none; }
         .screen.active { display: flex; flex-direction: column; }
-        .letter-display { background-color: #872454; color: white; width: 80px; height: 80px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; line-height: 1; box-shadow: 0 4px 15px rgba(135, 36, 84, 0.3); flex-shrink: 0; }
-        .btn-primary { background-color: #E95D9A; color: white; font-weight: 600; transition: all 0.2s ease; }
-        .btn-primary:active, .btn-secondary:active, .btn-score:active { transform: scale(0.98); }
-        .btn-primary:hover { background-color: #d24a87; }
-        .btn-primary:disabled { background-color: #f3c5d7; color: #fff; cursor: not-allowed; opacity: 0.7; }
-        .btn-secondary { background-color: #FAD9E6; color: #872454; font-weight: 600; transition: all 0.2s ease; }
-        .btn-secondary:hover { background-color: #f3c5d7; }
-        .input-field { background-color: #FCEFF5; border: 2px solid #FAD9E6; color: #872454; transition: all 0.2s ease; }
+        
+        /* --- New Button Styles --- */
+        .btn-primary {
+            background: linear-gradient(145deg, #EF73B1, #E95D9A);
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 1.25rem; /* 20px */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px -3px rgba(233, 93, 154, 0.5), inset 0 -2px 1px rgba(0,0,0,0.15);
+            transition: all 0.15s ease-out;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(145deg, #f17db9, #ec6aa2);
+            box-shadow: 0 8px 20px -4px rgba(233, 93, 154, 0.6), inset 0 -2px 1px rgba(0,0,0,0.15);
+        }
+        .btn-primary:active {
+            transform: scale(0.97) translateY(2px);
+            box-shadow: 0 2px 8px -3px rgba(233, 93, 154, 0.6), inset 0 2px 2px rgba(0,0,0,0.2);
+        }
+        .btn-primary:disabled {
+            background: #f3c5d7;
+            box-shadow: none;
+            color: #fff;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, #FFFFFF, #FAD9E6);
+            color: #872454;
+            font-weight: 600;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 1.25rem; /* 20px */
+            box-shadow: 0 5px 15px -3px rgba(135, 36, 84, 0.1);
+            transition: all 0.15s ease-out;
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(145deg, #FFF, #fbe0eb);
+            box-shadow: 0 8px 20px -4px rgba(135, 36, 84, 0.15);
+        }
+        .btn-secondary:active {
+             transform: scale(0.97) translateY(2px);
+             box-shadow: 0 2px 8px -3px rgba(135, 36, 84, 0.15), inset 0 2px 2px rgba(0,0,0,0.05);
+        }
+        
+        .btn-score {
+            background: #FAD9E6;
+            color: #872454;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-weight: 600;
+        }
+        .btn-score.selected {
+            background-color: #E95D9A;
+            color: white;
+            border-color: #872454;
+            transform: scale(1.1);
+        }
+        /* --- End of New Button Styles --- */
+
+        .input-field { background-color: #FFF; border: 2px solid #FAD9E6; color: #872454; transition: all 0.2s ease; }
         .input-field:focus { background-color: white; border-color: #E95D9A; outline: none; box-shadow: 0 0 0 3px rgba(233, 93, 154, 0.2); }
-        .timer-bar-bg { background-color: #FAD9E6; }
-        .timer-bar-fg { background-color: #E95D9A; transition: width 1s linear; }
-        .btn-score { background-color: #FAD9E6; color: #872454; transition: all 0.2s ease; border: 2px solid transparent; }
-        .btn-score.selected { background-color: #E95D9A; color: white; border-color: #872454; }
+        .card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative; }
         .category-checkbox:checked + label { background-color: #872454; color: white; border-color: #872454;}
         .category-checkbox:disabled:not(:checked) + label { opacity: 0.5; cursor: not-allowed; }
+        .letter-display { background: linear-gradient(145deg, #872454, #6D284F); color: white; width: 80px; height: 80px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; line-height: 1; box-shadow: 0 4px 15px rgba(135, 36, 84, 0.3); flex-shrink: 0; }
+        .timer-bar-bg { background-color: #FAD9E6; }
+        .timer-bar-fg { background-color: #E95D9A; transition: width 1s linear; }
+        
+        .prize-card {
+            background: linear-gradient(145deg, #872454, #E95D9A);
+            color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px -10px rgba(135, 36, 84, 0.5);
+            transform: scale(0.95);
+            opacity: 0;
+            animation: pop-in 0.5s forwards ease-out;
+        }
+
+        @keyframes pop-in {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .btn-home {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.5);
+            border-radius: 9999px;
+            width: 40px;
+            height: 40px;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="sm:flex sm:items-center sm:justify-center sm:min-h-screen">
 
-    <div id="app-container" class="h-full w-full">
+    <div id="app-container" class="h-full w-full main-container">
         <!-- Start Screen -->
-        <div id="screen-start" class="screen active h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
-            <h2 class="text-4xl font-bold mb-6">Quem está a jogar?</h2>
-            <button id="btn-select-p1-start" class="w-full py-4 px-6 rounded-xl btn-primary text-2xl mb-4">Werveson</button>
-            <button id="btn-select-p2-start" class="w-full py-4 px-6 rounded-xl btn-secondary text-2xl">Leticia</button>
+        <div id="screen-start" class="screen active h-full p-8 m-auto justify-center max-w-md">
+            <h2 class="text-5xl font-bold mb-2 text-center">Adedonha</h2>
+            <p class="text-xl mb-6 text-[#E95D9A] text-center">Edição dos Namorados</p>
+            <div class="mt-6">
+                <h3 class="text-2xl font-bold mb-6 text-center">Quem está a jogar?</h3>
+                <button id="btn-select-p1-start" class="w-full py-4 px-6 text-2xl mb-4 btn-primary">Werveson</button>
+                <button id="btn-select-p2-start" class="w-full py-4 px-6 text-2xl btn-secondary">Leticia</button>
+            </div>
+            <button id="btn-resume-game" class="w-full mt-8 py-3 px-6 btn-primary text-xl hidden">Continuar Jogo Anterior</button>
         </div>
 
         <!-- Action Select Screen -->
-        <div id="screen-action-select" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
-             <h2 class="text-3xl font-bold mb-2">Olá, <span id="welcome-name"></span>!</h2>
-             <p class="mb-6 text-[#E95D9A]">O que quer fazer?</p>
-             <div class="text-left text-sm bg-rose-50 p-3 rounded-lg my-6">
+        <div id="screen-action-select" class="screen h-full p-8 m-auto justify-center max-w-md relative">
+             <button class="btn-home">🏠</button>
+             <h2 class="text-3xl font-bold mb-2 text-center">Olá, <span id="welcome-name"></span>!</h2>
+             <p class="mb-6 text-[#E95D9A] text-center">O que quer fazer?</p>
+             <div class="text-left text-sm bg-rose-50 p-4 rounded-xl my-6">
                 <h3 class="font-bold mb-2 text-center">Como Jogar</h3>
-                <p>• O jogo tem <strong>5 rodadas</strong>.</p>
+                <p>• O jogo tem <strong>5 rodadas</strong>. Quem ganhar mais rodadas vence!</p>
                 <p>• <strong>Pontos:</strong> 10 (único), 5 (repetido), 0 (inválido).</p>
-                <p>• Um jogador <strong>cria o jogo</strong> para gerar um código e uma letra.</p>
-                <p>• O outro <strong>insere os dados</strong> para começar com as mesmas regras.</p>
+                <p>• O vencedor da rodada puxa uma <strong>Carta Surpresa</strong>!</p>
             </div>
-            <button id="btn-new-game" class="w-full py-3 px-6 rounded-xl btn-primary text-xl mb-3">Novo Jogo (Eu começo)</button>
-            <button id="btn-enter-code" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Entrar com Código</button>
+            <button id="btn-new-game" class="w-full py-3 px-6 btn-primary text-xl mb-3">Novo Jogo (Eu começo)</button>
+            <button id="btn-enter-code" class="w-full py-3 px-6 btn-secondary text-xl">Entrar com Código</button>
         </div>
         
         <!-- Category Select Screen -->
-        <div id="screen-category-select" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
-             <h2 class="text-3xl font-bold mb-4">Criar Novo Jogo</h2>
-            <p class="mb-4">Escolha <b>6</b> categorias para a partida:</p>
+        <div id="screen-category-select" class="screen h-full p-8 m-auto justify-center max-w-md relative">
+            <button class="btn-home">🏠</button>
+             <h2 class="text-3xl font-bold mb-4 text-center">Criar Novo Jogo</h2>
+            <p class="mb-4 text-center">Escolha <b>6</b> categorias para a partida:</p>
             <div id="category-selection" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4 text-sm h-64 overflow-y-auto p-2 bg-gray-50 rounded-lg"></div>
-            <p id="cat-error" class="text-red-500 text-sm mb-4 hidden">Por favor, selecione exatamente 6 categorias.</p>
-            <button id="btn-generate-code" class="w-full py-3 px-6 rounded-xl btn-primary text-xl" disabled>Gerar Código e Letra</button>
+            <button id="btn-generate-code" class="w-full py-3 px-6 btn-primary text-xl" disabled>Gerar Código e Letra</button>
         </div>
 
         <!-- Show Code & Letter Screen -->
-        <div id="screen-show-info" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
-            <h2 class="text-3xl font-bold mb-4">Partilhe estes Dados</h2>
-            <p class="mb-4">O seu amigo precisa disto para começar:</p>
-            <div class="mb-6">
-                <label class="font-bold">Código das Categorias</label>
-                <div id="game-code-display" class="text-5xl font-bold tracking-[0.5em] p-4 bg-gray-100 rounded-lg mt-1 cursor-pointer" title="Clique para copiar"></div>
+        <div id="screen-show-info" class="screen h-full p-8 m-auto justify-center max-w-md relative">
+             <button class="btn-home">🏠</button>
+            <h2 class="text-3xl font-bold mb-4 text-center">Partilhe estes Dados</h2>
+            <p class="mb-4 text-center">O seu amigo precisa disto para começar:</p>
+            <div class="card p-6 w-full text-center">
+                <div class="mb-6">
+                    <label class="font-bold">Código das Categorias</label>
+                    <div id="game-code-display" class="text-5xl font-bold tracking-[0.5em] p-4 bg-gray-100 rounded-lg mt-1 cursor-pointer" title="Clique para copiar"></div>
+                </div>
+                <div>
+                    <label class="font-bold">Letra da 1ª Rodada</label>
+                    <div id="round-letter-display" class="text-5xl font-bold p-4 bg-gray-100 rounded-lg mt-1"></div>
+                </div>
             </div>
-            <div class="mb-6">
-                <label class="font-bold">Letra da 1ª Rodada</label>
-                <div id="round-letter-display" class="text-5xl font-bold p-4 bg-gray-100 rounded-lg mt-1"></div>
-            </div>
-            <p id="copy-feedback" class="text-sm text-green-600 mb-4 h-5"></p>
-            <button id="btn-start-from-code" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Começar a Jogar</button>
+            <p id="copy-feedback" class="text-sm text-green-600 my-4 h-5 text-center"></p>
+            <button id="btn-start-from-code" class="w-full py-3 px-6 btn-primary text-xl">Começar a Jogar</button>
         </div>
         
         <!-- Enter Code Screen -->
-        <div id="screen-enter-code" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
-             <h2 class="text-3xl font-bold mb-4">Entrar no Jogo</h2>
+        <div id="screen-enter-code" class="screen h-full p-8 m-auto justify-center max-w-md relative">
+             <button class="btn-home">🏠</button>
+             <h2 class="text-3xl font-bold mb-4 text-center">Entrar no Jogo</h2>
              <div class="mt-6">
                 <label for="game-code-input" class="block text-sm font-medium mb-1">Código das Categorias</label>
-                <input id="game-code-input" type="text" class="w-full p-4 text-center text-2xl tracking-[1em] uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none" placeholder="----">
+                <input id="game-code-input" type="text" class="w-full p-4 text-center text-2xl tracking-[1em] uppercase rounded-xl input-field" placeholder="----">
             </div>
             <div class="mt-4">
                  <label for="letter-input-join" class="block text-sm font-medium mb-1">Letra da 1ª Rodada</label>
-                <input id="letter-input-join" type="text" maxlength="1" class="w-24 mx-auto p-4 text-center text-4xl uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
+                <input id="letter-input-join" type="text" maxlength="1" class="w-24 mx-auto p-4 text-center text-4xl uppercase rounded-xl input-field">
             </div>
             <p id="join-error" class="text-red-500 text-sm mt-4 hidden">Código ou letra inválidos.</p>
-            <button id="btn-join-with-code" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Confirmar e Entrar</button>
+            <button id="btn-join-with-code" class="w-full mt-4 py-3 px-6 btn-primary text-xl">Confirmar e Entrar</button>
         </div>
         
         <!-- Game Screen -->
-        <div id="screen-game" class="screen main-container-mobile sm:calculator-shadow sm:p-8 sm:rounded-3xl sm:w-full sm:max-w-4xl sm:h-auto m-auto">
-            <header class="flex-shrink-0 p-4 sm:p-0 flex justify-between items-center sm:mb-6">
+        <div id="screen-game" class="screen h-full p-4 sm:p-8 m-auto max-w-4xl">
+            <header class="flex-shrink-0 p-4 pt-0 sm:p-0 flex justify-between items-center sm:mb-6">
                 <div class="flex items-center gap-4">
                     <div id="letter-display" class="letter-display">?</div>
                     <div>
@@ -106,7 +201,7 @@
                         <p id="round-counter" class="text-base sm:text-lg text-[#E95D9A]">Rodada 1 / 5</p>
                     </div>
                 </div>
-                 <div class="flex flex-col items-end gap-2">
+                 <div class="flex items-center gap-2">
                     <button id="sound-toggle-button" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
                         <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                         <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
@@ -118,54 +213,38 @@
             <footer class="flex-shrink-0 p-4 sm:p-0 text-center">
                 <div class="mb-4">
                     <div class="w-full h-4 timer-bar-bg rounded-full overflow-hidden">
-                        <div id="timer-bar" class="h-4 timer-bar-fg" style="width: 100%;"></div>
+                        <div id="timer-bar" class="h-4 timer-bar-fg"></div>
                     </div>
                 </div>
-                <button id="stop-button" class="w-full max-w-sm mx-auto py-4 px-6 rounded-2xl btn-primary text-2xl sm:shadow-lg">STOP!</button>
+                <button id="stop-button" class="w-full max-w-sm mx-auto py-4 px-6 text-2xl btn-primary">STOP!</button>
             </footer>
         </div>
         
-        <!-- Next Round Modal -->
-        <div id="modal-next-round" class="screen fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
-            <div id="next-round-p1" class="bg-white w-full max-w-sm p-8 rounded-2xl text-center hidden">
-                 <h2 id="next-round-title-p1" class="text-3xl font-bold mb-4">Próxima Rodada</h2>
-                 <p class="mb-4">A letra para esta rodada é:</p>
-                 <div id="next-letter-display" class="text-8xl font-bold p-4 my-4"></div>
-                 <p class="text-sm mb-4">Partilhe com o seu amigo!</p>
-                 <button id="btn-start-next-round-p1" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Começar Rodada</button>
-            </div>
-             <div id="next-round-p2" class="bg-white w-full max-w-sm p-8 rounded-2xl text-center hidden">
-                 <h2 id="next-round-title-p2" class="text-3xl font-bold mb-4">Próxima Rodada</h2>
-                 <p class="mb-4">Qual é a nova letra?</p>
-                <input id="next-letter-input-p2" type="text" maxlength="1" class="w-24 p-4 text-center text-4xl uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
-                <button id="btn-start-next-round-p2" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Começar Rodada</button>
-            </div>
-        </div>
+        <!-- Next Round & Prize Card Modals -->
+        <div id="modal-container" class="screen fixed inset-0 bg-black bg-opacity-70 items-center justify-center p-4"></div>
 
         <!-- Scoring Screen -->
-        <div id="screen-scoring" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-lg text-center p-6 sm:p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
-            <h2 id="scoring-title" class="text-3xl font-bold mb-4">Pontue a Rodada</h2>
-            <div id="scoring-details" class="text-left mb-4 space-y-3 overflow-y-auto flex-grow"></div>
+        <div id="screen-scoring" class="screen h-full p-6 sm:p-8 m-auto max-w-lg relative">
+             <button class="btn-home">🏠</button>
+            <h2 id="scoring-title" class="text-3xl font-bold mb-4 text-center">Pontue a Rodada</h2>
+            <div id="scoring-details" class="text-left mb-4 space-y-3 overflow-y-auto flex-grow p-1"></div>
             <div class="mt-auto pt-4 flex-shrink-0">
-                 <p class="text-lg mb-4">Meus Pontos na Rodada: <span id="round-score-display" class="font-bold">0</span></p>
+                 <p class="text-2xl mb-4 text-center">Meus Pontos na Rodada: <span id="round-score-display" class="font-bold">0</span></p>
                  <button id="btn-sum-scores" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Confirmar Pontos</button>
             </div>
         </div>
 
-        <!-- Final Result Screen -->
-        <div id="screen-final-result" class="screen h-full w-full sm:h-auto sm:w-full sm:max-w-md text-center p-8 sm:rounded-3xl sm:calculator-shadow bg-white m-auto">
-            <h2 class="text-3xl font-bold mb-4">Fim de Jogo!</h2>
-            <div id="final-scores-inputs">
-                <p class="mb-4">A sua pontuação final foi: <b id="my-final-score" class="text-2xl"></b></p>
+        <!-- Round Winner Screen -->
+        <div id="screen-round-winner" class="screen h-full p-8 m-auto justify-center max-w-md relative">
+             <button class="btn-home">🏠</button>
+            <h2 id="round-winner-title" class="text-3xl font-bold mb-4 text-center">Fim da Rodada!</h2>
+            <div class="card p-6 w-full text-center">
+                 <p id="my-round-score-text" class="mb-2"></p>
                 <div class="mb-4">
-                    <label id="opponent-score-label" for="opponent-final-score" class="block text-sm font-medium mb-1">Digite a pontuação final do seu oponente</label>
-                    <input id="opponent-final-score" type="number" class="w-full p-2 text-center text-lg rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
+                    <label id="opponent-round-score-label" for="opponent-round-score" class="block text-sm font-medium mb-1">Pontos do oponente nesta rodada</label>
+                    <input id="opponent-round-score" type="number" class="w-full p-2 text-center text-lg rounded-xl input-field">
                 </div>
-                <button id="btn-show-winner" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Ver Vencedor</button>
-            </div>
-            <div id="winner-declaration" class="hidden">
-                 <p id="winner-message" class="text-4xl font-bold my-8"></p>
-                 <button id="btn-play-again" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Jogar Novamente</button>
+                <button id="btn-show-round-winner" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Ver Vencedor da Rodada</button>
             </div>
         </div>
     </div>
@@ -176,59 +255,120 @@
         const ROUND_DURATION = 60;
         const MAX_ROUNDS = 5;
         const CATEGORIES_TO_SELECT = 6;
+        const PRIZE_CARDS = [
+            { title: '💌 Declaração Relâmpago', icon: '❤️', description: 'O outro jogador deve fazer uma declaração de amor improvisada na hora.' },
+            { title: '🎭 Desafio Maluco', icon: '🤪', description: 'O outro jogador tem que inventar uma cantada brega com uma das palavras que você escreveu nesta rodada.' },
+            { title: '🎧 Karaokê Flash', icon: '🎤', description: 'O outro jogador deve cantar 15 segundos de uma música que lembre o vosso amor.' },
+            { title: '🎁 Prêmio Especial', icon: '💝', description: 'Você escolhe a surpresa: uma declaração, um áudio fofo, ou um castigo divertido para o outro jogador.' },
+        ];
         
-        const appState = {
+        let appState = {
             player1Name: 'Werveson',
             player2Name: 'Leticia',
-            myPlayerId: 1, // 1 ou 2
-            nextFlow: 'create', // 'create' or 'join'
+            myPlayerId: 1,
+            currentScreen: 'screen-start',
             categories: [],
             gameCode: '',
             currentRound: 1,
             currentLetter: '',
             usedLetters: [],
             scores: { 1: 0, 2: 0 },
+            roundWins: { 1: 0, 2: 0 },
             timerInterval: null,
-            isMuted: false
+            isMuted: false,
+            roundAnswers: []
         };
         
         // --- Sound Engine ---
         let toneStarted = false;
-        const polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
-        const monoSynth = new Tone.Synth().toDestination();
-        const backgroundMusic = new Tone.Loop(time => {
-            monoSynth.triggerAttackRelease("C2", "8n", time);
-            monoSynth.triggerAttackRelease("G2", "8n", time + Tone.Time("8n").toSeconds());
-            monoSynth.triggerAttackRelease("E2", "8n", time + Tone.Time("4n").toSeconds());
-        }, "1m").start(0);
+        const polySynth = new Tone.PolySynth(Tone.Synth, { volume: -8 }).toDestination();
+        const monoSynth = new Tone.Synth({ oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }, volume: -12 }).toDestination();
+        const backgroundMusic = new Tone.Pattern( (time, note) => {
+            monoSynth.triggerAttackRelease(note, '8n', time);
+        }, ["C3", "E3", "G3", "B3"], "randomWalk").start(0);
+        backgroundMusic.interval = '2n';
         
         function playSound(type) {
             if (appState.isMuted || !toneStarted) return;
             try {
-                if (type === 'click') polySynth.triggerAttackRelease(['C5'], '8n');
+                if (type === 'click') polySynth.triggerAttackRelease(['C5'], '16n');
                 if (type === 'start') polySynth.triggerAttackRelease(['C4', 'E4', 'G4'], '4n');
                 if (type === 'stop') polySynth.triggerAttackRelease(['G4', 'E4', 'C4'], '4n');
-                if (type === 'tick') monoSynth.triggerAttackRelease('A5', '16n');
+                if (type === 'tick') monoSynth.triggerAttackRelease('A5', '32n');
                 if (type === 'win') polySynth.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '2n');
                 if (type === 'lose') polySynth.triggerAttackRelease(['C3', 'D#3', 'G#3'], '2n');
+                if (type === 'drawCard') polySynth.triggerAttackRelease(['C4','E4','G4','B4'], '4n');
             } catch (e) { console.error(e); }
         }
         
         function toggleMusic(play) {
             if (appState.isMuted || !toneStarted) {
-                Tone.Transport.stop();
-                return;
+                Tone.Transport.pause(); return;
             }
             if (play) Tone.Transport.start();
-            else Tone.Transport.stop();
+            else Tone.Transport.pause();
         }
         
-        // --- Navigation ---
+        // --- State & Navigation ---
+        function saveState() {
+            const stateToSave = { ...appState, timerInterval: null };
+            localStorage.setItem('adedonhaGameState', JSON.stringify(stateToSave));
+        }
+
+        function loadState() {
+            const savedState = localStorage.getItem('adedonhaGameState');
+            if (savedState) {
+                appState = JSON.parse(savedState);
+                document.getElementById('btn-resume-game').classList.remove('hidden');
+                return true;
+            }
+            return false;
+        }
+
+        function resetGame() {
+            localStorage.removeItem('adedonhaGameState');
+            location.reload();
+        }
+
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
+            appState.currentScreen = screenId;
+            saveState(); 
             if (screenId === 'screen-game') toggleMusic(true);
             else toggleMusic(false);
+        }
+
+        function showModal(content) {
+            const modalContainer = document.getElementById('modal-container');
+            const modalContent = `<div class="p-4 m-auto relative">
+                                    <button class="btn-home">🏠</button>
+                                    ${content}
+                                  </div>`;
+            modalContainer.innerHTML = modalContent;
+            appState.modalContent = content; // Save the inner content for restore
+            showScreen('modal-container');
+            addDynamicModalListeners(); // Re-add listeners for new modal content
+        }
+
+        function closeModal() {
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.innerHTML = '';
+            modalContainer.classList.remove('active');
+            appState.modalContent = null;
+            saveState();
+        }
+
+        function restoreUI() {
+            showScreen(appState.currentScreen);
+            if (appState.currentScreen === 'screen-game') {
+                updateGameUI();
+                startTimer();
+            } else if (appState.currentScreen === 'screen-scoring') {
+                rebuildScoringScreen();
+            } else if (appState.currentScreen === 'modal-container' && appState.modalContent) {
+                showModal(appState.modalContent);
+            }
         }
         
         // --- Game Logic ---
@@ -265,11 +405,13 @@
             appState.currentLetter = letter;
             appState.currentRound = 1;
             appState.scores = { 1: 0, 2: 0 };
+            appState.roundWins = { 1: 0, 2: 0 };
             appState.usedLetters = [letter];
             startRound();
         }
         
         function startRound() {
+            closeModal();
             showScreen('screen-game');
             updateGameUI();
             startTimer();
@@ -279,14 +421,14 @@
             document.getElementById('letter-display').textContent = appState.currentLetter;
             document.getElementById('round-counter').textContent = `Rodada ${appState.currentRound} / ${MAX_ROUNDS}`;
             document.getElementById('scores-display').innerHTML = `
-                <p>${appState.player1Name}: <b>${appState.scores[1]}</b></p>
-                <p>${appState.player2Name}: <b>${appState.scores[2]}</b></p>
+                <p>${appState.player1Name}: <b>${appState.roundWins[1]}</b></p>
+                <p>${appState.player2Name}: <b>${appState.roundWins[2]}</b></p>
             `;
             const grid = document.getElementById('categories-grid');
             grid.innerHTML = appState.categories.map(cat => `
                 <div>
-                    <label class="category-label uppercase">${cat}</label>
-                    <input type="text" data-category="${cat}" class="input-field w-full p-3 rounded-xl mt-1" placeholder="...">
+                    <label class="block text-sm font-medium mb-1">${cat}</label>
+                    <input type="text" data-category="${cat}" class="w-full p-3 rounded-xl input-field" placeholder="...">
                 </div>
             `).join('');
         }
@@ -311,21 +453,27 @@
         function stopRound() {
             clearInterval(appState.timerInterval);
             playSound('stop');
-            showScreen('screen-scoring');
             
+            const inputs = document.getElementById('categories-grid').querySelectorAll('input');
+            appState.roundAnswers = Array.from(inputs).map(input => ({ category: input.dataset.category, value: input.value.trim() }));
+            
+            rebuildScoringScreen();
+            showScreen('screen-scoring');
+        }
+        
+        function rebuildScoringScreen() {
             document.getElementById('scoring-title').textContent = `Pontue a Rodada ${appState.currentRound}`;
             document.getElementById('round-score-display').textContent = '0';
             const scoringDetails = document.getElementById('scoring-details');
-            const inputs = document.getElementById('categories-grid').querySelectorAll('input');
             
-            scoringDetails.innerHTML = Array.from(inputs).map(input => `
+            scoringDetails.innerHTML = appState.roundAnswers.map(answer => `
                 <div class="scoring-item p-3 rounded-lg bg-gray-50" data-score="0">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold">${input.dataset.category}</span>
-                        <span class="text-lg text-[#E95D9A]">${input.value.trim() || '---'}</span>
+                        <span class="font-bold">${answer.category}</span>
+                        <span class="text-lg text-[#E95D9A]">${answer.value || '---'}</span>
                     </div>
                     <div class="flex justify-end gap-2">
-                        <button class="btn-score px-4 py-2 rounded-lg text-sm" data-points="0">0</button>
+                        <button class="btn-score px-4 py-2 rounded-lg text-sm selected" data-points="0">0</button>
                         <button class="btn-score px-4 py-2 rounded-lg text-sm" data-points="5">5</button>
                         <button class="btn-score px-4 py-2 rounded-lg text-sm" data-points="10">10</button>
                     </div>
@@ -343,7 +491,7 @@
                 });
             });
         }
-        
+
         function updateRoundSubtotal() {
             let roundSubtotal = 0;
             document.querySelectorAll('#scoring-details .scoring-item').forEach(item => {
@@ -357,46 +505,150 @@
             document.querySelectorAll('#scoring-details .scoring-item').forEach(item => {
                 roundScore += parseInt(item.dataset.score, 10);
             });
-            appState.scores[appState.myPlayerId] += roundScore;
+            appState.scores[appState.myPlayerId] = roundScore;
             
-            if (appState.currentRound >= MAX_ROUNDS) {
-                showScreen('screen-final-result');
-                document.getElementById('my-final-score').textContent = appState.scores[appState.myPlayerId];
-                const opponentLabel = document.getElementById('opponent-score-label');
-                const opponentName = appState.myPlayerId === 1 ? appState.player2Name : appState.player1Name;
-                opponentLabel.textContent = `Digite a pontuação final de ${opponentName}`;
+            showScreen('screen-round-winner');
+            const opponentName = appState.myPlayerId === 1 ? appState.player2Name : appState.player1Name;
+            document.getElementById('round-winner-title').textContent = `Fim da Rodada ${appState.currentRound}`;
+            document.getElementById('my-round-score-text').innerHTML = `A sua pontuação na rodada foi: <b>${roundScore}</b>`;
+            document.getElementById('opponent-round-score-label').textContent = `Pontos de ${opponentName} nesta rodada`;
+            document.getElementById('opponent-round-score').value = '';
+        }
+
+        function processRoundWinner() {
+            const myScore = appState.scores[appState.myPlayerId];
+            const opponentScore = parseInt(document.getElementById('opponent-round-score').value, 10);
+            if (isNaN(opponentScore)) return;
+
+            const myName = appState.myPlayerId === 1 ? appState.player1Name : appState.player2Name;
+            const opponentName = appState.myPlayerId === 1 ? appState.player2Name : appState.player1Name;
+            let winnerId = 0;
+            let winnerName = '';
+            let message = `Empate na rodada! (${myScore} a ${opponentScore})`;
+
+            if (myScore > opponentScore) {
+                winnerId = appState.myPlayerId;
+                winnerName = myName;
+                message = `${winnerName} venceu a rodada!`;
+                appState.roundWins[winnerId]++;
+            } else if (opponentScore > myScore) {
+                winnerId = appState.myPlayerId === 1 ? 2 : 1;
+                winnerName = opponentName;
+                message = `${winnerName} venceu a rodada!`;
+                appState.roundWins[winnerId]++;
+            }
+            
+            showPrizeCardScreen(winnerId, message);
+        }
+
+        function showPrizeCardScreen(winnerId, message) {
+            let content;
+            if (winnerId > 0) {
+                 content = `
+                    <div class="card p-6 w-full text-center">
+                        <h2 class="text-2xl font-bold mb-2">${message}</h2>
+                        <p class="mb-4">O vencedor pode puxar uma Carta Surpresa!</p>
+                        <button id="btn-draw-card" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Puxar Carta</button>
+                    </div>`;
+            } else { 
+                 content = `
+                    <div class="card p-6 w-full text-center">
+                        <h2 class="text-2xl font-bold mb-2">${message}</h2>
+                        <p class="mb-4">Ninguém puxa carta. Prontos para a próxima?</p>
+                        <button id="btn-continue-game" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Continuar</button>
+                    </div>`;
+            }
+            showModal(content);
+        }
+
+        function continueToNextPhase() {
+            closeModal();
+             if (appState.currentRound >= MAX_ROUNDS) {
+                const winnerId = appState.roundWins[1] > appState.roundWins[2] ? 1 : (appState.roundWins[2] > appState.roundWins[1] ? 2 : 0);
+                const winnerName = winnerId > 0 ? (winnerId === 1 ? appState.player1Name : appState.player2Name) : '';
+                
+                let message;
+                if (winnerId > 0) {
+                    message = `${winnerName} venceu o jogo!`;
+                    playSound(appState.myPlayerId === winnerId ? 'win' : 'lose');
+                } else {
+                    message = 'O jogo terminou em empate!';
+                }
+                const finalScreen = `
+                    <div class="card p-8 text-center">
+                        <h2 class="text-3xl font-bold mb-4">Fim de Jogo!</h2>
+                        <p class="text-4xl font-bold my-8 ${winnerId > 0 ? (appState.myPlayerId === winnerId ? 'text-green-500' : 'text-red-500') : ''}">${message}</p>
+                        <button id="btn-play-again" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Jogar Novamente</button>
+                    </div>`;
+                showModal(finalScreen);
             } else {
                 appState.currentRound++;
-                showScreen('modal-next-round');
+                let content;
                 if (appState.myPlayerId === 1) { // Player 1 generates letter
                     appState.currentLetter = generateRandomLetter();
                     appState.usedLetters.push(appState.currentLetter);
-                    document.getElementById('next-round-title-p1').textContent = `Rodada ${appState.currentRound}`;
-                    document.getElementById('next-letter-display').textContent = appState.currentLetter;
-                    document.getElementById('next-round-p1').style.display = 'block';
-                    document.getElementById('next-round-p2').style.display = 'none';
+                    content = `
+                        <div id="next-round-p1" class="bg-white w-full max-w-sm p-8 rounded-2xl text-center">
+                             <h2 class="text-3xl font-bold mb-4">Rodada ${appState.currentRound}</h2>
+                             <p class="mb-4">A letra para esta rodada é:</p>
+                             <div class="text-8xl font-bold p-4 my-4">${appState.currentLetter}</div>
+                             <p class="text-sm mb-4">Partilhe com o seu amigo!</p>
+                             <button id="btn-start-next-round-p1" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Começar Rodada</button>
+                        </div>`;
                 } else { // Player 2 inputs letter
-                    document.getElementById('next-round-title-p2').textContent = `Rodada ${appState.currentRound}`;
-                    document.getElementById('next-letter-input-p2').value = '';
-                    document.getElementById('next-round-p1').style.display = 'none';
-                    document.getElementById('next-round-p2').style.display = 'block';
+                    content = `
+                        <div id="next-round-p2" class="bg-white w-full max-w-sm p-8 rounded-2xl text-center">
+                             <h2 class="text-3xl font-bold mb-4">Rodada ${appState.currentRound}</h2>
+                             <p class="mb-4">Qual é a nova letra?</p>
+                            <input id="next-letter-input-p2" type="text" maxlength="1" class="w-24 p-4 text-center text-4xl uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
+                            <button id="btn-start-next-round-p2" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Começar Rodada</button>
+                        </div>`;
                 }
+                showModal(content);
             }
         }
         
-        // --- Event Listeners Setup ---
-        
+        // --- Event Listeners ---
+        function addDynamicModalListeners() {
+            document.querySelectorAll('.btn-home').forEach(btn => btn.addEventListener('click', resetGame));
+            document.getElementById('btn-draw-card')?.addEventListener('click', () => {
+                playSound('drawCard');
+                const card = PRIZE_CARDS[Math.floor(Math.random() * PRIZE_CARDS.length)];
+                const cardHtml = `
+                    <div class="prize-card">
+                        <div class="text-6xl mb-4">${card.icon}</div>
+                        <h3 class="text-2xl font-bold mb-2">${card.title}</h3>
+                        <p class="mb-6">${card.description}</p>
+                        <button id="btn-continue-game" class="py-2 px-6 rounded-xl btn-secondary text-lg">Continuar</button>
+                    </div>
+                `;
+                showModal(cardHtml);
+            });
+            document.getElementById('btn-continue-game')?.addEventListener('click', () => { playSound('click'); continueToNextPhase(); });
+            document.getElementById('btn-play-again')?.addEventListener('click', resetGame);
+            document.getElementById('btn-start-next-round-p1')?.addEventListener('click', () => { playSound('start'); startRound(); });
+            document.getElementById('btn-start-next-round-p2')?.addEventListener('click', () => {
+                const letter = document.getElementById('next-letter-input-p2').value.toUpperCase();
+                if (letter && ALPHABET.includes(letter)) {
+                    appState.currentLetter = letter;
+                    appState.usedLetters.push(letter);
+                    playSound('start');
+                    startRound();
+                }
+            });
+        }
+
         document.getElementById('btn-select-p1-start').addEventListener('click', () => {
             playSound('click');
             appState.myPlayerId = 1;
-            document.getElementById('welcome-name').textContent = appState.player1Name;
+            document.getElementById('welcome-name').textContent = 'Werveson';
             showScreen('screen-action-select');
         });
 
         document.getElementById('btn-select-p2-start').addEventListener('click', () => {
             playSound('click');
             appState.myPlayerId = 2;
-            document.getElementById('welcome-name').textContent = appState.player2Name;
+             document.getElementById('welcome-name').textContent = 'Leticia';
             showScreen('screen-action-select');
         });
 
@@ -462,44 +714,15 @@
             }
         });
         
-        document.getElementById('btn-start-next-round-p1').addEventListener('click', () => { playSound('start'); startRound(); });
-        document.getElementById('btn-start-next-round-p2').addEventListener('click', () => {
-            const letter = document.getElementById('next-letter-input-p2').value.toUpperCase();
-            if (letter && ALPHABET.includes(letter)) {
-                appState.currentLetter = letter;
-                appState.usedLetters.push(letter);
-                playSound('start');
-                startRound();
-            }
-        });
-        
         document.getElementById('stop-button').addEventListener('click', () => { stopRound(); });
         document.getElementById('btn-sum-scores').addEventListener('click', () => { playSound('click'); sumScores(); });
+        document.getElementById('btn-show-round-winner').addEventListener('click', () => { playSound('click'); processRoundWinner(); });
         
-        document.getElementById('btn-show-winner').addEventListener('click', () => {
-            const myScore = appState.scores[appState.myPlayerId];
-            const opponentScore = parseInt(document.getElementById('opponent-final-score').value, 10);
-            
-            if (isNaN(opponentScore)) return;
-            const winnerMessage = document.getElementById('winner-message');
-            if (myScore > opponentScore) {
-                winnerMessage.textContent = 'Você Ganhou!';
-                winnerMessage.classList.add('text-green-500');
-                playSound('win');
-            } else if (opponentScore > myScore) {
-                 winnerMessage.textContent = 'Você Perdeu!';
-                 winnerMessage.classList.add('text-red-500');
-                 playSound('lose');
-            } else {
-                winnerMessage.textContent = 'Empate!';
-                winnerMessage.classList.remove('text-green-500', 'text-red-500');
-                playSound('click');
+        document.body.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-home')) {
+                resetGame();
             }
-            document.getElementById('final-scores-inputs').classList.add('hidden');
-            document.getElementById('winner-declaration').classList.remove('hidden');
         });
-
-        document.getElementById('btn-play-again').addEventListener('click', () => location.reload());
         
         document.getElementById('sound-toggle-button').addEventListener('click', () => {
             appState.isMuted = !appState.isMuted;
@@ -512,13 +735,27 @@
             }
         });
 
-        document.body.addEventListener('click', async () => {
-            if (!toneStarted) { 
-                await Tone.start(); 
-                toneStarted = true;
-                console.log('Contexto de áudio iniciado.');
+        document.addEventListener('DOMContentLoaded', () => {
+            if (loadState()) {
+                document.getElementById('btn-resume-game').addEventListener('click', () => {
+                    playSound('click');
+                    restoreUI();
+                });
             }
-        }, { once: true });
+            document.body.addEventListener('click', async () => {
+                if (!toneStarted) { 
+                    await Tone.start(); 
+                    toneStarted = true;
+                    console.log('Contexto de áudio iniciado.');
+                }
+            }, { once: true });
+
+            setInterval(() => {
+                if (appState.currentScreen !== 'screen-start') {
+                    saveState();
+                }
+            }, 5000);
+        });
     </script>
 </body>
 </html>
