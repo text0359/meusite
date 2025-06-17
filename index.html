@@ -10,120 +10,95 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #F8F0F4; color: #6D284F; overscroll-behavior: none; }
-        .main-container { background: linear-gradient(180deg, #FFF9FB 0%, #FCEFF5 100%); }
+        :root {
+            --bg-start: #FFF9FB;
+            --bg-end: #FCEFF5;
+            --primary: #E95D9A;
+            --primary-dark: #d24a87;
+            --secondary: #FAD9E6;
+            --text-dark: #6D284F;
+            --text-light: #872454;
+        }
+        [data-phase="2"] {
+            --bg-start: #fde2ec;
+            --bg-end: #f8cdda;
+            --primary: #D9468F;
+            --primary-dark: #c13a7c;
+            --secondary: #F9E4ED;
+            --text-dark: #A92E69;
+            --text-light: #C13A7C;
+        }
+
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-start); color: var(--text-dark); overscroll-behavior: none; }
+        .main-container { background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%); }
         .screen { display: none; }
         .screen.active { display: flex; flex-direction: column; }
-        
-        /* --- New Button Styles --- */
         .btn-primary {
-            background: linear-gradient(145deg, #EF73B1, #E95D9A);
-            color: white;
-            font-weight: 600;
-            border: none;
-            border-radius: 1.25rem; /* 20px */
+            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+            color: white; font-weight: 600; border: none; border-radius: 1.25rem;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-            box-shadow: 0 5px 15px -3px rgba(233, 93, 154, 0.5), inset 0 -2px 1px rgba(0,0,0,0.15);
+            box-shadow: 0 5px 15px -3px rgba(0,0,0, 0.3), inset 0 -2px 1px rgba(0,0,0,0.15);
             transition: all 0.15s ease-out;
         }
         .btn-primary:hover {
             background: linear-gradient(145deg, #f17db9, #ec6aa2);
-            box-shadow: 0 8px 20px -4px rgba(233, 93, 154, 0.6), inset 0 -2px 1px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 20px -4px rgba(0,0,0, 0.35), inset 0 -2px 1px rgba(0,0,0,0.15);
         }
         .btn-primary:active {
             transform: scale(0.97) translateY(2px);
-            box-shadow: 0 2px 8px -3px rgba(233, 93, 154, 0.6), inset 0 2px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px -3px rgba(0,0,0, 0.3), inset 0 2px 2px rgba(0,0,0,0.2);
         }
-        .btn-primary:disabled {
-            background: #f3c5d7;
-            box-shadow: none;
-            color: #fff;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
+        .btn-primary:disabled { background: #f3c5d7; box-shadow: none; color: #fff; cursor: not-allowed; opacity: 0.7; }
         .btn-secondary {
-            background: linear-gradient(145deg, #FFFFFF, #FAD9E6);
-            color: #872454;
-            font-weight: 600;
-            border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 1.25rem; /* 20px */
-            box-shadow: 0 5px 15px -3px rgba(135, 36, 84, 0.1);
+            background: linear-gradient(145deg, #FFFFFF, var(--secondary));
+            color: var(--text-light); font-weight: 600; border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 1.25rem; box-shadow: 0 5px 15px -3px rgba(0,0,0, 0.1);
             transition: all 0.15s ease-out;
         }
-        .btn-secondary:hover {
-            background: linear-gradient(145deg, #FFF, #fbe0eb);
-            box-shadow: 0 8px 20px -4px rgba(135, 36, 84, 0.15);
-        }
-        .btn-secondary:active {
-             transform: scale(0.97) translateY(2px);
-             box-shadow: 0 2px 8px -3px rgba(135, 36, 84, 0.15), inset 0 2px 2px rgba(0,0,0,0.05);
-        }
-        
+        .btn-secondary:hover { box-shadow: 0 8px 20px -4px rgba(0,0,0, 0.15); }
+        .btn-secondary:active { transform: scale(0.97) translateY(2px); box-shadow: 0 2px 8px -3px rgba(0,0,0, 0.15), inset 0 2px 2px rgba(0,0,0,0.05); }
         .btn-score {
-            background: #FAD9E6;
-            color: #872454;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
-            border-radius: 0.75rem;
-            font-weight: 600;
+            background: var(--secondary); color: var(--text-light); transition: all 0.2s ease;
+            border: 2px solid transparent; border-radius: 0.75rem; font-weight: 600;
         }
-        .btn-score.selected {
-            background-color: #E95D9A;
-            color: white;
-            border-color: #872454;
-            transform: scale(1.1);
-        }
-        /* --- End of New Button Styles --- */
-
-        .input-field { background-color: #FFF; border: 2px solid #FAD9E6; color: #872454; transition: all 0.2s ease; }
-        .input-field:focus { background-color: white; border-color: #E95D9A; outline: none; box-shadow: 0 0 0 3px rgba(233, 93, 154, 0.2); }
+        .btn-score.selected { background-color: var(--primary); color: white; border-color: var(--text-dark); transform: scale(1.1); }
+        .input-field { background-color: #FFF; border: 2px solid var(--secondary); color: var(--text-dark); transition: all 0.2s ease; }
+        .input-field:focus { background-color: white; border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
         .card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative; }
-        .category-checkbox:checked + label { background-color: #872454; color: white; border-color: #872454;}
+        .category-checkbox:checked + label { background-color: var(--text-dark); color: white; border-color: var(--text-dark);}
         .category-checkbox:disabled:not(:checked) + label { opacity: 0.5; cursor: not-allowed; }
-        .letter-display { background: linear-gradient(145deg, #872454, #6D284F); color: white; width: 80px; height: 80px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; line-height: 1; box-shadow: 0 4px 15px rgba(135, 36, 84, 0.3); flex-shrink: 0; }
-        .timer-bar-bg { background-color: #FAD9E6; }
-        .timer-bar-fg { background-color: #E95D9A; transition: width 1s linear; }
+        .letter-display { background: linear-gradient(145deg, var(--text-dark), color-mix(in srgb, var(--text-dark) 80%, black)); color: white; width: 80px; height: 80px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; line-height: 1; box-shadow: 0 4px 15px rgba(0,0,0, 0.2); flex-shrink: 0; }
+        .timer-bar-bg { background-color: var(--secondary); }
+        .timer-bar-fg { background-color: var(--primary); transition: width 1s linear; }
         
         .prize-card {
-            background: linear-gradient(145deg, #872454, #E95D9A);
-            color: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 10px 30px -10px rgba(135, 36, 84, 0.5);
-            transform: scale(0.95);
-            opacity: 0;
-            animation: pop-in 0.5s forwards ease-out;
+            background: linear-gradient(145deg, var(--text-dark), var(--primary)); color: white; border-radius: 1rem;
+            padding: 2rem; text-align: center; box-shadow: 0 10px 30px -10px rgba(0,0,0, 0.4);
+            transform: scale(0.95); opacity: 0; animation: pop-in 0.5s forwards ease-out;
         }
-
-        @keyframes pop-in {
-            0% { transform: scale(0.95); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .btn-home {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: rgba(255,255,255,0.5);
-            border-radius: 9999px;
-            width: 40px;
-            height: 40px;
-            font-size: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
+            position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.5); border-radius: 9999px;
+            width: 40px; height: 40px; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; z-index: 10;
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            opacity: 0.9;
+            border-radius: 2px;
+            pointer-events: none;
+            z-index: 9999;
         }
     </style>
 </head>
-<body class="sm:flex sm:items-center sm:justify-center sm:min-h-screen">
+<body data-phase="1">
 
     <div id="app-container" class="h-full w-full main-container">
         <!-- Start Screen -->
         <div id="screen-start" class="screen active h-full p-8 m-auto justify-center max-w-md">
             <h2 class="text-5xl font-bold mb-2 text-center">Adedonha</h2>
-            <p class="text-xl mb-6 text-[#E95D9A] text-center">Edição dos Namorados</p>
+            <p class="text-xl mb-6 text-pink-500 text-center">Edição dos Namorados</p>
             <div class="mt-6">
                 <h3 class="text-2xl font-bold mb-6 text-center">Quem está a jogar?</h3>
                 <button id="btn-select-p1-start" class="w-full py-4 px-6 text-2xl mb-4 btn-primary">Werveson</button>
@@ -136,7 +111,7 @@
         <div id="screen-action-select" class="screen h-full p-8 m-auto justify-center max-w-md relative">
              <button class="btn-home">🏠</button>
              <h2 class="text-3xl font-bold mb-2 text-center">Olá, <span id="welcome-name"></span>!</h2>
-             <p class="mb-6 text-[#E95D9A] text-center">O que quer fazer?</p>
+             <p class="mb-6 text-pink-500 text-center">O que quer fazer?</p>
              <div class="text-left text-sm bg-rose-50 p-4 rounded-xl my-6">
                 <h3 class="font-bold mb-2 text-center">Como Jogar</h3>
                 <p>• O jogo tem <strong>5 rodadas</strong>. Quem ganhar mais rodadas vence!</p>
@@ -168,7 +143,7 @@
                 </div>
                 <div>
                     <label class="font-bold">Letra da 1ª Rodada</label>
-                    <div id="round-letter-display" class="text-5xl font-bold p-4 bg-gray-100 rounded-lg mt-1"></div>
+                    <div id="round-letter-display" class="text-8xl font-bold p-4 my-4"></div>
                 </div>
             </div>
             <p id="copy-feedback" class="text-sm text-green-600 my-4 h-5 text-center"></p>
@@ -198,7 +173,7 @@
                     <div id="letter-display" class="letter-display">?</div>
                     <div>
                         <h1 class="text-2xl sm:text-3xl font-bold">Adedonha!</h1>
-                        <p id="round-counter" class="text-base sm:text-lg text-[#E95D9A]">Rodada 1 / 5</p>
+                        <p id="round-counter" class="text-base sm:text-lg text-pink-500">Rodada 1 / 5</p>
                     </div>
                 </div>
                  <div class="flex items-center gap-2">
@@ -230,7 +205,7 @@
             <div id="scoring-details" class="text-left mb-4 space-y-3 overflow-y-auto flex-grow p-1"></div>
             <div class="mt-auto pt-4 flex-shrink-0">
                  <p class="text-2xl mb-4 text-center">Meus Pontos na Rodada: <span id="round-score-display" class="font-bold">0</span></p>
-                 <button id="btn-sum-scores" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Confirmar Pontos</button>
+                 <button id="btn-sum-scores" class="w-full py-3 px-6 btn-primary text-xl">Confirmar Pontos</button>
             </div>
         </div>
 
@@ -244,7 +219,7 @@
                     <label id="opponent-round-score-label" for="opponent-round-score" class="block text-sm font-medium mb-1">Pontos do oponente nesta rodada</label>
                     <input id="opponent-round-score" type="number" class="w-full p-2 text-center text-lg rounded-xl input-field">
                 </div>
-                <button id="btn-show-round-winner" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Ver Vencedor da Rodada</button>
+                <button id="btn-show-round-winner" class="w-full py-3 px-6 btn-primary text-xl">Ver Vencedor da Rodada</button>
             </div>
         </div>
     </div>
@@ -255,11 +230,16 @@
         const ROUND_DURATION = 60;
         const MAX_ROUNDS = 5;
         const CATEGORIES_TO_SELECT = 6;
+        
         const PRIZE_CARDS = [
-            { title: '💌 Declaração Relâmpago', icon: '❤️', description: 'O outro jogador deve fazer uma declaração de amor improvisada na hora.' },
-            { title: '🎭 Desafio Maluco', icon: '🤪', description: 'O outro jogador tem que inventar uma cantada brega com uma das palavras que você escreveu nesta rodada.' },
-            { title: '🎧 Karaokê Flash', icon: '🎤', description: 'O outro jogador deve cantar 15 segundos de uma música que lembre o vosso amor.' },
-            { title: '🎁 Prêmio Especial', icon: '💝', description: 'Você escolhe a surpresa: uma declaração, um áudio fofo, ou um castigo divertido para o outro jogador.' },
+            { points: 10, description: (p) => `Parabéns, ${p}! Você ganhou <b>+10 pontos</b> para a próxima rodada.` },
+            { points: 5,  description: (p) => `Boa, ${p}! Você ganhou <b>+5 pontos</b> para a próxima rodada.` },
+            { effect: 'pedido', description: (p) => `${p}, você tem direito a um pedido! O seu oponente deve realizá-lo.` },
+        ];
+        const PUNISHMENT_CARDS = [
+            { points: -10, description: (p) => `Azar, ${p}! Você perdeu <b>10 pontos</b> na próxima rodada.` },
+            { points: -5,  description: (p) => `Cuidado, ${p}! Você perdeu <b>5 pontos</b> na próxima rodada.` },
+            { effect: 'social', description: (p) => `Que pena, ${p}! Na próxima rodada, você só poderá preencher 4 categorias.` },
         ];
         
         let appState = {
@@ -274,6 +254,7 @@
             usedLetters: [],
             scores: { 1: 0, 2: 0 },
             roundWins: { 1: 0, 2: 0 },
+            bonusPoints: { 1: 0, 2: 0 },
             timerInterval: null,
             isMuted: false,
             roundAnswers: []
@@ -281,32 +262,45 @@
         
         // --- Sound Engine ---
         let toneStarted = false;
-        const polySynth = new Tone.PolySynth(Tone.Synth, { volume: -8 }).toDestination();
-        const monoSynth = new Tone.Synth({ oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }, volume: -12 }).toDestination();
-        const backgroundMusic = new Tone.Pattern( (time, note) => {
-            monoSynth.triggerAttackRelease(note, '8n', time);
-        }, ["C3", "E3", "G3", "B3"], "randomWalk").start(0);
-        backgroundMusic.interval = '2n';
+        const reverb = new Tone.Reverb(0.5).toDestination();
+        const synth = new Tone.PolySynth(Tone.Synth, { volume: -8, oscillator: { type: 'sine' } }).connect(reverb);
+        const monoSynth = new Tone.Synth({ oscillator: { type: 'fmsquare' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 }, volume: -10 }).connect(reverb);
+        
+        const music = {
+            phase1: new Tone.Sequence((time, note) => {
+                monoSynth.triggerAttackRelease(note, "8n", time);
+            }, ["C3", ["E3", "G3"], "C3", "G3"], "4n").start(0),
+            phase2: new Tone.Sequence((time, note) => {
+                monoSynth.triggerAttackRelease(note, "8n", time);
+            }, ["D3", "F#3", "A3", ["C4", "A3"]], "4n").start(0),
+        };
         
         function playSound(type) {
             if (appState.isMuted || !toneStarted) return;
             try {
-                if (type === 'click') polySynth.triggerAttackRelease(['C5'], '16n');
-                if (type === 'start') polySynth.triggerAttackRelease(['C4', 'E4', 'G4'], '4n');
-                if (type === 'stop') polySynth.triggerAttackRelease(['G4', 'E4', 'C4'], '4n');
-                if (type === 'tick') monoSynth.triggerAttackRelease('A5', '32n');
-                if (type === 'win') polySynth.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '2n');
-                if (type === 'lose') polySynth.triggerAttackRelease(['C3', 'D#3', 'G#3'], '2n');
-                if (type === 'drawCard') polySynth.triggerAttackRelease(['C4','E4','G4','B4'], '4n');
+                const now = Tone.now();
+                if (type === 'click') synth.triggerAttackRelease('C5', '16n', now);
+                if (type === 'start') synth.triggerAttackRelease(['C4', 'E4', 'G4'], '4n', now);
+                if (type === 'stop') synth.triggerAttackRelease(['A4', 'E4', 'C4'], '4n', now);
+                if (type === 'tick') monoSynth.triggerAttackRelease('A5', '32n', now);
+                if (type === 'win') synth.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '2n', now);
+                if (type === 'lose') synth.triggerAttackRelease(['C3', 'D#3', 'G#3'], '2n', now);
+                if (type === 'drawCard') synth.triggerAttackRelease(['C4','E4','G4','B4'], '4n', now);
             } catch (e) { console.error(e); }
         }
         
         function toggleMusic(play) {
-            if (appState.isMuted || !toneStarted) {
-                Tone.Transport.pause(); return;
+            if (!toneStarted) return;
+            music.phase1.stop();
+            music.phase2.stop();
+            if (play && !appState.isMuted) {
+                const currentPhase = appState.currentRound > 2 ? 2 : 1;
+                if(currentPhase === 1) music.phase1.start(0);
+                else music.phase2.start(0);
+                Tone.Transport.start();
+            } else {
+                Tone.Transport.pause();
             }
-            if (play) Tone.Transport.start();
-            else Tone.Transport.pause();
         }
         
         // --- State & Navigation ---
@@ -334,7 +328,11 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             appState.currentScreen = screenId;
-            saveState(); 
+            saveState();
+            
+            const phase = appState.currentRound > 2 ? 2 : 1;
+            document.body.dataset.phase = phase;
+
             if (screenId === 'screen-game') toggleMusic(true);
             else toggleMusic(false);
         }
@@ -346,9 +344,9 @@
                                     ${content}
                                   </div>`;
             modalContainer.innerHTML = modalContent;
-            appState.modalContent = content; // Save the inner content for restore
+            appState.modalContent = content;
             showScreen('modal-container');
-            addDynamicModalListeners(); // Re-add listeners for new modal content
+            addDynamicModalListeners();
         }
 
         function closeModal() {
@@ -406,6 +404,7 @@
             appState.currentRound = 1;
             appState.scores = { 1: 0, 2: 0 };
             appState.roundWins = { 1: 0, 2: 0 };
+            appState.bonusPoints = { 1: 0, 2: 0 };
             appState.usedLetters = [letter];
             startRound();
         }
@@ -470,7 +469,7 @@
                 <div class="scoring-item p-3 rounded-lg bg-gray-50" data-score="0">
                     <div class="flex justify-between items-center mb-2">
                         <span class="font-bold">${answer.category}</span>
-                        <span class="text-lg text-[#E95D9A]">${answer.value || '---'}</span>
+                        <span class="text-lg text-pink-500">${answer.value || '---'}</span>
                     </div>
                     <div class="flex justify-end gap-2">
                         <button class="btn-score px-4 py-2 rounded-lg text-sm selected" data-points="0">0</button>
@@ -505,6 +504,8 @@
             document.querySelectorAll('#scoring-details .scoring-item').forEach(item => {
                 roundScore += parseInt(item.dataset.score, 10);
             });
+            roundScore += appState.bonusPoints[appState.myPlayerId];
+            appState.bonusPoints[appState.myPlayerId] = 0; 
             appState.scores[appState.myPlayerId] = roundScore;
             
             showScreen('screen-round-winner');
@@ -517,48 +518,83 @@
 
         function processRoundWinner() {
             const myScore = appState.scores[appState.myPlayerId];
-            const opponentScore = parseInt(document.getElementById('opponent-round-score').value, 10);
+            let opponentScore = parseInt(document.getElementById('opponent-round-score').value, 10);
             if (isNaN(opponentScore)) return;
+            
+            const opponentId = appState.myPlayerId === 1 ? 2 : 1;
+            opponentScore += appState.bonusPoints[opponentId];
+            appState.bonusPoints[opponentId] = 0;
 
             const myName = appState.myPlayerId === 1 ? appState.player1Name : appState.player2Name;
             const opponentName = appState.myPlayerId === 1 ? appState.player2Name : appState.player1Name;
             let winnerId = 0;
-            let winnerName = '';
+            let loserId = 0;
             let message = `Empate na rodada! (${myScore} a ${opponentScore})`;
 
             if (myScore > opponentScore) {
                 winnerId = appState.myPlayerId;
-                winnerName = myName;
-                message = `${winnerName} venceu a rodada!`;
+                loserId = opponentId;
+                message = `${myName} venceu a rodada!`;
                 appState.roundWins[winnerId]++;
             } else if (opponentScore > myScore) {
-                winnerId = appState.myPlayerId === 1 ? 2 : 1;
-                winnerName = opponentName;
-                message = `${winnerName} venceu a rodada!`;
+                winnerId = opponentId;
+                loserId = appState.myPlayerId;
+                message = `${opponentName} venceu a rodada!`;
                 appState.roundWins[winnerId]++;
             }
-            
-            showPrizeCardScreen(winnerId, message);
+            showPrizeCardScreen(winnerId, loserId, message);
         }
 
-        function showPrizeCardScreen(winnerId, message) {
+        function showPrizeCardScreen(winnerId, loserId, message) {
             let content;
             if (winnerId > 0) {
+                 if (appState.myPlayerId === winnerId) {
+                    playSound('win');
+                    startConfetti();
+                 }
                  content = `
                     <div class="card p-6 w-full text-center">
                         <h2 class="text-2xl font-bold mb-2">${message}</h2>
-                        <p class="mb-4">O vencedor pode puxar uma Carta Surpresa!</p>
-                        <button id="btn-draw-card" class="w-full py-3 px-6 rounded-xl btn-primary text-xl">Puxar Carta</button>
+                        <p class="mb-4">O vencedor puxa uma carta de prémio, e o perdedor uma de castigo!</p>
+                        <button id="btn-draw-card" data-winner-id="${winnerId}" data-loser-id="${loserId}" class="w-full py-3 px-6 btn-primary text-xl">Puxar Cartas</button>
                     </div>`;
             } else { 
                  content = `
                     <div class="card p-6 w-full text-center">
                         <h2 class="text-2xl font-bold mb-2">${message}</h2>
                         <p class="mb-4">Ninguém puxa carta. Prontos para a próxima?</p>
-                        <button id="btn-continue-game" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Continuar</button>
+                        <button id="btn-continue-game" class="w-full py-3 px-6 btn-secondary text-xl">Continuar</button>
                     </div>`;
             }
             showModal(content);
+        }
+
+        function processDrawnCard(winnerId, loserId) {
+            playSound('drawCard');
+            const prizeCard = PRIZE_CARDS[Math.floor(Math.random() * PRIZE_CARDS.length)];
+            const punishmentCard = PUNISHMENT_CARDS[Math.floor(Math.random() * PUNISHMENT_CARDS.length)];
+            
+            const winnerName = winnerId === 1 ? appState.player1Name : appState.player2Name;
+            const loserName = loserId === 1 ? appState.player1Name : appState.player2Name;
+
+            if (prizeCard.points) appState.bonusPoints[winnerId] += prizeCard.points;
+            if (punishmentCard.points) appState.bonusPoints[loserId] += punishmentCard.points;
+            
+            const cardHtml = `
+                <div class="prize-card space-y-4">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">⭐ PRÉMIO PARA ${winnerName.toUpperCase()} ⭐</h3>
+                        <p class="text-lg">${prizeCard.description(winnerName)}</p>
+                    </div>
+                    <hr class="border-t-2 border-dashed border-white/50 my-4">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">☠️ CASTIGO PARA ${loserName.toUpperCase()} ☠️</h3>
+                        <p class="text-lg">${punishmentCard.description(loserName)}</p>
+                    </div>
+                    <button id="btn-continue-game" class="mt-6 py-2 px-6 rounded-xl btn-secondary text-lg">Continuar</button>
+                </div>
+            `;
+            showModal(cardHtml);
         }
 
         function continueToNextPhase() {
@@ -570,7 +606,12 @@
                 let message;
                 if (winnerId > 0) {
                     message = `${winnerName} venceu o jogo!`;
-                    playSound(appState.myPlayerId === winnerId ? 'win' : 'lose');
+                    if (appState.myPlayerId === winnerId) {
+                        playSound('win');
+                        startConfetti();
+                    } else {
+                        playSound('lose');
+                    }
                 } else {
                     message = 'O jogo terminou em empate!';
                 }
@@ -585,47 +626,81 @@
                 appState.currentRound++;
                 let content;
                 if (appState.myPlayerId === 1) { // Player 1 generates letter
-                    appState.currentLetter = generateRandomLetter();
-                    appState.usedLetters.push(appState.currentLetter);
-                    content = `
-                        <div id="next-round-p1" class="bg-white w-full max-w-sm p-8 rounded-2xl text-center">
+                    content = `<div class="bg-white w-full max-w-sm p-8 rounded-2xl text-center">
                              <h2 class="text-3xl font-bold mb-4">Rodada ${appState.currentRound}</h2>
-                             <p class="mb-4">A letra para esta rodada é:</p>
-                             <div class="text-8xl font-bold p-4 my-4">${appState.currentLetter}</div>
-                             <p class="text-sm mb-4">Partilhe com o seu amigo!</p>
-                             <button id="btn-start-next-round-p1" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Começar Rodada</button>
+                             <p class="mb-4">Gire o dado para sortear a letra:</p>
+                             <div id="letter-roulette" class="text-8xl font-bold p-4 my-4 h-28 flex items-center justify-center">?</div>
+                             <button id="btn-roll-letter" class="w-full mt-4 py-3 px-6 btn-primary text-xl">Girar o Dado</button>
                         </div>`;
                 } else { // Player 2 inputs letter
-                    content = `
-                        <div id="next-round-p2" class="bg-white w-full max-w-sm p-8 rounded-2xl text-center">
+                    content = `<div class="bg-white w-full max-w-sm p-8 rounded-2xl text-center">
                              <h2 class="text-3xl font-bold mb-4">Rodada ${appState.currentRound}</h2>
                              <p class="mb-4">Qual é a nova letra?</p>
                             <input id="next-letter-input-p2" type="text" maxlength="1" class="w-24 p-4 text-center text-4xl uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
-                            <button id="btn-start-next-round-p2" class="w-full mt-4 py-3 px-6 rounded-xl btn-primary text-xl">Começar Rodada</button>
+                            <button id="btn-start-next-round-p2" class="w-full mt-4 py-3 px-6 btn-primary text-xl">Começar Rodada</button>
                         </div>`;
                 }
                 showModal(content);
             }
         }
         
+        // --- Confetti ---
+        function startConfetti() {
+            const colors = ["#EF73B1", "#E95D9A", "#872454", "#FAD9E6", "#FFFFFF"];
+            const numConfetti = 150;
+            const container = document.body;
+
+            for (let i = 0; i < numConfetti; i++) {
+                const confetti = document.createElement("div");
+                confetti.classList.add("confetti");
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.top = `${-20 - Math.random() * 20}px`;
+                
+                const animDuration = Math.random() * 2 + 3;
+                const animDelay = Math.random() * 2;
+                
+                confetti.style.animation = `fall ${animDuration}s linear ${animDelay}s forwards`;
+                container.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), (animDuration + animDelay) * 1000);
+            }
+        }
+        document.head.insertAdjacentHTML('beforeend', `<style>@keyframes fall{to{transform:translateY(100vh) rotate(360deg);}}</style>`);
+        
         // --- Event Listeners ---
         function addDynamicModalListeners() {
             document.querySelectorAll('.btn-home').forEach(btn => btn.addEventListener('click', resetGame));
-            document.getElementById('btn-draw-card')?.addEventListener('click', () => {
-                playSound('drawCard');
-                const card = PRIZE_CARDS[Math.floor(Math.random() * PRIZE_CARDS.length)];
-                const cardHtml = `
-                    <div class="prize-card">
-                        <div class="text-6xl mb-4">${card.icon}</div>
-                        <h3 class="text-2xl font-bold mb-2">${card.title}</h3>
-                        <p class="mb-6">${card.description}</p>
-                        <button id="btn-continue-game" class="py-2 px-6 rounded-xl btn-secondary text-lg">Continuar</button>
-                    </div>
-                `;
-                showModal(cardHtml);
+            document.getElementById('btn-draw-card')?.addEventListener('click', (e) => {
+                const winnerId = parseInt(e.target.dataset.winnerId);
+                const loserId = parseInt(e.target.dataset.loserId);
+                processDrawnCard(winnerId, loserId);
             });
             document.getElementById('btn-continue-game')?.addEventListener('click', () => { playSound('click'); continueToNextPhase(); });
             document.getElementById('btn-play-again')?.addEventListener('click', resetGame);
+            
+            // Letter roll
+            document.getElementById('btn-roll-letter')?.addEventListener('click', (e) => {
+                const button = e.target;
+                button.disabled = true;
+                const roulette = document.getElementById('letter-roulette');
+                let count = 0;
+                const interval = setInterval(() => {
+                    roulette.textContent = ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+                    count++;
+                    if (count > 20) {
+                        clearInterval(interval);
+                        appState.currentLetter = generateRandomLetter();
+                        appState.usedLetters.push(appState.currentLetter);
+                        roulette.textContent = appState.currentLetter;
+                        button.id = 'btn-start-next-round-p1';
+                        button.textContent = 'Começar Rodada';
+                        button.disabled = false;
+                        addDynamicModalListeners(); // re-attach listeners
+                    }
+                }, 50);
+            });
+            
             document.getElementById('btn-start-next-round-p1')?.addEventListener('click', () => { playSound('start'); startRound(); });
             document.getElementById('btn-start-next-round-p2')?.addEventListener('click', () => {
                 const letter = document.getElementById('next-letter-input-p2').value.toUpperCase();
