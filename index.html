@@ -1,909 +1,142 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Adedonha Stop! - Cartas Surpresa</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-start: #FFF9FB;
-            --bg-end: #FCEFF5;
-            --primary: #E95D9A;
-            --primary-dark: #d24a87;
-            --secondary: #FAD9E6;
-            --text-dark: #6D284F;
-            --text-light: #872454;
-        }
-        [data-phase="2"] {
-            --bg-start: #fde2ec;
-            --bg-end: #f8cdda;
-            --primary: #D9468F;
-            --primary-dark: #c13a7c;
-            --secondary: #F9E4ED;
-            --text-dark: #A92E69;
-            --text-light: #C13A7C;
-        }
-
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-start); color: var(--text-dark); overscroll-behavior: none; }
-        .main-container { background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%); }
-        .screen { display: none; }
-        .screen.active { display: flex; flex-direction: column; }
-        .btn-primary {
-            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
-            color: white; font-weight: 600; border: none; border-radius: 1.25rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-            box-shadow: 0 5px 15px -3px rgba(0,0,0, 0.3), inset 0 -2px 1px rgba(0,0,0,0.15);
-            transition: all 0.15s ease-out;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(145deg, #f17db9, #ec6aa2);
-            box-shadow: 0 8px 20px -4px rgba(0,0,0, 0.35), inset 0 -2px 1px rgba(0,0,0,0.15);
-        }
-        .btn-primary:active {
-            transform: scale(0.97) translateY(2px);
-            box-shadow: 0 2px 8px -3px rgba(0,0,0, 0.3), inset 0 2px 2px rgba(0,0,0,0.2);
-        }
-        .btn-primary:disabled { background: #f3c5d7; box-shadow: none; color: #fff; cursor: not-allowed; opacity: 0.7; }
-        .btn-secondary {
-            background: linear-gradient(145deg, #FFFFFF, var(--secondary));
-            color: var(--text-light); font-weight: 600; border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 1.25rem; box-shadow: 0 5px 15px -3px rgba(0,0,0, 0.1);
-            transition: all 0.15s ease-out;
-        }
-        .btn-secondary:hover { box-shadow: 0 8px 20px -4px rgba(0,0,0, 0.15); }
-        .btn-secondary:active { transform: scale(0.97) translateY(2px); box-shadow: 0 2px 8px -3px rgba(0,0,0, 0.15), inset 0 2px 2px rgba(0,0,0,0.05); }
-        .btn-score {
-            background: var(--secondary); color: var(--text-light); transition: all 0.2s ease;
-            border: 2px solid transparent; border-radius: 0.75rem; font-weight: 600;
-        }
-        .btn-score.selected { background-color: var(--primary); color: white; border-color: var(--text-dark); transform: scale(1.1); }
-        .input-field { background-color: #FFF; border: 2px solid var(--secondary); color: var(--text-dark); transition: all 0.2s ease; }
-        .input-field:focus { background-color: white; border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
-        .card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative; }
-        .category-checkbox:checked + label { background-color: var(--text-dark); color: white; border-color: var(--text-dark);}
-        .category-checkbox:disabled:not(:checked) + label { opacity: 0.5; cursor: not-allowed; }
-        .letter-display { background: linear-gradient(145deg, var(--text-dark), color-mix(in srgb, var(--text-dark) 80%, black)); color: white; width: 80px; height: 80px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; line-height: 1; box-shadow: 0 4px 15px rgba(0,0,0, 0.2); flex-shrink: 0; }
-        .timer-bar-bg { background-color: var(--secondary); }
-        .timer-bar-fg { background-color: var(--primary); transition: width 1s linear; }
-        
-        .prize-card {
-            background: linear-gradient(145deg, var(--text-dark), var(--primary)); color: white; border-radius: 1rem;
-            padding: 2rem; text-align: center; box-shadow: 0 10px 30px -10px rgba(0,0,0, 0.4);
-            transform: scale(0.95); opacity: 0; animation: pop-in 0.5s forwards ease-out;
-        }
-        @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .btn-home {
-            position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.5); border-radius: 9999px;
-            width: 40px; height: 40px; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; z-index: 10;
-        }
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            opacity: 0.9;
-            border-radius: 2px;
-            pointer-events: none;
-            z-index: 9999;
-        }
-        .wheel-container {
-            position: relative; width: 250px; height: 250px; margin: 1rem auto;
-        }
-        .wheel {
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-            border: 8px solid white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        .wheel-segment {
-            position: absolute;
-            width: 50%; height: 50%;
-            transform-origin: 100% 100%;
-            clip-path: polygon(0 0, 100% 0, 100% 100%);
-        }
-        .wheel-letter {
-            position: absolute;
-            left: 55%;
-            top: 25%;
-            transform: translate(-50%, -50%) rotate(45deg);
-            color: white;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-        .wheel-pointer {
-            position: absolute;
-            top: -15px; 
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 25px solid white;
-            filter: drop-shadow(0 -2px 2px rgba(0,0,0,0.2));
-            z-index: 10;
-        }
-
-        .loser-flash-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 10000;
-            animation: red-flash-bg 0.5s 10;
-        }
-        @keyframes red-flash-bg {
-            50% { background: rgba(255, 0, 0, 0.2); }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>WhatsApp Web Plus - App</title>
+<style>
+  :root {
+    --bg-color: #f0f0f0;
+    --text-color: #111;
+    --header-bg: #25d366;
+    --btn-bg: #333;
+    --btn-color: #fff;
+  }
+  [data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #eee;
+    --header-bg: #128c7e;
+    --btn-bg: #555;
+    --btn-color: #ddd;
+  }
+  body {
+    margin:0; padding:0;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  header {
+    background: var(--header-bg);
+    color: white;
+    padding: 12px 16px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #buttons {
+    background: var(--bg-color);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-bottom: 1px solid #ccc;
+    gap: 10px;
+  }
+  button {
+    background: var(--btn-bg);
+    color: var(--btn-color);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s ease;
+    min-width: 110px;
+  }
+  button:hover {
+    background: #444;
+  }
+  #waFrame {
+    flex: 1;
+    width: 100%;
+    border: none;
+    transform-origin: top left;
+    transition: filter 0.3s ease;
+  }
+  /* Efeito dark mode no iframe via filtro */
+  body[data-theme="dark"] #waFrame {
+    filter: invert(90%) hue-rotate(180deg) brightness(0.85);
+  }
+</style>
 </head>
-<body data-phase="1">
+<body data-theme="light">
 
-    <div id="app-container" class="h-full w-full main-container">
-        <!-- Start Screen -->
-        <div id="screen-start" class="screen active h-full p-8 m-auto justify-center max-w-md">
-            <h2 class="text-5xl font-bold mb-2 text-center">Adedonha</h2>
-            <p class="text-xl mb-6 text-pink-500 text-center">Edição dos Namorados</p>
-            <div class="mt-6">
-                <h3 class="text-2xl font-bold mb-6 text-center">Quem está a jogar?</h3>
-                <button id="btn-select-p1-start" class="w-full py-4 px-6 text-2xl mb-4 btn-primary">Werveson</button>
-                <button id="btn-select-p2-start" class="w-full py-4 px-6 text-2xl btn-secondary">Leticia</button>
-            </div>
-            <button id="btn-resume-game" class="w-full mt-8 py-3 px-6 btn-primary text-xl hidden">Continuar Jogo Anterior</button>
-        </div>
+<header>
+  WhatsApp Web Plus
+  <button id="themeToggle" aria-label="Alternar Tema">🌗 Tema</button>
+</header>
 
-        <!-- Action Select Screen -->
-        <div id="screen-action-select" class="screen h-full p-8 m-auto justify-center max-w-md relative">
-             <button class="btn-home">🏠</button>
-             <h2 class="text-3xl font-bold mb-2 text-center">Olá, <span id="welcome-name"></span>!</h2>
-             <p class="mb-6 text-pink-500 text-center">O que quer fazer?</p>
-             <div class="text-left text-sm bg-rose-50 p-4 rounded-xl my-6">
-                <h3 class="font-bold mb-2 text-center">Como Jogar</h3>
-                <p>• O jogo tem <strong>5 rodadas</strong>. Quem ganhar mais rodadas vence!</p>
-                <p>• <strong>Pontos:</strong> 10 (único), 5 (repetido), 0 (inválido).</p>
-                <p>• O vencedor da rodada puxa uma <strong>Carta Surpresa</strong>!</p>
-            </div>
-            <button id="btn-new-game" class="w-full py-3 px-6 btn-primary text-xl mb-3">Novo Jogo (Eu começo)</button>
-            <button id="btn-enter-code" class="w-full py-3 px-6 btn-secondary text-xl">Entrar com Código</button>
-        </div>
-        
-        <!-- Category Select Screen -->
-        <div id="screen-category-select" class="screen h-full p-8 m-auto justify-center max-w-md relative">
-            <button class="btn-home">🏠</button>
-             <h2 class="text-3xl font-bold mb-4 text-center">Criar Novo Jogo</h2>
-            <p class="mb-4 text-center">Escolha <b>6</b> categorias para a partida:</p>
-            <div id="category-selection" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4 text-sm h-64 overflow-y-auto p-2 bg-gray-50 rounded-lg"></div>
-            <button id="btn-generate-code" class="w-full py-3 px-6 btn-primary text-xl" disabled>Gerar Código</button>
-        </div>
+<div id="buttons">
+  <button id="sensorToggle">🔇 Sensor Proximidade</button>
+  <button id="volumeUp">🔊 Aumentar Volume</button>
+  <button id="fontIncrease">🔠 + Fonte</button>
+  <button id="fontDecrease">🔡 - Fonte</button>
+</div>
 
-        <!-- Show Code & Letter Screen -->
-        <div id="screen-show-info" class="screen h-full p-8 m-auto justify-center max-w-md relative">
-             <button class="btn-home">🏠</button>
-            <h2 class="text-3xl font-bold mb-4 text-center">Partilhe o Código</h2>
-            <p class="mb-4 text-center">O seu amigo precisa disto para começar:</p>
-            <div class="card p-6 w-full text-center">
-                <div class="mb-6">
-                    <label class="font-bold">Código das Categorias</label>
-                    <div id="game-code-display" class="text-5xl font-bold tracking-[0.5em] p-4 bg-gray-100 rounded-lg mt-1 cursor-pointer" title="Clique para copiar"></div>
-                </div>
-            </div>
-            <p id="copy-feedback" class="text-sm text-green-600 my-4 h-5 text-center"></p>
-            <button id="btn-start-from-code" class="w-full py-3 px-6 btn-primary text-xl">Ir para a Roleta</button>
-        </div>
-        
-        <!-- Enter Code Screen -->
-        <div id="screen-enter-code" class="screen h-full p-8 m-auto justify-center max-w-md relative">
-             <button class="btn-home">🏠</button>
-             <h2 class="text-3xl font-bold mb-4 text-center">Entrar no Jogo</h2>
-             <div class="mt-6">
-                <label for="game-code-input" class="block text-sm font-medium mb-1">Código das Categorias</label>
-                <input id="game-code-input" type="text" class="w-full p-4 text-center text-2xl tracking-[1em] uppercase rounded-xl input-field" placeholder="----">
-            </div>
-            <p id="join-error" class="text-red-500 text-sm mt-4 hidden">Código inválido.</p>
-            <button id="btn-join-with-code" class="w-full mt-4 py-3 px-6 btn-primary text-xl">Aguardar Letra</button>
-        </div>
-        
-        <!-- Game Screen -->
-        <div id="screen-game" class="screen h-full p-4 sm:p-8 m-auto max-w-4xl">
-            <header class="flex-shrink-0 p-4 pt-0 sm:p-0 flex justify-between items-center sm:mb-6">
-                <div class="flex items-center gap-4">
-                    <div id="letter-display" class="letter-display">?</div>
-                    <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold">Adedonha!</h1>
-                        <p id="round-counter" class="text-base sm:text-lg text-pink-500">Rodada 1 / 5</p>
-                    </div>
-                </div>
-                 <div class="flex items-center gap-2">
-                    <button id="sound-toggle-button" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                        <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-                        <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-                    </button>
-                    <div id="scores-display" class="text-right text-sm"></div>
-                </div>
-            </header>
-            <main id="categories-grid" class="flex-grow overflow-y-auto p-4 sm:p-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mb-4"></main>
-            <footer class="flex-shrink-0 p-4 sm:p-0 text-center">
-                <div class="mb-4">
-                    <div class="w-full h-4 timer-bar-bg rounded-full overflow-hidden">
-                        <div id="timer-bar" class="h-4 timer-bar-fg"></div>
-                    </div>
-                </div>
-                <button id="stop-button" class="w-full max-w-sm mx-auto py-4 px-6 text-2xl btn-primary">STOP!</button>
-            </footer>
-        </div>
-        
-        <!-- Next Round & Prize Card Modals -->
-        <div id="modal-container" class="screen fixed inset-0 bg-black bg-opacity-70 items-center justify-center p-4"></div>
+<iframe
+  id="waFrame"
+  src="https://web.whatsapp.com"
+  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+  aria-label="WhatsApp Web"
+></iframe>
 
-        <!-- Scoring Screen -->
-        <div id="screen-scoring" class="screen h-full p-6 sm:p-8 m-auto max-w-lg relative">
-             <button class="btn-home">🏠</button>
-            <h2 id="scoring-title" class="text-3xl font-bold mb-4 text-center">Pontue a Rodada</h2>
-            <div id="scoring-details" class="text-left mb-4 space-y-3 overflow-y-auto flex-grow p-1"></div>
-            <div class="mt-auto pt-4 flex-shrink-0">
-                 <p class="text-2xl mb-4 text-center">Meus Pontos na Rodada: <span id="round-score-display" class="font-bold">0</span></p>
-                 <button id="btn-sum-scores" class="w-full py-3 px-6 btn-primary text-xl">Confirmar Pontos</button>
-            </div>
-        </div>
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  themeToggle.onclick = () => {
+    const body = document.body;
+    const current = body.getAttribute('data-theme');
+    body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+  };
 
-        <!-- Round Winner Screen -->
-        <div id="screen-round-winner" class="screen h-full p-8 m-auto justify-center max-w-md relative">
-             <button class="btn-home">🏠</button>
-            <h2 id="round-winner-title" class="text-3xl font-bold mb-4 text-center">Fim da Rodada!</h2>
-            <div class="card p-6 w-full text-center">
-                 <p id="my-round-score-text" class="mb-2"></p>
-                <div class="mb-4">
-                    <label id="opponent-round-score-label" for="opponent-round-score" class="block text-sm font-medium mb-1">Pontos do oponente nesta rodada</label>
-                    <input id="opponent-round-score" type="number" class="w-full p-2 text-center text-lg rounded-xl input-field">
-                </div>
-                <button id="btn-show-round-winner" class="w-full py-3 px-6 btn-primary text-xl">Ver Vencedor da Rodada</button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        const ALL_CATEGORIES = [ "Nome de Pessoa", "Animal", "Comida", "Objeto", "Lugar (País, Cidade, etc.)", "Marca", "Cor", "Filme ou Série", "Profissão", "Parte do Corpo", "Verbo", "Adjetivo", "Personagem", "Música ou Banda", "Jogo", "Desporto", "Fruta", "Sobremesa", "Bebida" ];
-        const ALPHABET = "ABCDEFGHJLMNOPQRSTUVXZ".split('');
-        const ROUND_DURATION = 60;
-        const MAX_ROUNDS = 5;
-        const CATEGORIES_TO_SELECT = 6;
-        
-        const PRIZE_CARDS = [
-            { points: 10, description: (p) => `Parabéns, ${p}! Você ganhou <b>+10 pontos</b> para a próxima rodada.` },
-            { points: 5,  description: (p) => `Boa, ${p}! Você ganhou <b>+5 pontos</b> para a próxima rodada.` },
-            { effect: 'pedido', description: (p) => `${p}, você tem direito a um pedido! O seu oponente deve realizá-lo.` },
-        ];
-        const PUNISHMENT_CARDS = [
-            { points: -10, description: (p) => `Azar, ${p}! Você perdeu <b>10 pontos</b> na próxima rodada.` },
-            { points: -5,  description: (p) => `Cuidado, ${p}! Você perdeu <b>5 pontos</b> na próxima rodada.` },
-            { effect: 'social', description: (p) => `Que pena, ${p}! Na próxima rodada, você só poderá preencher 4 categorias.` },
-        ];
-        
-        let appState = {
-            player1Name: 'Werveson',
-            player2Name: 'Leticia',
-            myPlayerId: 1,
-            currentScreen: 'screen-start',
-            categories: [],
-            gameCode: '',
-            currentRound: 1,
-            currentLetter: '',
-            usedLetters: [],
-            scores: { 1: 0, 2: 0 },
-            roundWins: { 1: 0, 2: 0 },
-            bonusPoints: { 1: 0, 2: 0 },
-            timerInterval: null,
-            isMuted: false,
-            roundAnswers: []
-        };
-        
-        // --- Sound Engine ---
-        let toneStarted = false;
-        const reverb = new Tone.Reverb(0.5).toDestination();
-        const synth = new Tone.PolySynth(Tone.Synth, { volume: -8, oscillator: { type: 'sine' } }).connect(reverb);
-        const monoSynth = new Tone.Synth({ oscillator: { type: 'fmsquare' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 }, volume: -10 }).connect(reverb);
-        
-        const music = {
-            phase1: new Tone.Sequence((time, note) => {
-                monoSynth.triggerAttackRelease(note, "8n", time);
-            }, ["C3", ["E3", "G3"], "C3", "G3"], "4n").start(0),
-            phase2: new Tone.Sequence((time, note) => {
-                monoSynth.triggerAttackRelease(note, "8n", time);
-            }, ["D3", "F#3", "A3", ["C4", "A3"]], "4n").start(0),
-        };
-        
-        function playSound(type) {
-            if (appState.isMuted || !toneStarted) return;
-            try {
-                const now = Tone.now();
-                if (type === 'click') synth.triggerAttackRelease('C5', '16n', now);
-                if (type === 'start') synth.triggerAttackRelease(['C4', 'E4', 'G4'], '4n', now);
-                if (type === 'stop') synth.triggerAttackRelease(['A4', 'E4', 'C4'], '4n', now);
-                if (type === 'tick') monoSynth.triggerAttackRelease('A5', '32n', now);
-                if (type === 'win') synth.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '2n', now);
-                if (type === 'lose') synth.triggerAttackRelease(['C3', 'D#3', 'G#3'], '2n', now);
-                if (type === 'drawCard') synth.triggerAttackRelease(['C4','E4','G4','B4'], '4n', now);
-            } catch (e) { console.error(e); }
-        }
-        
-        function toggleMusic(play) {
-            if (!toneStarted) return;
-            music.phase1.stop();
-            music.phase2.stop();
-            if (play && !appState.isMuted) {
-                const currentPhase = appState.currentRound > 2 ? 2 : 1;
-                if(currentPhase === 1) music.phase1.start(0);
-                else music.phase2.start(0);
-                Tone.Transport.start();
-            } else {
-                Tone.Transport.pause();
-            }
-        }
-        
-        // --- State & Navigation ---
-        function saveState() {
-            const stateToSave = { ...appState, timerInterval: null };
-            localStorage.setItem('adedonhaGameState', JSON.stringify(stateToSave));
-        }
+  const sensorToggle = document.getElementById('sensorToggle');
+  sensorToggle.onclick = () => {
+    if (window.AndroidInterface && typeof window.AndroidInterface.toggleProximitySensor === 'function') {
+      window.AndroidInterface.toggleProximitySensor();
+      alert("Sensor de proximidade alternado.");
+    } else {
+      alert("Função de sensor só funciona no app Android.");
+    }
+  };
 
-        function loadState() {
-            const savedState = localStorage.getItem('adedonhaGameState');
-            if (savedState) {
-                appState = JSON.parse(savedState);
-                document.getElementById('btn-resume-game').classList.remove('hidden');
-                return true;
-            }
-            return false;
-        }
+  const volumeUp = document.getElementById('volumeUp');
+  volumeUp.onclick = () => {
+    alert("Controle de volume do áudio não é possível via app por restrição do WhatsApp Web.\nUse o volume físico do dispositivo.");
+  };
 
-        function resetGame() {
-            localStorage.removeItem('adedonhaGameState');
-            location.reload();
-        }
+  let zoomLevel = 1;
+  const fontIncrease = document.getElementById('fontIncrease');
+  const fontDecrease = document.getElementById('fontDecrease');
+  const iframe = document.getElementById('waFrame');
 
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            appState.currentScreen = screenId;
-            saveState();
-            
-            const phase = appState.currentRound > 2 ? 2 : 1;
-            document.body.dataset.phase = phase;
+  fontIncrease.onclick = () => {
+    zoomLevel += 0.1;
+    if (zoomLevel > 2) zoomLevel = 2;
+    iframe.style.transform = `scale(${zoomLevel})`;
+    iframe.style.height = `${100 / zoomLevel}vh`;
+  };
 
-            if (screenId === 'screen-game') toggleMusic(true);
-            else toggleMusic(false);
-        }
+  fontDecrease.onclick = () => {
+    zoomLevel -= 0.1;
+    if (zoomLevel < 0.6) zoomLevel = 0.6;
+    iframe.style.transform = `scale(${zoomLevel})`;
+    iframe.style.height = `${100 / zoomLevel}vh`;
+  };
+</script>
 
-        function showModal(content) {
-            const modalContainer = document.getElementById('modal-container');
-            const modalContent = `<div class="p-4 m-auto relative">
-                                    <button class="btn-home">🏠</button>
-                                    ${content}
-                                  </div>`;
-            modalContainer.innerHTML = modalContent;
-            appState.modalContent = content;
-            showScreen('modal-container');
-            addDynamicModalListeners();
-        }
-
-        function closeModal() {
-            const modalContainer = document.getElementById('modal-container');
-            modalContainer.innerHTML = '';
-            modalContainer.classList.remove('active');
-            appState.modalContent = null;
-            saveState();
-        }
-
-        function restoreUI() {
-            showScreen(appState.currentScreen);
-            if (appState.currentScreen === 'screen-game') {
-                updateGameUI();
-                startTimer();
-            } else if (appState.currentScreen === 'screen-scoring') {
-                rebuildScoringScreen();
-            } else if (appState.currentScreen === 'modal-container' && appState.modalContent) {
-                showModal(appState.modalContent);
-            }
-        }
-        
-        // --- Game Logic ---
-        function generateCode(categories) {
-            let mask = 0;
-            categories.forEach(cat => {
-                const index = ALL_CATEGORIES.indexOf(cat);
-                if (index !== -1) mask |= (1 << index);
-            });
-            return mask.toString(36).toUpperCase().padStart(4, '0');
-        }
-
-        function decodeCode(code) {
-            const mask = parseInt(code, 36);
-            if (isNaN(mask)) return null;
-            const categories = [];
-            for (let i = 0; i < ALL_CATEGORIES.length; i++) {
-                if ((mask >> i) & 1) categories.push(ALL_CATEGORIES[i]);
-            }
-            return categories.length === CATEGORIES_TO_SELECT ? categories : null;
-        }
-
-        function generateRandomLetter() {
-            const availableLetters = ALPHABET.filter(l => !appState.usedLetters.includes(l));
-            if (availableLetters.length === 0) {
-                appState.usedLetters = [];
-                return ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
-            }
-            return availableLetters[Math.floor(Math.random() * availableLetters.length)];
-        }
-        
-        function setupGame(categories, letter) {
-            appState.categories = categories;
-            appState.currentLetter = letter;
-            appState.currentRound = 1;
-            appState.scores = { 1: 0, 2: 0 };
-            appState.roundWins = { 1: 0, 2: 0 };
-            appState.bonusPoints = { 1: 0, 2: 0 };
-            appState.usedLetters = [letter];
-            startRound();
-        }
-        
-        function startRound() {
-            closeModal();
-            showScreen('screen-game');
-            updateGameUI();
-            startTimer();
-        }
-
-        function updateGameUI() {
-            document.getElementById('letter-display').textContent = appState.currentLetter;
-            document.getElementById('round-counter').textContent = `Rodada ${appState.currentRound} / ${MAX_ROUNDS}`;
-            document.getElementById('scores-display').innerHTML = `
-                <p>${appState.player1Name}: <b>${appState.roundWins[1]}</b></p>
-                <p>${appState.player2Name}: <b>${appState.roundWins[2]}</b></p>
-            `;
-            const grid = document.getElementById('categories-grid');
-            grid.innerHTML = appState.categories.map(cat => `
-                <div>
-                    <label class="block text-sm font-medium mb-1">${cat}</label>
-                    <input type="text" data-category="${cat}" class="w-full p-3 rounded-xl input-field" placeholder="...">
-                </div>
-            `).join('');
-        }
-        
-        function startTimer() {
-            let timeLeft = ROUND_DURATION;
-            const timerBar = document.getElementById('timer-bar');
-            timerBar.style.transition = 'none';
-            timerBar.style.width = '100%';
-            void timerBar.offsetWidth; 
-            timerBar.style.transition = `width ${ROUND_DURATION}s linear`;
-            timerBar.style.width = '0%';
-            
-            clearInterval(appState.timerInterval);
-            appState.timerInterval = setInterval(() => {
-                timeLeft--;
-                if(timeLeft <= 5 && timeLeft > 0) playSound('tick');
-                if (timeLeft <= 0) stopRound();
-            }, 1000);
-        }
-
-        function stopRound() {
-            clearInterval(appState.timerInterval);
-            playSound('stop');
-            
-            const inputs = document.getElementById('categories-grid').querySelectorAll('input');
-            appState.roundAnswers = Array.from(inputs).map(input => ({ category: input.dataset.category, value: input.value.trim() }));
-            
-            rebuildScoringScreen();
-            showScreen('screen-scoring');
-        }
-        
-        function rebuildScoringScreen() {
-            document.getElementById('scoring-title').textContent = `Pontue a Rodada ${appState.currentRound}`;
-            document.getElementById('round-score-display').textContent = '0';
-            const scoringDetails = document.getElementById('scoring-details');
-            
-            scoringDetails.innerHTML = appState.roundAnswers.map(answer => `
-                <div class="scoring-item p-3 rounded-lg bg-gray-50" data-score="0">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold">${answer.category}</span>
-                        <span class="text-lg text-pink-500">${answer.value || '---'}</span>
-                    </div>
-                    <div class="flex justify-end gap-2">
-                        <button class="btn-score px-4 py-2 rounded-lg text-sm selected" data-points="0">0</button>
-                        <button class="btn-score px-4 py-2 rounded-lg text-sm" data-points="5">5</button>
-                        <button class="btn-score px-4 py-2 rounded-lg text-sm" data-points="10">10</button>
-                    </div>
-                </div>
-            `).join('');
-            
-            scoringDetails.querySelectorAll('.btn-score').forEach(button => {
-                button.addEventListener('click', e => {
-                    const item = e.target.closest('.scoring-item');
-                    item.querySelectorAll('.btn-score').forEach(btn => btn.classList.remove('selected'));
-                    e.target.classList.add('selected');
-                    item.dataset.score = e.target.dataset.points;
-                    updateRoundSubtotal();
-                    playSound('click');
-                });
-            });
-        }
-
-        function updateRoundSubtotal() {
-            let roundSubtotal = 0;
-            document.querySelectorAll('#scoring-details .scoring-item').forEach(item => {
-                roundSubtotal += parseInt(item.dataset.score, 10);
-            });
-            document.getElementById('round-score-display').textContent = roundSubtotal;
-        }
-
-        function sumScores() {
-            let roundScore = 0;
-            document.querySelectorAll('#scoring-details .scoring-item').forEach(item => {
-                roundScore += parseInt(item.dataset.score, 10);
-            });
-            roundScore += appState.bonusPoints[appState.myPlayerId];
-            appState.bonusPoints[appState.myPlayerId] = 0; 
-            appState.scores[appState.myPlayerId] = roundScore;
-            
-            showScreen('screen-round-winner');
-            const opponentName = appState.myPlayerId === 1 ? appState.player2Name : appState.player1Name;
-            document.getElementById('round-winner-title').textContent = `Fim da Rodada ${appState.currentRound}`;
-            document.getElementById('my-round-score-text').innerHTML = `A sua pontuação na rodada foi: <b>${roundScore}</b>`;
-            document.getElementById('opponent-round-score-label').textContent = `Pontos de ${opponentName} nesta rodada`;
-            document.getElementById('opponent-round-score').value = '';
-        }
-
-        function processRoundWinner() {
-            const myScore = appState.scores[appState.myPlayerId];
-            let opponentScore = parseInt(document.getElementById('opponent-round-score').value, 10);
-            if (isNaN(opponentScore)) return;
-            
-            const opponentId = appState.myPlayerId === 1 ? 2 : 1;
-            opponentScore += appState.bonusPoints[opponentId];
-            appState.bonusPoints[opponentId] = 0;
-
-            const myName = appState.myPlayerId === 1 ? appState.player1Name : appState.player2Name;
-            const opponentName = appState.myPlayerId === 1 ? appState.player2Name : appState.player1Name;
-            let winnerId = 0;
-            let loserId = 0;
-            let message = `Empate na rodada! (${myScore} a ${opponentScore})`;
-
-            if (myScore > opponentScore) {
-                winnerId = appState.myPlayerId;
-                loserId = opponentId;
-                message = `${myName} venceu a rodada!`;
-                appState.roundWins[winnerId]++;
-            } else if (opponentScore > myScore) {
-                winnerId = opponentId;
-                loserId = appState.myPlayerId;
-                message = `${opponentName} venceu a rodada!`;
-                appState.roundWins[winnerId]++;
-            }
-            showPrizeCardScreen(winnerId, loserId, message);
-        }
-
-        function showPrizeCardScreen(winnerId, loserId, message) {
-            let content;
-            if (winnerId > 0) {
-                 if (appState.myPlayerId === winnerId) {
-                    playSound('win');
-                    startConfetti();
-                 }
-                 content = `
-                    <div class="card p-6 w-full text-center">
-                        <h2 class="text-2xl font-bold mb-2">${message}</h2>
-                        <p class="mb-4">O vencedor pode puxar uma Carta Surpresa!</p>
-                        <button id="btn-draw-card" data-winner-id="${winnerId}" data-loser-id="${loserId}" class="w-full py-3 px-6 btn-primary text-xl">Puxar Carta</button>
-                    </div>`;
-            } else { 
-                 content = `
-                    <div class="card p-6 w-full text-center">
-                        <h2 class="text-2xl font-bold mb-2">${message}</h2>
-                        <p class="mb-4">Ninguém puxa carta. Prontos para a próxima?</p>
-                        <button id="btn-continue-game" class="w-full py-3 px-6 btn-secondary text-xl">Continuar</button>
-                    </div>`;
-            }
-            showModal(content);
-        }
-        
-        function processDrawnCard(winnerId, loserId) {
-            playSound('drawCard');
-            const amWinner = appState.myPlayerId === winnerId;
-            const card = amWinner ? PRIZE_CARDS[Math.floor(Math.random() * PRIZE_CARDS.length)] : PUNISHMENT_CARDS[Math.floor(Math.random() * PUNISHMENT_CARDS.length)];
-            
-            const affectedPlayerId = amWinner ? winnerId : loserId;
-            if (card.points) appState.bonusPoints[affectedPlayerId] += card.points;
-            
-            const cardTitle = amWinner ? '⭐ PRÉMIO ⭐' : '☠️ CASTIGO ☠️';
-            const affectedPlayerName = affectedPlayerId === 1 ? appState.player1Name : appState.player2Name;
-            
-            const cardHtml = `
-                <div class="prize-card">
-                    <h3 class="text-2xl font-bold mb-4">${cardTitle}</h3>
-                    <p class="mb-6 text-lg">${card.description(affectedPlayerName)}</p>
-                    <button id="btn-continue-game" class="py-2 px-6 rounded-xl btn-secondary text-lg">Continuar</button>
-                </div>
-            `;
-            showModal(cardHtml);
-        }
-
-
-        function continueToNextPhase() {
-            closeModal();
-             if (appState.currentRound >= MAX_ROUNDS) {
-                const winnerId = appState.roundWins[1] > appState.roundWins[2] ? 1 : (appState.roundWins[2] > appState.roundWins[1] ? 2 : 0);
-                const winnerName = winnerId > 0 ? (winnerId === 1 ? appState.player1Name : appState.player2Name) : '';
-                
-                let message;
-                let finalScreen;
-                if (winnerId > 0) {
-                    message = `${winnerName} venceu o jogo!`;
-                    if (appState.myPlayerId === winnerId) {
-                        playSound('win');
-                        startConfetti();
-                    } else {
-                        playSound('lose');
-                        const overlay = document.createElement('div');
-                        overlay.className = 'loser-flash-overlay';
-                        document.body.appendChild(overlay);
-                        setTimeout(() => overlay.remove(), 5000);
-                    }
-                    finalScreen = `<div class="card p-8 text-center">
-                                    <h2 class="text-3xl font-bold mb-4">Fim de Jogo!</h2>
-                                    <p class="text-4xl font-bold my-8 ${appState.myPlayerId === winnerId ? 'text-green-500' : 'text-red-500'}">${message}</p>
-                                    <button id="btn-play-again" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Jogar Novamente</button>
-                                 </div>`;
-                } else {
-                    message = 'O jogo terminou em empate!';
-                    finalScreen = `<div class="card p-8 text-center">
-                                    <h2 class="text-3xl font-bold mb-4">Fim de Jogo!</h2>
-                                    <p class="text-4xl font-bold my-8">${message}</p>
-                                    <button id="btn-play-again" class="w-full py-3 px-6 rounded-xl btn-secondary text-xl">Jogar Novamente</button>
-                                 </div>`;
-                }
-                showModal(finalScreen);
-            } else {
-                appState.currentRound++;
-                let content;
-                if (appState.myPlayerId === 1) { // Player 1 generates letter
-                    content = `<div class="bg-white w-full max-w-sm p-8 rounded-2xl text-center">
-                             <h2 class="text-3xl font-bold mb-4">Rodada ${appState.currentRound}</h2>
-                             <p class="mb-4">Gire a roleta para sortear a letra:</p>
-                             <div id="wheel-container" class="wheel-container">
-                                <div class="wheel-pointer"></div>
-                                <div id="wheel" class="wheel"></div>
-                             </div>
-                             <button id="btn-roll-letter" class="w-full mt-4 py-3 px-6 btn-primary text-xl">Girar Roleta</button>
-                        </div>`;
-                } else { // Player 2 inputs letter
-                    content = `<div class="bg-white w-full max-w-sm p-8 rounded-2xl text-center">
-                             <h2 class="text-3xl font-bold mb-4">Rodada ${appState.currentRound}</h2>
-                             <p class="mb-4">Qual é a nova letra?</p>
-                            <input id="next-letter-input-p2" type="text" maxlength="1" class="w-24 p-4 text-center text-4xl uppercase rounded-lg border-2 border-gray-300 focus:border-[#E95D9A] outline-none">
-                            <button id="btn-start-next-round-p2" class="w-full mt-4 py-3 px-6 btn-primary text-xl">Começar Rodada</button>
-                        </div>`;
-                }
-                showModal(content);
-                if(appState.myPlayerId === 1) buildWheel();
-            }
-        }
-        
-        // --- Confetti ---
-        function startConfetti(colors = ["#EF73B1", "#E95D9A", "#872454", "#FAD9E6", "#FFFFFF"]) {
-            const numConfetti = 150;
-            const container = document.body;
-
-            for (let i = 0; i < numConfetti; i++) {
-                const confetti = document.createElement("div");
-                confetti.classList.add("confetti");
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.left = `${Math.random() * 100}vw`;
-                confetti.style.top = `${-20 - Math.random() * 20}px`;
-                
-                const animDuration = Math.random() * 2 + 3;
-                const animDelay = Math.random() * 2;
-                
-                confetti.style.animation = `fall ${animDuration}s linear ${animDelay}s forwards`;
-                container.appendChild(confetti);
-
-                setTimeout(() => confetti.remove(), (animDuration + animDelay) * 1000);
-            }
-        }
-        document.head.insertAdjacentHTML('beforeend', `<style>@keyframes fall{to{transform:translateY(100vh) rotate(360deg);}}</style>`);
-        
-        // --- Wheel ---
-        function buildWheel() {
-            const wheel = document.getElementById('wheel');
-            if(!wheel) return;
-            const numSegments = ALPHABET.length;
-            const degPerSegment = 360 / numSegments;
-            
-            ALPHABET.forEach((letter, i) => {
-                const segment = document.createElement('div');
-                segment.className = 'wheel-segment';
-                const rotation = degPerSegment * i;
-                segment.style.transform = `rotate(${rotation}deg)`;
-                segment.style.backgroundColor = i % 2 === 0 ? 'var(--primary)' : 'var(--secondary)';
-                
-                const letterEl = document.createElement('div');
-                letterEl.className = 'wheel-letter';
-                letterEl.textContent = letter;
-                letterEl.style.color = i % 2 === 0 ? 'white' : 'var(--text-dark)';
-
-                segment.appendChild(letterEl);
-                wheel.appendChild(segment);
-            });
-        }
-        
-        // --- Event Listeners ---
-        function addDynamicModalListeners() {
-            document.querySelectorAll('.btn-home').forEach(btn => btn.addEventListener('click', resetGame));
-            document.getElementById('btn-draw-card')?.addEventListener('click', (e) => {
-                const winnerId = parseInt(e.target.dataset.winnerId);
-                const loserId = parseInt(e.target.dataset.loserId);
-                processDrawnCard(winnerId, loserId);
-            });
-            document.getElementById('btn-continue-game')?.addEventListener('click', () => { playSound('click'); continueToNextPhase(); });
-            document.getElementById('btn-play-again')?.addEventListener('click', resetGame);
-            
-            document.getElementById('btn-roll-letter')?.addEventListener('click', (e) => {
-                const button = e.target;
-                button.disabled = true;
-                const wheel = document.getElementById('wheel');
-                
-                appState.currentLetter = generateRandomLetter();
-                appState.usedLetters.push(appState.currentLetter);
-                
-                const letterIndex = ALPHABET.indexOf(appState.currentLetter);
-                const degPerSegment = 360 / ALPHABET.length;
-                const finalRotation = -(letterIndex * degPerSegment) - (degPerSegment / 2) + 90; 
-                const randomSpins = 5 * 360;
-                
-                wheel.style.transform = `rotate(${finalRotation + randomSpins}deg)`;
-                
-                setTimeout(() => {
-                    button.id = 'btn-start-next-round-p1';
-                    button.textContent = 'Começar Rodada';
-                    button.disabled = false;
-                    addDynamicModalListeners();
-                }, 4000);
-            });
-            
-            document.getElementById('btn-start-next-round-p1')?.addEventListener('click', () => { playSound('start'); startRound(); });
-            document.getElementById('btn-start-next-round-p2')?.addEventListener('click', () => {
-                const letter = document.getElementById('next-letter-input-p2').value.toUpperCase();
-                if (letter && ALPHABET.includes(letter)) {
-                    appState.currentLetter = letter;
-                    appState.usedLetters.push(letter);
-                    playSound('start');
-                    startRound();
-                }
-            });
-        }
-
-        document.getElementById('btn-select-p1-start').addEventListener('click', () => {
-            playSound('click');
-            appState.myPlayerId = 1;
-            document.getElementById('welcome-name').textContent = 'Werveson';
-            showScreen('screen-action-select');
-        });
-
-        document.getElementById('btn-select-p2-start').addEventListener('click', () => {
-            playSound('click');
-            appState.myPlayerId = 2;
-             document.getElementById('welcome-name').textContent = 'Leticia';
-            showScreen('screen-action-select');
-        });
-
-        document.getElementById('btn-new-game').addEventListener('click', () => {
-            playSound('click');
-            const catGrid = document.getElementById('category-selection');
-            catGrid.innerHTML = ALL_CATEGORIES.map(cat => `
-                <div>
-                    <input type="checkbox" id="cat-${cat}" value="${cat}" class="hidden category-checkbox">
-                    <label for="cat-${cat}" class="block p-2 text-center border-2 border-gray-200 rounded-md cursor-pointer transition-colors">${cat}</label>
-                </div>`).join('');
-            catGrid.addEventListener('change', () => {
-                const count = catGrid.querySelectorAll(':checked').length;
-                const generateBtn = document.getElementById('btn-generate-code');
-                generateBtn.disabled = count !== CATEGORIES_TO_SELECT;
-                catGrid.querySelectorAll('.category-checkbox:not(:checked)').forEach(cb => {
-                    cb.disabled = count >= CATEGORIES_TO_SELECT;
-                });
-            });
-            showScreen('screen-category-select');
-        });
-        
-        document.getElementById('btn-enter-code').addEventListener('click', () => {
-             playSound('click');
-             showScreen('screen-enter-code');
-        });
-
-        document.getElementById('btn-generate-code').addEventListener('click', () => {
-            playSound('click');
-            const selected = Array.from(document.querySelectorAll('#category-selection :checked')).map(cb => cb.value);
-            appState.gameCode = generateCode(selected);
-            appState.categories = selected;
-            showScreen('screen-show-info');
-            document.getElementById('game-code-display').textContent = appState.gameCode;
-        });
-
-        document.getElementById('game-code-display').addEventListener('click', (e) => {
-            navigator.clipboard.writeText(e.target.textContent).then(() => {
-                const feedback = document.getElementById('copy-feedback');
-                feedback.textContent = 'Código copiado!';
-                setTimeout(() => feedback.textContent = '', 2000);
-            });
-        });
-
-        document.getElementById('btn-start-from-code').addEventListener('click', () => { 
-            playSound('start');
-            continueToNextPhase();
-        });
-        
-        document.getElementById('btn-join-with-code').addEventListener('click', () => {
-            const code = document.getElementById('game-code-input').value.toUpperCase();
-            const categories = decodeCode(code);
-            const errorEl = document.getElementById('join-error');
-            
-            if (categories) {
-                appState.categories = categories;
-                playSound('start');
-                errorEl.classList.add('hidden');
-                continueToNextPhase();
-            } else {
-                errorEl.classList.remove('hidden');
-            }
-        });
-        
-        document.getElementById('stop-button').addEventListener('click', () => { stopRound(); });
-        document.getElementById('btn-sum-scores').addEventListener('click', () => { playSound('click'); sumScores(); });
-        document.getElementById('btn-show-round-winner').addEventListener('click', () => { playSound('click'); processRoundWinner(); });
-        
-        document.body.addEventListener('click', (e) => {
-            if (e.target.classList.contains('btn-home')) {
-                resetGame();
-            }
-        });
-        
-        document.getElementById('sound-toggle-button').addEventListener('click', () => {
-            appState.isMuted = !appState.isMuted;
-            document.getElementById('sound-on-icon').classList.toggle('hidden', appState.isMuted);
-            document.getElementById('sound-off-icon').classList.toggle('hidden', !appState.isMuted);
-            if (appState.isMuted) toggleMusic(false);
-            else {
-                playSound('click');
-                if (document.getElementById('screen-game').classList.contains('active')) toggleMusic(true);
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            if (loadState()) {
-                document.getElementById('btn-resume-game').addEventListener('click', () => {
-                    playSound('click');
-                    restoreUI();
-                });
-            }
-            document.body.addEventListener('click', async () => {
-                if (!toneStarted) { 
-                    await Tone.start(); 
-                    toneStarted = true;
-                    console.log('Contexto de áudio iniciado.');
-                }
-            }, { once: true });
-
-            setInterval(() => {
-                if (appState.currentScreen !== 'screen-start') {
-                    saveState();
-                }
-            }, 5000);
-        });
-    </script>
 </body>
 </html>
