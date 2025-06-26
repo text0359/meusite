@@ -1,335 +1,687 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Calculadora + Spy com PeerJS</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enchanted Pink Cinema Room</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js" onerror="handleScriptError('PeerJS')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js" onerror="handleScriptError('Particles.js')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Estilos Gerais para o Corpo */
+    body {
+      background: linear-gradient(135deg, #f9a8d4, #f472b6, #ec4899);
+      font-family: 'Arial', sans-serif;
+      overflow-x: hidden; /* **CRÍTICO: Evita rolagem horizontal em qualquer cenário** */
+      animation: gradientShift 15s ease infinite;
+    }
+    /* Animação de Fundo Gradiente */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Contêiner Principal da Sala de Cinema */
+    .cinema-container {
+      background-color: rgba(255, 182, 193, 0.95);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transform: translateY(20px);
+      animation: floatIn 1s ease-out forwards;
+      /* **Ajustes de responsividade aprimorados** */
+      width: 96%; /* Permite uma pequena margem nas laterais */
+      max-width: 900px; /* Limite em telas maiores para não esticar demais */
+      margin-left: auto;
+      margin-right: auto;
+      box-sizing: border-box; /* Garante que padding não cause overflow */
+    }
+    /* Animação de Entrada do Contêiner */
+    @keyframes floatIn {
+      to { transform: translateY(0); opacity: 1; }
+    }
+    /* Estilo do Player de Vídeo */
+    video {
+      border: 4px solid #ec4899;
+      border-radius: 15px;
+      transition: opacity 0.5s ease;
+      width: 100%; /* **Essencial: O vídeo sempre ocupa a largura total do seu contêiner** */
+      height: auto; /* Mantém a proporção do vídeo */
+      display: block; /* Remove espaço extra abaixo do vídeo */
+    }
+    /* Estilo dos Botões */
+    button {
+      background: linear-gradient(45deg, #f472b6, #ec4899);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+      width: 100%; /* **Botões sempre ocupam 100% da largura em pequenos dispositivos** */
+      font-size: 1rem; /* Garante tamanho legível */
+    }
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.7);
+    }
+    button::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.4s, height 0.4s;
+    }
+    button:active::after {
+      width: 200px;
+      height: 200px;
+    }
+    /* Estilo da Área de Upload de Arquivos */
+    .file-upload {
+      background-color: #fef2f2;
+      border: 3px dashed #f472b6;
+      padding: 15px;
+      border-radius: 15px;
+      transition: transform 0.3s ease;
+      box-sizing: border-box; /* Garante que padding não cause overflow */
+    }
+    .file-upload:hover {
+      transform: scale(1.02);
+    }
+    /* Estilo do Menu Lateral */
+    .menu {
+      background: rgba(244, 114, 182, 0.9);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease;
+      z-index: 100; /* Garante que o menu fique sobre outros elementos */
+      width: 80%; /* **Ocupa mais largura em celulares para melhor usabilidade** */
+      max-width: 280px; /* Limita a largura máxima em telas maiores */
+      box-sizing: border-box; /* Garante que padding não cause overflow */
+      padding: 1rem; /* Espaçamento interno */
+      /* **Ajuste para sumir completamente** */
+      pointer-events: auto; /* Permite interações quando visível */
+    }
+    .menu-hidden {
+      transform: translateX(-110%); /* **Move para mais longe para garantir que suma completamente** */
+      pointer-events: none; /* **Impede cliques em elementos invisíveis** */
+    }
+    /* Estilo dos Itens da Lista de Cenas */
+    .scene-item {
+      cursor: pointer;
+      transition: background-color 0.3s;
+      padding: 0.75rem; /* Ajuste para melhor toque */
+      border-radius: 8px; /* Cantos arredondados */
+    }
+    .scene-item:hover {
+      background-color: #f9a8d4;
+    }
+    /* Partículas de Fundo */
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    /* Estilos de Status de Conexão */
+    .status-connected { color: #10b981; }
+    .status-error { color: #ef4444; }
 
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    /* **Media Queries para Ajustes Mais Finos em Telas de Celular** */
+    @media (max-width: 768px) { /* Para tablets e celulares */
+      .cinema-container {
+        padding: 15px; /* Reduz o padding geral para economizar espaço */
+        width: 98%; /* Ocupa quase toda a largura para maximizar espaço */
+      }
+      h1 {
+        font-size: 2rem; /* Títulos menores para caber melhor */
+        margin-bottom: 1rem;
+      }
+      button {
+        padding: 10px 15px; /* Botões um pouco menores */
+        margin-bottom: 0.75rem; /* Espaçamento entre botões */
+      }
+      .flex-col-mobile { /* Usado para forçar empilhamento de botões, se necessário */
+        flex-direction: column;
+      }
+      .input-full-width { /* Garante inputs que ocupam toda a largura */
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .space-y-2 > *:not([hidden]) ~ *:not([hidden]) {
+        margin-top: 0.5rem; /* Ajusta espaçamento vertical para elementos empilhados */
+      }
+    }
 
-<style>
-  /* Temas para calculadora */
-  body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f9;
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-  }
-  .calculator {
-    width: 320px;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    background: var(--bg-color, #fff);
-    color: var(--text-color, #000);
-  }
-  .display {
-    width: 100%;
-    height: 50px;
-    font-size: 24px;
-    margin-bottom: 15px;
-    padding: 0 10px;
-    border-radius: 6px;
-    border: 2px solid #ccc;
-    text-align: right;
-    user-select: none;
-    background: var(--input-bg, #fff);
-    color: var(--text-color, #000);
-  }
-  .buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-  }
-  button {
-    padding: 15px;
-    font-size: 18px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    background: var(--btn-bg, #2196f3);
-    color: var(--btn-color, white);
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background: var(--btn-hover-bg, #1769aa);
-  }
-  #themeSwitcher {
-    margin: 15px 0;
-    padding: 10px 20px;
-    border-radius: 8px;
-    background: var(--btn-bg, #2196f3);
-    color: var(--btn-color, white);
-  }
-  #sendEmailBtn {
-    margin-top: 15px;
-    width: 100%;
-    background: #4caf50;
-  }
-  #sendEmailBtn:hover {
-    background: #3b8b3b;
-  }
-  #emailStatus {
-    margin-top: 10px;
-    font-size: 14px;
-    min-height: 22px;
-    color: #555;
-    text-align: center;
-    user-select: none;
-  }
-
-  /* Temas: */
-  body.theme-default {
-    --bg-color: #fff;
-    --text-color: #000;
-    --input-bg: #fff;
-    --btn-bg: #2196f3;
-    --btn-color: #fff;
-    --btn-hover-bg: #1769aa;
-  }
-  body.theme-pink {
-    --bg-color: #ffe6f0;
-    --text-color: #880047;
-    --input-bg: #fff0f7;
-    --btn-bg: #d81b60;
-    --btn-color: #fff;
-    --btn-hover-bg: #a31544;
-  }
-  body.theme-dark {
-    --bg-color: #121212;
-    --text-color: #eee;
-    --input-bg: #333;
-    --btn-bg: #bb86fc;
-    --btn-color: #121212;
-    --btn-hover-bg: #9a67ea;
-  }
-
-  /* Vídeos lado a lado */
-  #videoContainer {
-    margin-top: 30px;
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-  }
-  video {
-    width: 140px;
-    height: 250px;
-    border-radius: 10px;
-    background: black;
-  }
-</style>
+    @media (max-width: 480px) { /* Para celulares muito pequenos */
+      .cinema-container {
+        padding: 10px;
+        border-radius: 15px; /* Cantos um pouco menos arredondados para economizar espaço */
+      }
+      h1 {
+        font-size: 1.75rem;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        border-radius: 10px;
+      }
+      .menu {
+        width: 90%; /* Menu ainda maior em telas muito pequenas */
+      }
+      .file-upload {
+        padding: 10px;
+      }
+    }
+  </style>
 </head>
-<body class="theme-pink">
+<body class="flex flex-col items-center justify-center min-h-screen p-2 sm:p-0">
+  <div id="particles-js"></div>
+  <!-- Arquivos de áudio de fallback (substitua por caminhos locais, se necessário) -->
+  <audio id="clickSound" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound')"></audio>
+  <audio id="bgMusic" src="https://freesound.org/data/previews/235/235655_4229646-lq.mp3" loop onerror="handleAudioError('Background Music')"></audio>
 
-<div class="calculator" role="region" aria-label="Calculadora educacional">
-  <input type="text" id="display" class="display" aria-live="polite" readonly />
-  <div class="buttons" role="group" aria-label="Teclado da calculadora">
-    <button data-value="7">7</button>
-    <button data-value="8">8</button>
-    <button data-value="9">9</button>
-    <button data-value="/">÷</button>
+  <div class="cinema-container w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto relative flex flex-col items-center p-4">
+    <h1 class="text-3xl sm:text-4xl font-bold text-pink-800 text-center mb-6 sm:mb-8 animate-pulse mt-4">
+      Enchanted Pink Cinema Room
+    </h1>
+    
+    <!-- Botão para Abrir o Menu -->
+    <button onclick="toggleMenu()" class="absolute top-4 left-4 z-50 px-4 py-2 text-white rounded-lg text-sm sm:text-base">
+      Menu
+    </button>
 
-    <button data-value="4">4</button>
-    <button data-value="5">5</button>
-    <button data-value="6">6</button>
-    <button data-value="*">×</button>
-
-    <button data-value="1">1</button>
-    <button data-value="2">2</button>
-    <button data-value="3">3</button>
-    <button data-value="-">−</button>
-
-    <button data-value="0">0</button>
-    <button data-value=".">.</button>
-    <button id="clear">C</button>
-    <button data-value="+">+</button>
-
-    <button id="equals" style="grid-column: span 4;">=</button>
+    <!-- Menu Lateral -->
+    <div id="menu" class="menu fixed top-0 left-0 h-full w-3/4 sm:w-64 p-4 menu-hidden shadow-lg">
+      <h2 class="text-2xl text-pink-800 mb-4">Menu</h2>
+      <button onclick="toggleMenu()" class="mb-4">Fechar Menu</button>
+      <div class="space-y-3 mt-4">
+        <button onclick="uploadAndShareFile()">Carregar Vídeo</button>
+        <button onclick="syncPlay()">Sincronizar Play</button>
+        <button onclick="syncPause()">Sincronizar Pausar</button>
+        <button onclick="addScene()">Adicionar Cena</button>
+      </div>
+      <h3 class="text-xl text-pink-700 mt-6 mb-2">Cenas</h3>
+      <ul id="sceneList" class="text-pink-800 space-y-2 max-h-48 overflow-y-auto"></ul>
+    </div>
+    
+    <!-- Seção de Conexão PeerJS -->
+    <div class="w-full mb-6 text-center fade-in px-4">
+      <h2 class="text-xl text-pink-700 mb-2">Conectar com Amigo</h2>
+      <p class="text-pink-800 mb-2">Seu Peer ID: <span id="myPeerId" class="font-bold"></span></p>
+      <p id="connectionStatus" class="text-pink-800 mb-2">Status: Desconectado</p>
+      <input id="remotePeerId" type="text" placeholder="Insira o Peer ID do amigo" 
+             class="w-full p-2 mb-4 text-pink-800 border border-pink-700 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-base">
+      <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-2">
+        <button onclick="connectToPeer()" class="text-base">Conectar</button>
+        <button onclick="retryConnection()" class="text-base">Tentar Novamente</button>
+      </div>
+    </div>
+    
+    <!-- Seção do Player de Filme/Vídeo -->
+    <div class="w-full mb-6 fade-in px-4">
+      <h2 class="text-xl text-pink-700 mb-2">Player de Filme</h2>
+      <video id="moviePlayer" controls class="w-full h-auto">
+        <source id="movieSource" src="" type="video/mp4">
+        Seu navegador não suporta a tag de vídeo.
+      </video>
+    </div>
+    
+    <!-- Seção de Upload e Download de Arquivos -->
+    <div class="file-upload w-full mb-6 fade-in px-4">
+      <h2 class="text-xl text-pink-700 mb-2">Carregar um Filme/Vídeo</h2>
+      <input type="file" id="fileInput" accept="video/*" class="mb-4 text-pink-800 w-full text-base">
+      <button onclick="uploadAndShareFile()" class="text-base">Carregar & Compartilhar Vídeo</button>
+      <div id="downloadSection" class="mt-4 text-center"></div>
+      <div id="fileTransferProgress" class="w-full mt-4 text-center text-pink-800 font-semibold text-sm sm:text-base"></div>
+    </div>
   </div>
 
-  <button id="themeSwitcher" aria-label="Mudar tema da calculadora">Mudar Tema</button>
-  <button id="sendEmailBtn" aria-label="Enviar ID PeerJS por email">Enviar ID PeerJS por Email</button>
-  <div id="emailStatus" aria-live="polite"></div>
-</div>
+  <script>
+    // Variáveis globais para PeerJS e elementos do DOM
+    let peer;
+    let conn;
+    let currentFileUrl = null;
+    let scenes = [];
+    const moviePlayer = document.getElementById('moviePlayer');
+    const movieSource = document.getElementById('movieSource');
+    const fileInput = document.getElementById('fileInput');
+    const downloadSection = document.getElementById('downloadSection');
+    const myPeerIdDisplay = document.getElementById('myPeerId');
+    const remotePeerIdInput = document.getElementById('remotePeerId');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const sceneList = document.getElementById('sceneList');
+    const clickSound = document.getElementById('clickSound');
+    const bgMusic = document.getElementById('bgMusic');
+    // Variável para armazenar dados de arquivos recebidos (para reconstrução)
+    let receivedFiles = new Map();
+    // Nova flag para controlar sincronização para evitar loops infinitos
+    let isSyncing = false;
 
-<div id="videoContainer" aria-label="Visualização das câmeras">
-  <video id="videoFront" autoplay muted playsinline></video>
-  <video id="videoBack" autoplay muted playsinline></video>
-</div>
-
-<!-- Formulário oculto para envio via Formspree -->
-<form id="emailForm" style="display:none;" action="https://formspree.io/f/mgvylnbg" method="POST" >
-  <input type="email" name="email" id="emailInput" value="brasildicas667@gmail.com" required />
-  <textarea name="message" id="messageInput"></textarea>
-</form>
-
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
-<script>
-  // --- Calculadora ---
-  const display = document.getElementById('display');
-  const buttons = document.querySelectorAll('.buttons button[data-value]');
-  const clearBtn = document.getElementById('clear');
-  const equalsBtn = document.getElementById('equals');
-  const themeSwitcher = document.getElementById('themeSwitcher');
-
-  let currentTheme = 1; // 1=pink, 2=default, 3=dark
-
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      display.value += btn.getAttribute('data-value');
-    });
-  });
-
-  clearBtn.addEventListener('click', () => {
-    display.value = '';
-  });
-
-  equalsBtn.addEventListener('click', () => {
-    try {
-      const result = Function(`"use strict";return (${display.value})`)();
-      display.value = result;
-    } catch {
-      display.value = 'Erro';
-    }
-  });
-
-  themeSwitcher.addEventListener('click', () => {
-    currentTheme++;
-    if (currentTheme > 3) currentTheme = 1;
-
-    if (currentTheme === 1) document.body.className = 'theme-pink';
-    else if (currentTheme === 2) document.body.className = 'theme-default';
-    else document.body.className = 'theme-dark';
-  });
-
-  // --- PeerJS e envio do ID ---
-  const peer = new Peer();
-  let myPeerId = null;
-  let isConnected = false;
-  const sendEmailBtn = document.getElementById('sendEmailBtn');
-  const emailStatus = document.getElementById('emailStatus');
-  const emailForm = document.getElementById('emailForm');
-  const messageInput = document.getElementById('messageInput');
-
-  let autoSendInterval;
-  let lastSentId = null;
-
-  peer.on('open', (id) => {
-    myPeerId = id;
-    console.log('PeerJS ID:', id);
-
-    sendIdByEmail();
-
-    autoSendInterval = setInterval(() => {
-      if (!isConnected && myPeerId !== lastSentId) {
-        sendIdByEmail();
-      }
-    }, 10000);
-  });
-
-  peer.on('connection', conn => {
-    isConnected = true;
-    clearInterval(autoSendInterval);
-    emailStatus.textContent = "Conectado, envio automático pausado.";
-    emailStatus.style.color = 'blue';
-
-    conn.on('close', () => {
-      isConnected = false;
-      emailStatus.textContent = "Desconectado, reativando envio automático.";
-      emailStatus.style.color = 'orange';
-
-      autoSendInterval = setInterval(() => {
-        if (!isConnected) sendIdByEmail();
-      }, 10000);
-    });
-  });
-
-  async function sendIdByEmail() {
-    if (!myPeerId) {
-      emailStatus.textContent = '⏳ Aguardando ID PeerJS...';
-      emailStatus.style.color = '#555';
-      return;
+    // Função para lidar com erros de carregamento de scripts externos
+    function handleScriptError(scriptName) {
+      connectionStatus.textContent = `Status: Erro ao carregar ${scriptName}. Por favor, atualize a página.`;
+      connectionStatus.classList.add('status-error');
+      console.error(`${scriptName} falhou ao carregar`);
     }
 
-    if (myPeerId === lastSentId) return;
+    // Função para lidar com erros de carregamento de áudio
+    function handleAudioError(audioName) {
+      console.warn(`${audioName} falhou ao carregar. Considere hospedar arquivos de áudio localmente.`);
+    }
 
-    messageInput.value = `Olá, este é o ID PeerJS para conexão: ${myPeerId}`;
-
-    try {
-      const formData = new FormData(emailForm);
-      const response = await fetch(emailForm.action, {
-        method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' },
+    // Inicialização do Particle.js para efeitos visuais
+    if (typeof particlesJS !== 'undefined') {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: '#f9a8d4' },
+          shape: { type: 'circle' },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: { enable: false },
+          move: { enable: true, speed: 2, direction: 'none', random: true }
+        },
+        interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'repulse' } } }
       });
+    } else {
+      console.warn('Particle.js não carregado');
+    }
 
-      if (response.ok) {
-        emailStatus.textContent = `✅ Email enviado com sucesso em ${new Date().toLocaleTimeString()}`;
-        emailStatus.style.color = 'green';
-        lastSentId = myPeerId;
+    // Configuração e reprodução da música de fundo
+    bgMusic.volume = 0.2;
+    bgMusic.play().catch(() => console.log('Música de fundo bloqueada pelo navegador'));
+
+    // Adiciona som de clique a todos os botões
+    document.querySelectorAll('button').forEach(button => {
+      button.addEventListener('click', () => {
+        clickSound.currentTime = 0;
+        clickSound.play().catch(() => console.log('Som de clique bloqueado'));
+      });
+    });
+
+    // Função para alternar a visibilidade do menu lateral
+    function toggleMenu() {
+      const menu = document.getElementById('menu');
+      menu.classList.toggle('menu-hidden');
+    }
+
+    // Inicialização do PeerJS com servidores STUN/TURN para melhor conectividade
+    peer = new Peer({
+      host: '0.peerjs.com',
+      secure: true,
+      port: 443,
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'turn:openrelay.metered.ca:80', username: 'openrelay.project', credential: 'openrelayproject' }
+        ]
+      }
+    });
+
+    // Evento quando o PeerJS é aberto e recebe um ID
+    peer.on('open', (id) => {
+      myPeerIdDisplay.textContent = id;
+      connectionStatus.textContent = 'Status: Aguardando conexão...';
+      connectionStatus.classList.remove('status-error', 'status-connected');
+      console.log('PeerJS inicializado com ID:', id);
+    });
+
+    // Evento para lidar com novas conexões recebidas
+    peer.on('connection', (connection) => {
+      conn = connection;
+      setupConnection();
+    });
+
+    // Evento para lidar com erros do PeerJS
+    peer.on('error', (err) => {
+      connectionStatus.textContent = `Status: Erro - ${err.type}. ${err.type === 'peer-unavailable' ? 'Verifique o Peer ID ou garanta que o amigo esteja online.' : 'Verifique a rede ou tente novamente.'}`;
+      connectionStatus.classList.add('status-error');
+      console.error('Erro PeerJS:', err);
+    });
+
+    // Função para iniciar a conexão com outro Peer
+    function connectToPeer() {
+      const remoteId = remotePeerIdInput.value.trim();
+      if (remoteId) {
+        connectionStatus.textContent = 'Status: Conectando...';
+        connectionStatus.classList.remove('status-error', 'status-connected');
+        conn = peer.connect(remoteId);
+        setupConnection();
       } else {
-        const data = await response.json();
-        emailStatus.textContent = '❌ Erro ao enviar email: ' + (data.error || 'tente novamente');
-        emailStatus.style.color = 'red';
+        connectionStatus.textContent = 'Status: Insira um Peer ID válido';
+        connectionStatus.classList.add('status-error');
+        console.warn('Nenhum Peer ID inserido');
       }
-    } catch (error) {
-      emailStatus.textContent = '❌ Erro ao enviar email: ' + error.message;
-      emailStatus.style.color = 'red';
     }
-  }
 
-  sendEmailBtn.addEventListener('click', sendIdByEmail);
+    // Função para tentar novamente a conexão PeerJS
+    function retryConnection() {
+      if (remotePeerIdInput.value.trim()) {
+        connectionStatus.textContent = 'Status: Tentando novamente a conexão...';
+        connectionStatus.classList.remove('status-error', 'status-connected');
+        peer.destroy(); // Destrói a instância PeerJS atual
+        // Cria uma nova instância PeerJS
+        peer = new Peer({
+          host: '0.peerjs.com',
+          secure: true,
+          port: 443,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'turn:openrelay.metered.ca:80', username: 'openrelay.project', credential: 'openrelayproject' }
+            ]
+          }
+        });
+        peer.on('open', (id) => {
+          myPeerIdDisplay.textContent = id;
+          connectionStatus.textContent = 'Status: Aguardando conexão...';
+          connectToPeer(); // Tenta conectar automaticamente após reabrir
+        });
+        peer.on('error', (err) => {
+          connectionStatus.textContent = `Status: Erro - ${err.type}. ${err.type === 'peer-unavailable' ? 'Verifique o Peer ID ou garanta que o amigo esteja online.' : 'Verifique a rede ou tente novamente.'}`;
+          connectionStatus.classList.add('status-error');
+          console.error('Erro de nova tentativa PeerJS:', err);
+        });
+        peer.on('connection', (connection) => {
+          conn = connection;
+          setupConnection();
+        });
+      } else {
+        connectionStatus.textContent = 'Status: Insira um Peer ID válido para tentar novamente';
+        connectionStatus.classList.add('status-error');
+      }
+    }
 
-  // --- Captura vídeo frontal e traseira + áudio ---
-  const videoFront = document.getElementById('videoFront');
-  const videoBack = document.getElementById('videoBack');
+    // Função para atualizar o progresso da transferência de arquivo na interface
+    function updateProgress(direction, received, total, fileName = '') {
+      const progressDiv = document.getElementById('fileTransferProgress');
+      if (total === 0) { // Evita divisão por zero
+        progressDiv.textContent = '';
+        return;
+      }
+      const percentage = Math.min(100, Math.floor((received / total) * 100));
+      let statusText = '';
+      if (direction === 'upload') {
+        statusText = `Enviando: ${percentage}%`;
+      } else {
+        statusText = `Baixando '${fileName}': ${percentage}%`;
+      }
 
-  async function startMedia() {
-    try {
-      // Frente
-      const streamFront = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: true
+      if (percentage === 100) {
+        progressDiv.textContent = `${statusText} - Completo!`;
+        // Limpa o status após alguns segundos
+        setTimeout(() => { progressDiv.textContent = ''; }, 3000); 
+      } else {
+        progressDiv.textContent = statusText;
+      }
+    }
+
+    // Configura os ouvintes de evento para a conexão PeerJS
+    function setupConnection() {
+      conn.on('open', () => {
+        connectionStatus.textContent = 'Status: Conectado!';
+        connectionStatus.classList.add('status-connected');
+        console.log('Conexão PeerJS estabelecida');
+
+        // Adiciona ouvintes de evento ao player de vídeo após a conexão ser aberta
+        moviePlayer.addEventListener('play', handlePlayerPlay);
+        moviePlayer.addEventListener('pause', handlePlayerPause);
+        moviePlayer.addEventListener('seeked', handlePlayerSeeked);
       });
-      videoFront.srcObject = streamFront;
+      conn.on('data', (data) => {
+        // Lida com o início da transferência de arquivo
+        if (data.type === 'file-start') {
+          receivedFiles.set(data.fileTransferId, {
+            fileName: data.fileName,
+            fileType: data.fileType,
+            totalChunks: data.totalChunks,
+            receivedChunks: new Array(data.totalChunks), // Array para armazenar os chunks na ordem correta
+            receivedSize: 0,
+            fileSize: data.fileSize
+          });
+          console.log(`Recebendo arquivo: ${data.fileName} (${data.fileSize} bytes)`);
+          updateProgress('download', 0, data.fileSize, data.fileName);
+        } 
+        // Lida com os chunks de dados do arquivo
+        else if (data.type === 'file-chunk') {
+          const fileData = receivedFiles.get(data.fileTransferId);
+          if (fileData) {
+            fileData.receivedChunks[data.chunkIndex] = data.data; // Armazena o chunk na posição correta
+            fileData.receivedSize += data.data.byteLength;
+            updateProgress('download', fileData.receivedSize, fileData.fileSize, fileData.fileName);
 
-      // Atrás
-      const streamBack = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: "environment" } },
-        audio: false
+            // Verifica se todos os chunks foram recebidos
+            if (fileData.receivedSize === fileData.fileSize) {
+                // Monta o arquivo completo a partir dos chunks
+                const fullBlob = new Blob(fileData.receivedChunks, { type: fileData.fileType });
+                const url = URL.createObjectURL(fullBlob);
+                currentFileUrl = url;
+                movieSource.src = url;
+                moviePlayer.load();
+                moviePlayer.classList.add('fade-in');
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = fileData.fileName;
+                downloadLink.textContent = `Baixar ${fileData.fileName}`;
+                downloadLink.className = 'text-pink-700 underline mt-2 block';
+                downloadSection.innerHTML = '';
+                downloadSection.appendChild(downloadLink);
+                console.log('Arquivo de vídeo recebido e carregado com sucesso:', fileData.fileName);
+
+                receivedFiles.delete(data.fileTransferId); // Limpa o estado da transferência
+                updateProgress('download', fileData.fileSize, fileData.fileSize, fileData.fileName); // Garante 100%
+            }
+          }
+        }
+        // Lida com mensagens de sincronização (play, pause, seek)
+        else if (data.type === 'play' || data.type === 'pause' || data.type === 'seek') {
+          isSyncing = true; // Define a flag para evitar looping
+
+          moviePlayer.currentTime = data.time;
+          if (data.type === 'play') {
+            moviePlayer.play();
+            console.log('Sincronizar play no tempo:', data.time);
+          } else if (data.type === 'pause') {
+            moviePlayer.pause();
+            console.log('Sincronizar pausa no tempo:', data.time);
+          } else if (data.type === 'seek') {
+            // O currentTime já foi definido, nenhuma ação adicional é necessária para seek
+            console.log('Sincronizar busca no tempo:', data.time);
+          }
+          // Resetar a flag após um breve atraso para permitir que o navegador processe
+          // ou imediatamente se a operação do player for síncrona
+          setTimeout(() => { isSyncing = false; }, 100); 
+        }
+        // Lida com o compartilhamento de cenas
+        else if (data.type === 'scene') {
+          scenes = data.scenes;
+          updateSceneList();
+          console.log('Cenas recebidas:', data.scenes);
+        }
       });
-      videoBack.srcObject = streamBack;
-
-      // TODO: aqui vc pode criar conexão PeerJS para transmitir streams
-
-    } catch (err) {
-      console.error('Erro ao acessar câmeras/mic:', err);
-      alert('Permita o acesso à câmera e microfone!');
+      conn.on('close', () => {
+        connectionStatus.textContent = 'Status: Desconectado';
+        connectionStatus.classList.add('status-error');
+        console.log('Conexão PeerJS fechada');
+        // Remove os ouvintes de evento quando a conexão é fechada
+        moviePlayer.removeEventListener('play', handlePlayerPlay);
+        moviePlayer.removeEventListener('pause', handlePlayerPause);
+        moviePlayer.removeEventListener('seeked', handlePlayerSeeked);
+      });
     }
-  }
 
-  startMedia();
-
-  // --- Captura da tela e transmissão (exemplo básico) ---
-  async function startScreenCapture() {
-    try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-      // Aqui você pode mostrar ou enviar via PeerJS
-      console.log('Tela capturada', screenStream);
-      // Exemplo: adiciona num video ou envia direto
-    } catch (err) {
-      console.error('Erro ao capturar tela:', err);
+    // Funções de manipulador para eventos do player de vídeo
+    function handlePlayerPlay() {
+      if (!isSyncing && conn && conn.open && currentFileUrl) {
+        console.log('Enviando play sync:', moviePlayer.currentTime);
+        conn.send({ type: 'play', time: moviePlayer.currentTime });
+      }
     }
-  }
-  // Para ativar a captura de tela, chame startScreenCapture()
-  // startScreenCapture();
 
-  // Para o sistema funcionar 100% realtime, você precisa montar o canal PeerJS
-  // e enviar streams via conn.call(peerId, stream) etc.
-</script>
+    function handlePlayerPause() {
+      if (!isSyncing && conn && conn.open && currentFileUrl) {
+        console.log('Enviando pause sync:', moviePlayer.currentTime);
+        conn.send({ type: 'pause', time: moviePlayer.currentTime });
+      }
+    }
+
+    function handlePlayerSeeked() {
+      if (!isSyncing && conn && conn.open && currentFileUrl) {
+        console.log('Enviando seek sync:', moviePlayer.currentTime);
+        conn.send({ type: 'seek', time: moviePlayer.currentTime });
+      }
+    }
+
+    // Função para carregar e compartilhar um arquivo de vídeo
+    function uploadAndShareFile() {
+      const file = fileInput.files[0];
+      if (!file) {
+        console.warn('Nenhum arquivo selecionado para upload');
+        return;
+      }
+      if (!conn || !conn.open) {
+        console.warn('Não conectado a um peer para compartilhar o arquivo.');
+        alert('Por favor, conecte-se a um amigo antes de tentar compartilhar o vídeo.');
+        return;
+      }
+
+      // ** Exibir o vídeo imediatamente no player do remetente **
+      const localUrl = URL.createObjectURL(file);
+      currentFileUrl = localUrl;
+      movieSource.src = localUrl;
+      moviePlayer.load();
+      moviePlayer.classList.add('fade-in');
+      
+      const downloadLink = document.createElement('a');
+      downloadLink.href = localUrl;
+      downloadLink.download = file.name;
+      downloadLink.textContent = `Baixar ${file.name}`;
+      downloadLink.className = 'text-pink-700 underline mt-2 block';
+      downloadSection.innerHTML = '';
+      downloadSection.appendChild(downloadLink);
+      console.log('Vídeo carregado localmente e pronto para envio:', file.name);
+
+
+      const chunkSize = 64 * 1024; // 64 KB por chunk
+      let offset = 0;
+      const fileTransferId = Date.now().toString(); // ID único para esta transferência
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+          const arrayBuffer = e.target.result;
+          const totalChunks = Math.ceil(arrayBuffer.byteLength / chunkSize);
+
+          // Envia metadados iniciais do arquivo
+          conn.send({
+              type: 'file-start',
+              fileTransferId: fileTransferId,
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type,
+              totalChunks: totalChunks
+          });
+          console.log(`Iniciando envio do arquivo: ${file.name} (${file.size} bytes) em ${totalChunks} chunks.`);
+          updateProgress('upload', 0, file.size);
+
+          // Envia os chunks do arquivo
+          while (offset < arrayBuffer.byteLength) {
+              const chunk = arrayBuffer.slice(offset, offset + chunkSize);
+              conn.send({
+                  type: 'file-chunk',
+                  fileTransferId: fileTransferId,
+                  chunkIndex: Math.floor(offset / chunkSize),
+                  data: chunk // Envia o ArrayBuffer do chunk
+              });
+              offset += chunkSize;
+              updateProgress('upload', offset, file.size);
+          }
+          console.log('Finalizado envio do arquivo:', file.name);
+          updateProgress('upload', file.size, file.size); // Garante 100%
+      };
+      reader.readAsArrayBuffer(file); // Lê o arquivo como ArrayBuffer
+    }
+
+    // As funções syncPlay e syncPause agora são chamadas pelos eventos do player
+    // e suas chamadas diretas via botão são mantidas por conveniência,
+    // mas a sincronização principal é via eventos.
+    function syncPlay() {
+      if (conn && conn.open && currentFileUrl) {
+        // Ação de play é tratada pelo evento 'play' do player
+        moviePlayer.play();
+      } else {
+        console.warn('Não é possível sincronizar o play: não conectado ou nenhum vídeo carregado');
+        alert('Por favor, conecte-se a um amigo e carregue um vídeo antes de sincronizar.');
+      }
+    }
+
+    function syncPause() {
+      if (conn && conn.open && currentFileUrl) {
+        // Ação de pause é tratada pelo evento 'pause' do player
+        moviePlayer.pause();
+      } else {
+        console.warn('Não é possível sincronizar a pausa: não conectado ou nenhum vídeo carregado');
+        alert('Por favor, conecte-se a um amigo e carregue um vídeo antes de sincronizar.');
+      }
+    }
+
+    // Função para adicionar uma cena (marcador de tempo)
+    function addScene() {
+      const time = moviePlayer.currentTime;
+      const sceneName = prompt('Digite o nome da cena:') || `Cena ${scenes.length + 1}`;
+      scenes.push({ name: sceneName, time: time });
+      updateSceneList();
+      if (conn && conn.open) {
+        conn.send({ type: 'scene', scenes: scenes });
+        console.log('Cena enviada:', sceneName, 'no tempo:', time);
+      } else {
+        console.warn('Não conectado a um peer para compartilhar a cena.');
+        alert('Por favor, conecte-se a um amigo para compartilhar cenas.');
+      }
+    }
+
+    // Função para atualizar a lista de cenas no menu
+    function updateSceneList() {
+      sceneList.innerHTML = '';
+      scenes.forEach((scene, index) => {
+        const li = document.createElement('li');
+        li.className = 'scene-item p-2 rounded';
+        li.textContent = `${scene.name} (${formatTime(scene.time)})`;
+        li.onclick = () => {
+          moviePlayer.currentTime = scene.time;
+          if (conn && conn.open) {
+            conn.send({ type: 'play', time: scene.time }); // Envia play para sincronizar jump de cena
+          }
+          moviePlayer.play();
+          console.log('Pulou para a cena:', scene.name, 'no tempo:', scene.time);
+        };
+        sceneList.appendChild(li);
+      });
+    }
+
+    // Função utilitária para formatar o tempo em minutos:segundos
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    // Efeito de fade-in para elementos com a classe 'fade-in'
+    document.querySelectorAll('.fade-in').forEach(el => {
+      el.style.opacity = 0;
+      setTimeout(() => {
+        el.style.transition = 'opacity 1s ease';
+        el.style.opacity = 1;
+      }, 100);
+    });
+  </script>
 </body>
 </html>
