@@ -136,11 +136,8 @@
 
     /* NOVO: Estilos para Overlay de Reações */
     #reactionOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      position: absolute; /* **AGORA ABSOLUTO para ficar dentro do video-player-wrapper** */
+      inset: 0; /* Cobre todo o wrapper do vídeo */
       z-index: 90; /* Abaixo do menu, mas acima do conteúdo */
       pointer-events: none; /* Não bloqueia interação com a tela */
       overflow: hidden; /* Garante que emojis não saiam da tela se a animação os levar longe */
@@ -254,10 +251,12 @@
     .reaction-buttons-in-video {
         display: flex;
         justify-content: flex-end; /* Alinha à direita */
+        align-items: flex-end; /* Alinha à parte inferior */
         gap: 0.5rem; /* Espaçamento entre botões */
         pointer-events: auto; /* Permite clicar nos botões */
         opacity: 0; /* **Inicia oculto** */
         transition: opacity 0.3s ease;
+        padding-bottom: 0.5rem; /* Espaço na parte inferior para não colar na borda */
     }
 
     .video-player-wrapper:hover .reaction-buttons-in-video,
@@ -382,6 +381,67 @@
         font-size: 1.2rem;
         color: #f9a8d4;
     }
+    
+    /* NOVO: Estilo para o botão de início na intro screen */
+    #startButton {
+        background: linear-gradient(45deg, #a020f0, #ff69b4);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 15px;
+        border: none;
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 2rem; /* Espaçamento do loading bar */
+    }
+    #startButton:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(255,105,180,0.7);
+    }
+
+    /* Custom Fullscreen Mode */
+    .video-player-wrapper.custom-fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1000; /* Above all other content */
+        border-radius: 0; /* No rounded corners in fullscreen */
+        padding-top: 0; /* No aspect ratio padding in fullscreen */
+        box-shadow: none;
+    }
+
+    .video-player-wrapper.custom-fullscreen video {
+        object-fit: contain; /* Ensure video fits within screen */
+    }
+    /* Ensure the controls are always visible in custom fullscreen */
+    .video-player-wrapper.custom-fullscreen .video-player-overlay {
+        opacity: 1;
+        background-color: rgba(0,0,0,0.15); /* Slightly visible overlay */
+    }
+    .video-player-wrapper.custom-fullscreen #overlayPlayPauseButton,
+    .video-player-wrapper.custom-fullscreen .reaction-buttons-in-video {
+        opacity: 0.9; /* Slightly visible controls */
+    }
+
+    /* Hide native controls when in custom fullscreen */
+    .video-player-wrapper.custom-fullscreen video::-webkit-media-controls-enclosure {
+        display: none !important;
+    }
+    /* Para Firefox */
+    .video-player-wrapper.custom-fullscreen video::-moz-media-controls {
+        display: none !important;
+    }
+    /* Para Edge/IE */
+    .video-player-wrapper.custom-fullscreen video::-ms-media-controls {
+        display: none !important;
+    }
+    /* Genérico - pode não funcionar em todos os browsers */
+    .video-player-wrapper.custom-fullscreen video::media-controls-container {
+        display: none !important;
+    }
 
 
     /* Media Queries para Ajustes Mais Finos em Telas de Celular */
@@ -438,6 +498,10 @@
       #loadingText {
           font-size: 1rem;
       }
+      #startButton {
+          font-size: 1.2rem;
+          padding: 12px 25px;
+      }
     }
 
     @media (max-width: 480px) { /* Para celulares muito pequenos */
@@ -486,6 +550,10 @@
       #loadingText {
           font-size: 0.9rem;
       }
+      #startButton {
+          font-size: 1rem;
+          padding: 10px 20px;
+      }
     }
   </style>
 </head>
@@ -508,11 +576,10 @@
     <div id="loadingBarContainer">
         <div id="loadingBar"></div>
     </div>
+    <button id="startButton" onclick="startCinemaExperience()">Iniciar Cinema</button>
   </div>
 
   <!-- Arquivos de áudio de fallback (substitua por caminhos locais, se necessário) -->
-  <audio id="clickSound" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound')"></audio>
-  <!-- NOVO: Múltiplos sons de clique para variedade -->
   <audio id="clickSound1" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound 1')"></audio>
   <audio id="clickSound2" src="https://freesound.org/data/previews/171/171668_2437358-lq.mp3" onerror="handleAudioError('Click Sound 2')"></audio>
   <audio id="clickSound3" src="https://freesound.org/data/previews/171/171670_2437358-lq.mp3" onerror="handleAudioError('Click Sound 3')"></audio>
@@ -565,6 +632,9 @@
           Seu navegador não suporta a tag de vídeo.
         </video>
 
+        <!-- Overlay para as Reações Animadas - MOVIDO PARA DENTRO DO WRAPPER -->
+        <div id="reactionOverlay" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
         <!-- Overlay de Controles e Reações -->
         <div id="videoOverlayControls" class="video-player-overlay">
           <!-- Controles Centrais de Play/Pause -->
@@ -575,14 +645,20 @@
               </button>
           </div>
 
-          <!-- Botões de Reação (Canto Inferior Direito) -->
-          <div id="reactionButtonsInVideo" class="flex justify-end gap-2 reaction-buttons-in-video">
-              <button onclick="sendReaction('❤️')">❤️</button>
-              <button onclick="sendReaction('😂')">😂</button>
-              <button onclick="sendReaction('✋')">✋</button>
-              <button onclick="sendReaction('😮')">😮</button>
-              <button onclick="sendReaction('😢')">😢</button>
-              <button onclick="sendReaction('✨')">✨</button>
+          <!-- Botões de Reação e Fullscreen (Canto Inferior Direito) -->
+          <div class="flex justify-end items-end gap-2 p-2 w-full"> 
+              <div id="reactionButtonsInVideo" class="flex justify-end gap-2 reaction-buttons-in-video">
+                  <button onclick="sendReaction('❤️')">❤️</button>
+                  <button onclick="sendReaction('😂')">😂</button>
+                  <button onclick="sendReaction('✋')">✋</button>
+                  <button onclick="sendReaction('😮')">😮</button>
+                  <button onclick="sendReaction('😢')">😢</button>
+                  <button onclick="sendReaction('✨')">✨</button>
+              </div>
+              <!-- Custom Fullscreen Button -->
+              <button id="customFullscreenButton" onclick="toggleCustomFullscreen()" class="ml-2 bg-pink-600 hover:bg-pink-700 p-2 rounded-lg text-lg">
+                  ↔️
+              </button>
           </div>
         </div>
       </div>
@@ -627,13 +703,13 @@
     const connectionStatus = document.getElementById('connectionStatus');
     const sceneList = document.getElementById('sceneList');
     
-    // NOVO: Array de URLs de sons de clique para variedade
+    // Array de URLs de sons de clique para variedade
     const clickSounds = [
       new Audio("https://freesound.org/data/previews/171/171671_2437358-lq.mp3"), // Click original
       new Audio("https://freesound.org/data/previews/171/171668_2437358-lq.mp3"), // Click 2
       new Audio("https://freesound.org/data/previews/171/171670_2437358-lq.mp3")  // Click 3
     ];
-    clickSounds.forEach(s => s.volume = 0.1); // NOVO: Reduz o volume dos sons de clique
+    clickSounds.forEach(s => s.volume = 0.1); // Reduz o volume dos sons de clique
     
     const bgMusic = document.getElementById('bgMusic');
     const reactionOverlay = document.getElementById('reactionOverlay'); 
@@ -652,10 +728,14 @@
     const videoOverlayControls = document.getElementById('videoOverlayControls'); 
     const reactionButtonsInVideo = document.getElementById('reactionButtonsInVideo'); 
 
-    // NOVO: Elementos da Tela de Introdução
+    // Elementos da Tela de Introdução
     const introScreen = document.getElementById('introScreen');
     const introVideo = document.getElementById('introVideo');
     const cinemaContainer = document.querySelector('.cinema-container');
+    const loadingBar = document.getElementById('loadingBar'); // Referência à barra de carregamento
+    const loadingText = document.getElementById('loadingText'); // Referência ao texto de carregamento
+    const customFullscreenButton = document.getElementById('customFullscreenButton'); // Botão de tela cheia customizada
+    let isCustomFullscreen = false; // Estado da tela cheia customizada
 
     // Funções de tratamento de erro para scripts e áudios
     function handleScriptError(scriptName) {
@@ -686,22 +766,26 @@
       console.warn('Particle.js não carregado');
     }
 
-    // NOVO: Inicia a tela de introdução e o áudio
-    window.addEventListener('load', () => {
-        // Tenta tocar a música de fundo. Se for bloqueada, tentará novamente após a primeira interação.
+    // Função para iniciar a experiência do cinema após o clique do usuário
+    function startCinemaExperience() {
+        // Tenta tocar a música de fundo
         bgMusic.volume = 0.3; // Volume da música de fundo
         bgMusic.play().catch(e => {
-            console.log("Música de fundo bloqueada pelo navegador, aguardando interação:", e);
-            // Adiciona um ouvinte para a primeira interação para tentar tocar a música
-            document.body.addEventListener('click', () => {
-                bgMusic.play().catch(() => {}); // Tenta tocar, ignorando erros subsequentes
-            }, { once: true }); // Executa apenas uma vez
+            console.log("Música de fundo bloqueada pelo navegador, usuário terá que interagir de novo:", e);
         });
 
         // Inicia o vídeo da introdução
         introVideo.play().catch(e => console.log("Vídeo da introdução bloqueado pelo navegador:", e));
 
-        // Transição da tela de introdução para a sala de cinema principal
+        // Reinicia a animação da barra de carregamento
+        loadingBar.style.animation = 'none';
+        void loadingBar.offsetWidth; // Trigger reflow
+        loadingBar.style.animation = 'loadingFill 12s linear forwards';
+
+        // Altera o texto para indicar que está carregando o cinema principal
+        loadingText.textContent = "Carregando a experiência do cinema...";
+
+        // Transição da tela de introdução para a sala de cinema principal após 12 segundos
         setTimeout(() => {
             introScreen.classList.add('fade-out');
             setTimeout(() => {
@@ -710,12 +794,13 @@
                 cinemaContainer.classList.add('float-in'); // Garante a animação de entrada
             }, 1000); // Tempo da transição de fade-out
         }, 12000); // 12 segundos para a introdução
-    });
+    }
+
 
     // Adiciona som de clique a todos os botões
     document.querySelectorAll('button').forEach(button => {
       button.addEventListener('click', () => {
-        // NOVO: Toca um som de clique aleatório
+        // Toca um som de clique aleatório
         const randomClickSound = clickSounds[Math.floor(Math.random() * clickSounds.length)];
         randomClickSound.currentTime = 0; // Reinicia o som
         randomClickSound.play().catch(() => console.log('Som de clique bloqueado'));
@@ -845,19 +930,22 @@
       }
     }
 
-    // Função para exibir uma reação animada
+    // Função para exibir uma reação animada (AGORA DENTRO DO VÍDEO)
     function displayReaction(emoji) {
         const reactionDiv = document.createElement('div');
         reactionDiv.className = 'reaction-emoji';
         reactionDiv.textContent = emoji;
 
-        // Posição aleatória na tela (aproximadamente, para não ficar sempre no mesmo lugar)
-        const x = Math.random() * (window.innerWidth - 100) + 50; // Largura - 100px para bordas + 50px offset
-        const y = Math.random() * (window.innerHeight - 100) + 50; // Altura - 100px para bordas + 50px offset
+        // Calcula a posição aleatória dentro das dimensões do player de vídeo
+        const playerRect = moviePlayer.getBoundingClientRect();
+        // Garante que o emoji apareça um pouco afastado das bordas
+        const x = Math.random() * (playerRect.width - 60) + 30; // Min 30px, Max playerWidth-30px
+        const y = Math.random() * (playerRect.height - 60) + 30; // Min 30px, Max playerHeight-30px
         
         reactionDiv.style.left = `${x}px`;
         reactionDiv.style.top = `${y}px`;
 
+        // Adiciona o emoji ao reactionOverlay que está dentro do video-player-wrapper
         reactionOverlay.appendChild(reactionDiv);
 
         // Remove o emoji após a animação (2.5 segundos)
@@ -923,6 +1011,29 @@
                 overlayPlayPauseButton.classList.remove('show-button');
             }, 3000); // Esconde após 3 segundos de inatividade
         }
+    }
+
+    // NOVO: Função para alternar entre tela cheia customizada e modo normal
+    function toggleCustomFullscreen() {
+        if (!isCustomFullscreen) {
+            // Entra em modo de tela cheia customizada (CSS)
+            videoPlayerWrapper.classList.add('custom-fullscreen');
+            // Esconde os controles nativos do HTML5 video (se eles não sumirem automaticamente)
+            moviePlayer.removeAttribute('controls'); 
+            isCustomFullscreen = true;
+            customFullscreenButton.textContent = 'Shrink'; // Muda texto/ícone do botão
+            // Força a exibição temporária dos controles customizados
+            showControlsTemporarily(); 
+        } else {
+            // Sai do modo de tela cheia customizada
+            videoPlayerWrapper.classList.remove('custom-fullscreen');
+            // Mostra os controles nativos do HTML5 video novamente
+            moviePlayer.setAttribute('controls', '');
+            isCustomFullscreen = false;
+            customFullscreenButton.textContent = '↔️'; // Muda texto/ícone do botão
+        }
+        // Re-chama a função para garantir que o estado dos ícones seja atualizado
+        updateOverlayPlayPauseButtonIcon(); 
     }
 
 
@@ -1060,7 +1171,7 @@
         }
       });
       conn.on('close', () => {
-        connectionStatus.textContent = 'Status: Disconnected';
+        connectionStatus.textContent = 'Status: Desconectado';
         connectionStatus.classList.add('status-error');
         console.log('Conexão PeerJS fechada');
         // Remove os ouvintes de evento quando a conexão é fechada
