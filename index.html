@@ -265,7 +265,7 @@
     }
 
     .reaction-buttons-in-video button {
-      background-color: rgba(236, 72, 153, 0.7); /* Rosa com transparência */
+      background: linear-gradient(45deg, #f472b6, #ec4899); /* **Botões de reação usam o mesmo gradiente dos outros** */
       color: white;
       border-radius: 9999px; /* Círculo completo */
       padding: 0.5rem;
@@ -559,15 +559,11 @@
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen">
   <div id="particles-js"></div>
-  <!-- Overlay para as Reações Animadas -->
-  <div id="reactionOverlay"></div>
-
-  <!-- NOVO: Tela de Introdução do Cinema -->
+  
   <div id="introScreen">
     <h1 id="introTitle">Werveson & Leticia's Home Cinema</h1>
     <div id="introVideoContainer">
         <video id="introVideo" loop muted playsinline>
-            <!-- Mini-filme/Trailer: Exemplo de vídeo de domínio público -->
             <source src="https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4" type="video/mp4">
             Seu navegador não suporta a tag de vídeo.
         </video>
@@ -576,27 +572,24 @@
     <div id="loadingBarContainer">
         <div id="loadingBar"></div>
     </div>
-    <button id="startButton" onclick="startCinemaExperience()">Iniciar Cinema</button>
+    <button id="startButton" onclick="startCinemaExperience(true)">Iniciar Cinema</button>
   </div>
 
-  <!-- Arquivos de áudio de fallback (substitua por caminhos locais, se necessário) -->
   <audio id="clickSound1" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound 1')"></audio>
   <audio id="clickSound2" src="https://freesound.org/data/previews/171/171668_2437358-lq.mp3" onerror="handleAudioError('Click Sound 2')"></audio>
   <audio id="clickSound3" src="https://freesound.org/data/previews/171/171670_2437358-lq.mp3" onerror="handleAudioError('Click Sound 3')"></audio>
 
-  <audio id="bgMusic" src="https://freesound.org/data/previews/235/235655_4229646-lq.mp3" loop onerror="handleAudioError('Background Music')"></audio>
+  <audio id="bgMusic" src="https://freesound.org/data/previews/235/235655_4229646-lq.mp3" loop muted onerror="handleAudioError('Background Music')"></audio>
 
   <div class="cinema-container w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto relative flex flex-col items-center p-4 hidden">
     <h1 class="text-3xl sm:text-4xl font-bold text-pink-800 text-center mb-6 sm:mb-8 animate-pulse mt-4">
       Enchanted Pink Cinema Room
     </h1>
     
-    <!-- Botão para Abrir o Menu -->
     <button onclick="toggleMenu()" class="absolute top-4 left-4 z-50 px-4 py-2 text-white rounded-lg text-sm sm:text-base">
       Menu
     </button>
 
-    <!-- Menu Lateral -->
     <div id="menu" class="menu fixed top-0 left-0 h-full w-3/4 sm:w-64 p-4 menu-hidden shadow-lg">
       <h2 class="text-2xl text-pink-800 mb-4">Menu</h2>
       <button onclick="toggleMenu()" class="mb-4">Fechar Menu</button>
@@ -610,7 +603,6 @@
       <ul id="sceneList" class="text-pink-800 space-y-2 max-h-48 overflow-y-auto"></ul>
     </div>
     
-    <!-- Seção de Conexão PeerJS -->
     <div class="w-full mb-6 text-center fade-in px-4">
       <h2 class="text-xl text-pink-700 mb-2">Conectar com Amigo</h2>
       <p class="text-pink-800 mb-2">Seu Peer ID: <span id="myPeerId" class="font-bold"></span></p>
@@ -623,7 +615,6 @@
       </div>
     </div>
     
-    <!-- Seção do Player de Filme/Vídeo - AGORA COM CONTROLES E REAÇÕES DENTRO -->
     <div class="w-full mb-6 fade-in px-4">
       <h2 class="text-xl text-pink-700 mb-2">Player de Filme</h2>
       <div class="video-player-wrapper">
@@ -632,12 +623,9 @@
           Seu navegador não suporta a tag de vídeo.
         </video>
 
-        <!-- Overlay para as Reações Animadas - MOVIDO PARA DENTRO DO WRAPPER -->
         <div id="reactionOverlay" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
 
-        <!-- Overlay de Controles e Reações -->
         <div id="videoOverlayControls" class="video-player-overlay">
-          <!-- Controles Centrais de Play/Pause -->
           <div class="flex flex-grow items-center justify-center">
               <button id="overlayPlayPauseButton" onclick="toggleOverlayPlayPause()">
                   <span id="overlayPlayIcon">▶️</span>
@@ -645,7 +633,6 @@
               </button>
           </div>
 
-          <!-- Botões de Reação e Fullscreen (Canto Inferior Direito) -->
           <div class="flex justify-end items-end gap-2 p-2 w-full"> 
               <div id="reactionButtonsInVideo" class="flex justify-end gap-2 reaction-buttons-in-video">
                   <button onclick="sendReaction('❤️')">❤️</button>
@@ -655,7 +642,6 @@
                   <button onclick="sendReaction('😢')">😢</button>
                   <button onclick="sendReaction('✨')">✨</button>
               </div>
-              <!-- Custom Fullscreen Button -->
               <button id="customFullscreenButton" onclick="toggleCustomFullscreen()" class="ml-2 bg-pink-600 hover:bg-pink-700 p-2 rounded-lg text-lg">
                   ↔️
               </button>
@@ -664,13 +650,11 @@
       </div>
     </div>
     
-    <!-- Seção de Upload e Download de Arquivos -->
     <div class="file-upload w-full mb-6 fade-in px-4">
       <h2 class="text-xl text-pink-700 mb-2">Carregar um Filme/Vídeo</h2>
       <input type="file" id="fileInput" accept="video/*" class="mb-4 text-pink-800 w-full text-base">
       <button onclick="uploadAndShareFile()" class="text-base">Carregar & Transmitir Vídeo</button>
       
-      <!-- BOTÃO E STATUS PARA DOWNLOAD OPCIONAL -->
       <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
         <button onclick="shareFileForDownload()" class="text-base">Enviar Arquivo para Download</button>
         <button id="cancelDownloadButton" onclick="cancelFileDownload()" class="text-base bg-red-500 hover:bg-red-600 hidden">Cancelar Download</button>
@@ -737,6 +721,9 @@
     const customFullscreenButton = document.getElementById('customFullscreenButton'); // Botão de tela cheia customizada
     let isCustomFullscreen = false; // Estado da tela cheia customizada
 
+    // Variável para o ID do setTimeout da transição da intro
+    let introScreenTimeoutId;
+
     // Funções de tratamento de erro para scripts e áudios
     function handleScriptError(scriptName) {
       connectionStatus.textContent = `Status: Erro ao carregar ${scriptName}. Por favor, atualize a página.`;
@@ -766,35 +753,72 @@
       console.warn('Particle.js não carregado');
     }
 
-    // Função para iniciar a experiência do cinema após o clique do usuário
-    function startCinemaExperience() {
-        // Tenta tocar a música de fundo
-        bgMusic.volume = 0.3; // Volume da música de fundo
+    // Função para iniciar a experiência do cinema após o clique do usuário ou timeout
+    function startCinemaExperience(fromButtonClick = false) {
+        // Limpa o setTimeout que faria a transição automática após 12 segundos
+        clearTimeout(introScreenTimeoutId);
+
+        // Desmuta e tenta tocar a música de fundo (se ainda não estiver tocando)
+        bgMusic.muted = false; // Desmuta a música
         bgMusic.play().catch(e => {
-            console.log("Música de fundo bloqueada pelo navegador, usuário terá que interagir de novo:", e);
+            console.log("Música de fundo bloqueada ou falhou ao tocar:", e);
         });
 
-        // Inicia o vídeo da introdução
-        introVideo.play().catch(e => console.log("Vídeo da introdução bloqueado pelo navegador:", e));
+        // Desmuta e tenta tocar o vídeo da introdução (se ainda não estiver tocando)
+        introVideo.muted = false; // Desmuta o vídeo
+        introVideo.play().catch(e => console.log("Vídeo da introdução bloqueado ou falhou ao tocar:", e));
 
-        // Reinicia a animação da barra de carregamento
-        loadingBar.style.animation = 'none';
-        void loadingBar.offsetWidth; // Trigger reflow
-        loadingBar.style.animation = 'loadingFill 12s linear forwards';
-
-        // Altera o texto para indicar que está carregando o cinema principal
-        loadingText.textContent = "Carregando a experiência do cinema...";
-
-        // Transição da tela de introdução para a sala de cinema principal após 12 segundos
+        // Transição da tela de introdução para a sala de cinema principal
+        introScreen.classList.add('fade-out');
+        
+        // Pausar e resetar áudio/vídeo da introdução APÓS o fade-out
         setTimeout(() => {
-            introScreen.classList.add('fade-out');
-            setTimeout(() => {
-                introScreen.style.display = 'none';
-                cinemaContainer.classList.remove('hidden'); // Mostra o cinema container
-                cinemaContainer.classList.add('float-in'); // Garante a animação de entrada
-            }, 1000); // Tempo da transição de fade-out
-        }, 12000); // 12 segundos para a introdução
+            introScreen.style.display = 'none';
+            cinemaContainer.classList.remove('hidden'); // Mostra o cinema container
+            cinemaContainer.classList.add('float-in'); // Garante a animação de entrada
+            
+            // Pausar e resetar o vídeo da introdução
+            introVideo.pause();
+            introVideo.currentTime = 0;
+            introVideo.muted = true; // Garante que permaneça mutado se iniciado de novo
+
+            // Pausar e resetar a música de fundo (RPG)
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            bgMusic.muted = true; // Garante que permaneça mutada
+        }, 1000); // Tempo da transição de fade-out
+
+        // Se a chamada veio do botão, reinicia a animação da barra para 'completar' imediatamente
+        if (fromButtonClick) {
+            loadingBar.style.animation = 'none'; // Reseta a animação
+            void loadingBar.offsetWidth; // Trigger reflow
+            loadingBar.style.animation = 'loadingFill 0.5s ease-out forwards'; // Completa rapidamente
+            loadingText.textContent = "Iniciando cinema...";
+        }
     }
+
+    // Executa a configuração inicial da tela de introdução ao carregar a página
+    window.addEventListener('load', () => {
+        // Tenta tocar a música de fundo (mutada) e o vídeo da introdução (mutado)
+        // Eles estarão mutados para tentar contornar a política de autoplay
+        bgMusic.volume = 0.3;
+        bgMusic.muted = true; // Garante que comece mutado
+        // Tenta tocar, mas pode ser bloqueado pelo navegador até a primeira interação
+        bgMusic.play().catch(e => console.log("Música de fundo bloqueada em load (mutada):", e));
+
+        introVideo.muted = true; // Garante que o vídeo de introdução comece mutado
+        // Tenta tocar, mas pode ser bloqueado pelo navegador até a primeira interação
+        introVideo.play().catch(e => console.log("Vídeo da introdução bloqueado em load (mutado):", e));
+
+        // Inicia a animação da barra de carregamento e define o timeout para a transição automática
+        loadingBar.style.animation = 'loadingFill 12s linear forwards';
+        loadingText.textContent = "Carregando a experiência...";
+
+        // Define o timeout para a transição automática após 12 segundos
+        introScreenTimeoutId = setTimeout(() => {
+            startCinemaExperience(false); // Chama a função de início (não veio de um clique no botão)
+        }, 12000); // 12 segundos para a introdução
+    });
 
 
     // Adiciona som de clique a todos os botões
@@ -842,9 +866,31 @@
 
     // Evento para lidar com erros do PeerJS
     peer.on('error', (err) => {
-      connectionStatus.textContent = `Status: Erro - ${err.type}. ${err.type === 'peer-unavailable' ? 'Verifique o Peer ID ou garanta que o amigo esteja online.' : 'Verifique a rede ou tente novamente.'}`;
+      connectionStatus.textContent = `Status: Erro - ${err.type}. ${err.type === 'peer-unavailable' ? 'Verifique o Peer ID ou garanta que o amigo esteja online.' : 'Erro de rede/servidor. Tentando reconectar...'}`;
       connectionStatus.classList.add('status-error');
-      console.error('Erro PeerJS:', err);
+      console.error('PeerJS error:', err);
+
+      // Tenta reconectar se a conexão com o servidor for perdida
+      if (err.type === 'peer-disconnected' || err.type === 'network' || err.type === 'server-disconnected') {
+        if (reconnectPeerTimeout) clearTimeout(reconnectPeerTimeout);
+        reconnectPeerTimeout = setTimeout(() => {
+          console.log('Tentando reconectar ao servidor PeerJS...');
+          peer.reconnect(); // O PeerJS tem um método embutido para reconectar
+        }, 5000); // Tenta reconectar após 5 segundos
+      }
+    });
+
+    peer.on('close', () => {
+      connectionStatus.textContent = 'Status: Desconectado do servidor. Tentando reconectar...';
+      connectionStatus.classList.add('status-error');
+      console.log('Conexão PeerJS com o servidor fechada.');
+
+      // Agenda a reconexão automática
+      if (reconnectPeerTimeout) clearTimeout(reconnectPeerTimeout);
+      reconnectPeerTimeout = setTimeout(() => {
+        console.log('Tentando reconectar ao servidor PeerJS após evento de fechamento...');
+        peer.reconnect();
+      }, 5000); // Tenta reconectar após 5 segundos
     });
 
     // Função para iniciar a conexão com outro Peer
@@ -937,11 +983,13 @@
         reactionDiv.textContent = emoji;
 
         // Calcula a posição aleatória dentro das dimensões do player de vídeo
-        const playerRect = moviePlayer.getBoundingClientRect();
-        // Garante que o emoji apareça um pouco afastado das bordas
-        const x = Math.random() * (playerRect.width - 60) + 30; // Min 30px, Max playerWidth-30px
-        const y = Math.random() * (playerRect.height - 60) + 30; // Min 30px, Max playerHeight-30px
+        const playerRect = moviePlayer.getBoundingClientRect(); // Dimensões e posição do player em relação à viewport
+        // Garante que o emoji apareça um pouco afastado das bordas do vídeo
+        // 60 é o tamanho aproximado do emoji + margem para não cortar
+        const x = Math.random() * (playerRect.width - 60) + 30; 
+        const y = Math.random() * (playerRect.height - 60) + 30; 
         
+        // Posição do emoji dentro do overlay (que é absoluto em relação ao wrapper do vídeo)
         reactionDiv.style.left = `${x}px`;
         reactionDiv.style.top = `${y}px`;
 
@@ -1013,7 +1061,7 @@
         }
     }
 
-    // NOVO: Função para alternar entre tela cheia customizada e modo normal
+    // Função para alternar entre tela cheia customizada e modo normal
     function toggleCustomFullscreen() {
         if (!isCustomFullscreen) {
             // Entra em modo de tela cheia customizada (CSS)
