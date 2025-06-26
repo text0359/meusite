@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bem-vindo ao Cinema Rosa Encantada</title>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js" onerror="handleScriptError('Particles.js')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Variáveis CSS para Cores - Mantidas para consistência visual */
+    :root {
+      --pink-primary: #ec4899; /* Rosa forte para o fundo principal do container */
+      --pink-secondary: #f472b6; /* Rosa médio para barras (topo, lateral, upload) */
+      --pink-light: #f9a8d4; /* Rosa claro para acentos e textos */
+      --pink-very-light: #fef2f2; /* Quase branco rosado para inputs e contrastes */
+      --purple-accent: #a020f0; /* Roxo para introdução e acentos */
+      --text-dark-pink: #881337; /* Rosa escuro para textos */
+      --text-light: white; /* Texto claro */
+    }
+
+    body {
+      background: linear-gradient(45deg, var(--purple-accent), var(--pink-light), var(--pink-primary));
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: var(--text-light);
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    /* Partículas de Fundo */
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    /* ESTILOS DA TELA DE INTRODUÇÃO */
+    #introScreen {
+        position: relative; /* Para centralizar o conteúdo dentro do body */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%; /* Ocupa a largura total para centralizar */
+        height: 100vh; /* Ocupa a altura total da viewport */
+        transition: opacity 1s ease-out;
+        opacity: 1;
+        text-align: center;
+    }
+    #introScreen.fade-out {
+        opacity: 0;
+        pointer-events: none; /* Impede interação após fade-out */
+    }
+    #introTitle {
+        font-family: 'Times New Roman', serif;
+        font-size: 3.5rem;
+        font-weight: bold;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+        animation: fadeInScale 1s ease-out forwards, neonGlow 1.5s ease-in-out infinite alternate 1s;
+    }
+    @keyframes fadeInScale {
+        0% { opacity: 0; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes neonGlow {
+        from { text-shadow: 0 0 5px #fff, 0 0 10px var(--pink-primary), 0 0 20px var(--pink-primary), 0 0 30px var(--pink-primary); }
+        to { text-shadow: 0 0 10px #fff, 0 0 20px var(--pink-primary), 0 0 30px var(--pink-primary), 0 0 40px var(--pink-primary); }
+    }
+    #introVideoContainer {
+        width: 80%;
+        max-width: 600px;
+        border: 7px solid var(--pink-primary);
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 0 30px rgba(0,0,0,0.7);
+        animation: fadeInScale 1.5s ease-out forwards, borderGlow 2s ease-in-out infinite alternate;
+    }
+    @keyframes borderGlow {
+        from { border-color: var(--pink-primary); box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 30px var(--pink-primary); }
+        to { border-color: var(--pink-light); box-shadow: 0 0 30px var(--pink-light), 0 0 40px var(--pink-secondary); }
+    }
+    #introVideo {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    #loadingBarContainer {
+        width: 70%;
+        max-width: 400px;
+        background-color: rgba(var(--text-light-rgb),0.3);
+        border-radius: 5px;
+        height: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    #loadingBar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--pink-secondary), var(--pink-primary));
+        animation: loadingFill 12s linear forwards;
+    }
+    @keyframes loadingFill {
+        from { width: 0%; }
+        to { width: 100%; }
+    }
+    #loadingText {
+        margin-top: 0.5rem;
+        font-size: 1.2rem;
+        color: var(--pink-light);
+    }
+    #startButton {
+        background: linear-gradient(45deg, var(--purple-accent), var(--pink-primary));
+        color: var(--text-light);
+        padding: 18px 35px;
+        border-radius: 20px;
+        border: none;
+        font-size: 1.6rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 2rem;
+        box-shadow: 0 5px 20px rgba(var(--purple-accent-rgb), 0.5);
+        animation: fadeInScale 1s ease-out forwards;
+    }
+    #startButton:hover {
+        transform: scale(1.08);
+        box-shadow: 0 0 30px rgba(var(--purple-accent-rgb), 0.8), 0 0 40px rgba(var(--pink-primary-rgb), 0.7);
+    }
+
+    /* MEDIA QUERIES para responsividade da Intro Screen */
+    @media (max-width: 900px) {
+        #introTitle { font-size: 2.5rem; }
+        #introVideoContainer { width: 90%; }
+        #startButton { padding: 15px 30px; font-size: 1.4rem; }
+        #loadingBarContainer { width: 80%; max-width: 350px; }
+    }
+
+    @media (max-width: 480px) {
+        #introTitle { font-size: 1.8rem; margin-bottom: 1.5rem;}
+        #introVideoContainer { width: 95%; border-width: 5px;}
+        #startButton { padding: 12px 25px; font-size: 1.2rem; margin-top: 1.5rem;}
+        #loadingBarContainer { width: 90%; max-width: 300px; }
+        #loadingText { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+
+  <div id="introScreen">
+    <h1 id="introTitle">Werveson & Leticia's Home Cinema</h1>
+    <div id="introVideoContainer">
+        <video id="introVideo" loop playsinline>
+            <source src="https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4" type="video/mp4">
+            O seu navegador não suporta a tag de vídeo.
+        </video>
+    </div>
+    <p id="loadingText">A carregar a experiência...</p>
+    <div id="loadingBarContainer">
+        <div id="loadingBar"></div>
+    </div>
+    <button id="startButton" onclick="startCinemaExperience()">Iniciar Cinema</button>
+  </div>
+
+  <audio id="clickSound1" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound 1')"></audio>
+  <audio id="clickSound2" src="https://freesound.org/data/previews/171/171668_2437358-lq.mp3" onerror="handleAudioError('Click Sound 2')"></audio>
+  <audio id="clickSound3" src="https://freesound.org/data/previews/171/171670_2437358-lq.mp3" onerror="handleAudioError('Click Sound 3')"></audio>
+  <audio id="bgMusic" src="https://freesound.org/data/previews/235/235655_4229646-lq.mp3" loop onerror="handleAudioError('Background Music')"></audio>
+
+  <script>
+    let introStarted = false;
+    const bgMusic = document.getElementById('bgMusic');
+    const introVideo = document.getElementById('introVideo');
+    const loadingBar = document.getElementById('loadingBar');
+    const loadingText = document.getElementById('loadingText');
+    const introScreen = document.getElementById('introScreen');
+    const startButton = document.getElementById('startButton');
+
+    const clickSounds = [
+      new Audio("https://freesound.org/data/previews/171/171671_2437358-lq.mp3"),
+      new Audio("https://freesound.org/data/previews/171/171668_2437358-lq.mp3"),
+      new Audio("https://freesound.org/data/previews/171/171670_2437358-lq.mp3")
+    ];
+    clickSounds.forEach(s => s.volume = 0.1);
+
+    function handleScriptError(scriptName) {
+      console.error(`${scriptName} falhou ao carregar. Verifique a sua conexão com a internet ou se o link do script está correto.`);
+    }
+
+    function handleAudioError(audioName) {
+      console.warn(`${audioName} falhou ao carregar. Considere hospedar ficheiros de áudio localmente.`);
+    }
+
+    if (typeof particlesJS !== 'undefined') {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: '#f9a8d4' },
+          shape: { type: 'circle' },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: { enable: false },
+          move: { enable: true, speed: 2, direction: 'none', random: true }
+        },
+        interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'repulse' } } }
+      });
+    } else {
+      console.warn('Particle.js não carregado. O fundo animado não estará disponível.');
+    }
+
+    if (startButton) {
+      startButton.addEventListener('click', () => {
+        const randomClickSound = clickSounds[Math.floor(Math.random() * clickSounds.length)];
+        randomClickSound.currentTime = 0;
+        randomClickSound.play().catch(() => console.log('Som de clique bloqueado.'));
+      });
+    }
+
+    function startCinemaExperience() {
+        if (introStarted) return;
+        introStarted = true;
+
+        if (startButton) {
+            startButton.disabled = true;
+            startButton.textContent = "A iniciar...";
+        }
+
+        bgMusic.volume = 0.3;
+        bgMusic.play().then(() => {
+            console.log("Música de fundo iniciada.");
+        }).catch(e => {
+            console.log("Música de fundo bloqueada pelo navegador (interação necessária):", e);
+        });
+
+        introVideo.play().then(() => {
+            console.log("Vídeo da introdução iniciado.");
+        }).catch(e => {
+            console.log("Vídeo da introdução bloqueado pelo navegador (interação necessária):", e);
+        });
+
+        loadingBar.style.animation = 'none';
+        void loadingBar.offsetWidth;
+        loadingBar.style.animation = 'loadingFill 5s linear forwards';
+        loadingText.textContent = "A carregar a experiência do cinema...";
+
+        setTimeout(() => {
+            introScreen.classList.add('fade-out');
+            if (bgMusic && !bgMusic.paused) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+            if (introVideo && !introVideo.paused) {
+                introVideo.pause();
+                introVideo.currentTime = 0;
+            }
+            setTimeout(() => {
+                window.location.href = 'cinema.html';
+            }, 1000);
+        }, 5000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        bgMusic.load();
+        clickSounds.forEach(s => s.load());
+    });
+  </script>
+</body>
+</html>
