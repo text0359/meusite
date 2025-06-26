@@ -184,24 +184,39 @@
       overflow: hidden;
       border-radius: 15px; /* Arredondamento igual ao vídeo */
       box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Sombra suave */
+      /* Garante que o wrapper tenha altura para o overlay */
+      padding-top: 56.25%; /* 16:9 Aspect Ratio (9 / 16 * 100%) */
+      background-color: black; /* Fundo para quando não há vídeo */
+    }
+
+    .video-player-wrapper video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* Garante que o vídeo se ajuste sem cortar */
     }
 
     .video-player-overlay {
       position: absolute;
       inset: 0; /* Cobre todo o wrapper do vídeo */
-      z-index: 10; /* Acima do vídeo, abaixo dos controles nativos */
-      pointer-events: none; /* Permite que cliques passem para o vídeo por padrão */
+      z-index: 10; /* Acima do vídeo, abaixo dos controles nativos do navegador */
+      pointer-events: none; /* Permite que cliques passem para o vídeo por padrão, exceto em botões */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       padding: 1rem; /* Padding interno para os botões */
-      background-color: rgba(0,0,0,0.05); /* Fundo sutilmente translúcido */
-      transition: background-color 0.3s ease;
+      background-color: rgba(0,0,0,0); /* **Inicia totalmente transparente** */
+      opacity: 0; /* **Inicia oculto** */
+      transition: background-color 0.3s ease, opacity 0.3s ease;
     }
 
-    /* Efeito de hover no wrapper para escurecer o overlay */
-    .video-player-wrapper:hover .video-player-overlay {
-      background-color: rgba(0,0,0,0.15); /* Mais escuro no hover/touch */
+    /* Efeito de hover no wrapper para escurecer o overlay e mostrar controles */
+    .video-player-wrapper:hover .video-player-overlay,
+    .video-player-overlay.show-overlay { /* Classe JS para mostrar no touch */
+      opacity: 1; /* Totalmente visível no hover/touch */
+      background-color: rgba(0,0,0,0.15); /* Fundo sutilmente translúcido */
     }
 
     /* Estilo do botão central de Play/Pause */
@@ -212,8 +227,8 @@
       border-radius: 9999px; /* Círculo completo */
       padding: 1rem;
       font-size: 3rem; /* Ícone grande */
-      opacity: 0.8;
-      transition: opacity 0.2s ease, background-color 0.2s ease;
+      opacity: 0; /* **Inicia oculto** */
+      transition: opacity 0.3s ease, background-color 0.2s ease;
       flex-shrink: 0; /* Evita encolhimento */
       display: flex;
       align-items: center;
@@ -223,20 +238,39 @@
       margin: auto; /* Centraliza horizontal e verticalmente */
     }
 
+    /* Mostrar o botão de play/pause no hover, ou se estiver pausado, ou se a classe 'show-button' estiver ativa */
+    .video-player-wrapper:hover #overlayPlayPauseButton,
+    #overlayPlayPauseButton.is-paused, /* **Sempre visível quando pausado** */
+    #overlayPlayPauseButton.show-button { /* **Visível por um tempo no touch** */
+      opacity: 0.9; /* Um pouco transparente */
+    }
+
     #overlayPlayPauseButton:hover {
-      opacity: 1;
+      opacity: 1; /* Totalmente opaco no hover direto no botão */
       background-color: rgba(236, 72, 153, 1);
     }
 
     /* Estilo dos botões de reação dentro do vídeo */
+    .reaction-buttons-in-video {
+        display: flex;
+        justify-content: flex-end; /* Alinha à direita */
+        gap: 0.5rem; /* Espaçamento entre botões */
+        pointer-events: auto; /* Permite clicar nos botões */
+        opacity: 0; /* **Inicia oculto** */
+        transition: opacity 0.3s ease;
+    }
+
+    .video-player-wrapper:hover .reaction-buttons-in-video,
+    .reaction-buttons-in-video.show-buttons { /* Classe JS para mostrar no touch */
+        opacity: 0.8; /* **Visível com transparência no hover/touch** */
+    }
+
     .reaction-buttons-in-video button {
-      pointer-events: auto; /* Torna os botões clicáveis */
       background-color: rgba(236, 72, 153, 0.7); /* Rosa com transparência */
       color: white;
       border-radius: 9999px; /* Círculo completo */
       padding: 0.5rem;
       font-size: 1.5rem; /* Tamanho do emoji */
-      opacity: 0.8;
       transition: opacity 0.2s ease, background-color 0.2s ease;
       width: 50px; /* Tamanho fixo para facilitar o toque */
       height: 50px; /* Tamanho fixo */
@@ -246,8 +280,107 @@
     }
 
     .reaction-buttons-in-video button:hover {
-      opacity: 1;
+      opacity: 1; /* Totalmente opaco no hover direto no botão */
       background-color: rgba(236, 72, 153, 1);
+    }
+
+    /* NOVO: Estilos da Tela de Introdução */
+    #introScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #a020f0, #d8bfd8, #ff69b4); /* Gradiente roxo-rosa */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 200; /* Acima de tudo */
+        color: white;
+        text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        transition: opacity 1s ease-out; /* Transição de fade-out */
+        opacity: 1;
+    }
+
+    #introScreen.fade-out {
+        opacity: 0;
+        pointer-events: none; /* Impede cliques após fade-out */
+    }
+
+    #introTitle {
+        font-family: 'Times New Roman', serif; /* Fonte clássica de cinema */
+        font-size: 3rem; /* Tamanho grande */
+        font-weight: bold;
+        margin-bottom: 2rem;
+        text-align: center;
+        padding: 0 1rem;
+        /* NOVO: Animação de entrada e depois o brilho */
+        animation: fadeInScale 1s ease-out forwards, neonGlow 1.5s ease-in-out infinite alternate 1s;
+    }
+
+    /* NOVO: Animação de Fade-in e Escala para elementos da introdução */
+    @keyframes fadeInScale {
+        0% { opacity: 0; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes neonGlow {
+        from { text-shadow: 0 0 5px #fff, 0 0 10px #ff69b4, 0 0 20px #ff69b4, 0 0 30px #ff69b4; }
+        to { text-shadow: 0 0 10px #fff, 0 0 20px #ff69b4, 0 0 30px #ff69b4, 0 0 40px #ff69b4; }
+    }
+
+    #introVideoContainer {
+        width: 80%; /* Tamanho do mini-filme */
+        max-width: 600px;
+        border: 5px solid #ff69b4;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        /* NOVO: Animação de entrada e brilho na borda */
+        animation: fadeInScale 1.5s ease-out forwards, borderGlow 2s ease-in-out infinite alternate;
+    }
+
+    /* NOVO: Animação para o brilho da borda do vídeo */
+    @keyframes borderGlow {
+        from { border-color: #ff69b4; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        to { border-color: #f9a8d4; box-shadow: 0 0 30px #f9a8d4, 0 0 40px #ff69b4; }
+    }
+
+
+    #introVideo {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    #loadingBarContainer {
+        width: 70%;
+        max-width: 400px;
+        background-color: rgba(255,255,255,0.3);
+        border-radius: 5px;
+        height: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    #loadingBar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #f472b6, #ec4899); /* Barra rosa/dourada */
+        animation: loadingFill 12s linear forwards; /* Animação de preenchimento */
+    }
+
+    @keyframes loadingFill {
+        from { width: 0%; }
+        to { width: 100%; }
+    }
+
+    #loadingText {
+        margin-top: 0.5rem;
+        font-size: 1.2rem;
+        color: #f9a8d4;
     }
 
 
@@ -289,6 +422,22 @@
         width: 40px;
         height: 40px;
       }
+      .reaction-buttons-in-video {
+        gap: 0.3rem; /* Menor espaçamento entre botões em telas pequenas */
+      }
+
+      #introTitle {
+          font-size: 2.5rem;
+      }
+      #introVideoContainer {
+          width: 90%;
+      }
+      #loadingBarContainer {
+          width: 80%;
+      }
+      #loadingText {
+          font-size: 1rem;
+      }
     }
 
     @media (max-width: 480px) { /* Para celulares muito pequenos */
@@ -324,19 +473,53 @@
         width: 35px;
         height: 35px;
       }
+
+      #introTitle {
+          font-size: 1.8rem;
+      }
+      #introVideoContainer {
+          width: 95%;
+      }
+      #loadingBarContainer {
+          width: 90%;
+      }
+      #loadingText {
+          font-size: 0.9rem;
+      }
     }
   </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen">
   <div id="particles-js"></div>
-  <!-- NOVO: Overlay para as Reações Animadas -->
+  <!-- Overlay para as Reações Animadas -->
   <div id="reactionOverlay"></div>
+
+  <!-- NOVO: Tela de Introdução do Cinema -->
+  <div id="introScreen">
+    <h1 id="introTitle">Werveson & Leticia's Home Cinema</h1>
+    <div id="introVideoContainer">
+        <video id="introVideo" loop muted playsinline>
+            <!-- Mini-filme/Trailer: Exemplo de vídeo de domínio público -->
+            <source src="https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4" type="video/mp4">
+            Seu navegador não suporta a tag de vídeo.
+        </video>
+    </div>
+    <p id="loadingText">Carregando a experiência...</p>
+    <div id="loadingBarContainer">
+        <div id="loadingBar"></div>
+    </div>
+  </div>
 
   <!-- Arquivos de áudio de fallback (substitua por caminhos locais, se necessário) -->
   <audio id="clickSound" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound')"></audio>
+  <!-- NOVO: Múltiplos sons de clique para variedade -->
+  <audio id="clickSound1" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound 1')"></audio>
+  <audio id="clickSound2" src="https://freesound.org/data/previews/171/171668_2437358-lq.mp3" onerror="handleAudioError('Click Sound 2')"></audio>
+  <audio id="clickSound3" src="https://freesound.org/data/previews/171/171670_2437358-lq.mp3" onerror="handleAudioError('Click Sound 3')"></audio>
+
   <audio id="bgMusic" src="https://freesound.org/data/previews/235/235655_4229646-lq.mp3" loop onerror="handleAudioError('Background Music')"></audio>
 
-  <div class="cinema-container w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto relative flex flex-col items-center p-4">
+  <div class="cinema-container w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto relative flex flex-col items-center p-4 hidden">
     <h1 class="text-3xl sm:text-4xl font-bold text-pink-800 text-center mb-6 sm:mb-8 animate-pulse mt-4">
       Enchanted Pink Cinema Room
     </h1>
@@ -383,7 +566,7 @@
         </video>
 
         <!-- Overlay de Controles e Reações -->
-        <div class="video-player-overlay">
+        <div id="videoOverlayControls" class="video-player-overlay">
           <!-- Controles Centrais de Play/Pause -->
           <div class="flex flex-grow items-center justify-center">
               <button id="overlayPlayPauseButton" onclick="toggleOverlayPlayPause()">
@@ -393,7 +576,7 @@
           </div>
 
           <!-- Botões de Reação (Canto Inferior Direito) -->
-          <div class="flex justify-end gap-2 reaction-buttons-in-video">
+          <div id="reactionButtonsInVideo" class="flex justify-end gap-2 reaction-buttons-in-video">
               <button onclick="sendReaction('❤️')">❤️</button>
               <button onclick="sendReaction('😂')">😂</button>
               <button onclick="sendReaction('✋')">✋</button>
@@ -427,8 +610,6 @@
       </p>
     </div>
 
-    <!-- Seção de Reações Antiga Removida -->
-
   </div>
 
   <script>
@@ -445,31 +626,44 @@
     const remotePeerIdInput = document.getElementById('remotePeerId');
     const connectionStatus = document.getElementById('connectionStatus');
     const sceneList = document.getElementById('sceneList');
-    const clickSound = document.getElementById('clickSound');
+    
+    // NOVO: Array de URLs de sons de clique para variedade
+    const clickSounds = [
+      new Audio("https://freesound.org/data/previews/171/171671_2437358-lq.mp3"), // Click original
+      new Audio("https://freesound.org/data/previews/171/171668_2437358-lq.mp3"), // Click 2
+      new Audio("https://freesound.org/data/previews/171/171670_2437358-lq.mp3")  // Click 3
+    ];
+    clickSounds.forEach(s => s.volume = 0.1); // NOVO: Reduz o volume dos sons de clique
+    
     const bgMusic = document.getElementById('bgMusic');
-    const reactionOverlay = document.getElementById('reactionOverlay'); // Elemento da sobreposição de reação
+    const reactionOverlay = document.getElementById('reactionOverlay'); 
     // Variáveis para controle de download
-    let receivedFiles = new Map(); // Mapa para armazenar dados de arquivos recebidos (para reconstrução)
-    let currentFileReader = null; // Referência ao FileReader atual para permitir abortar
-    let currentFileTransferId = null; // ID da transferência de arquivo atual
+    let receivedFiles = new Map(); 
+    let currentFileReader = null; 
+    let currentFileTransferId = null; 
 
-    // Nova flag para controlar sincronização para evitar loops infinitos
     let isSyncing = false;
 
-    // NOVO: Elementos do overlay de play/pause
+    // Elementos do overlay de play/pause
     const overlayPlayPauseButton = document.getElementById('overlayPlayPauseButton');
     const overlayPlayIcon = document.getElementById('overlayPlayIcon');
     const overlayPauseIcon = document.getElementById('overlayPauseIcon');
+    const videoPlayerWrapper = document.querySelector('.video-player-wrapper'); 
+    const videoOverlayControls = document.getElementById('videoOverlayControls'); 
+    const reactionButtonsInVideo = document.getElementById('reactionButtonsInVideo'); 
 
+    // NOVO: Elementos da Tela de Introdução
+    const introScreen = document.getElementById('introScreen');
+    const introVideo = document.getElementById('introVideo');
+    const cinemaContainer = document.querySelector('.cinema-container');
 
-    // Função para lidar com erros de carregamento de scripts externos
+    // Funções de tratamento de erro para scripts e áudios
     function handleScriptError(scriptName) {
       connectionStatus.textContent = `Status: Erro ao carregar ${scriptName}. Por favor, atualize a página.`;
       connectionStatus.classList.add('status-error');
       console.error(`${scriptName} falhou ao carregar`);
     }
 
-    // Função para lidar com erros de carregamento de áudio
     function handleAudioError(audioName) {
       console.warn(`${audioName} falhou ao carregar. Considere hospedar arquivos de áudio localmente.`);
     }
@@ -492,15 +686,39 @@
       console.warn('Particle.js não carregado');
     }
 
-    // Configuração e reprodução da música de fundo
-    bgMusic.volume = 0.2;
-    bgMusic.play().catch(() => console.log('Música de fundo bloqueada pelo navegador'));
+    // NOVO: Inicia a tela de introdução e o áudio
+    window.addEventListener('load', () => {
+        // Tenta tocar a música de fundo. Se for bloqueada, tentará novamente após a primeira interação.
+        bgMusic.volume = 0.3; // Volume da música de fundo
+        bgMusic.play().catch(e => {
+            console.log("Música de fundo bloqueada pelo navegador, aguardando interação:", e);
+            // Adiciona um ouvinte para a primeira interação para tentar tocar a música
+            document.body.addEventListener('click', () => {
+                bgMusic.play().catch(() => {}); // Tenta tocar, ignorando erros subsequentes
+            }, { once: true }); // Executa apenas uma vez
+        });
+
+        // Inicia o vídeo da introdução
+        introVideo.play().catch(e => console.log("Vídeo da introdução bloqueado pelo navegador:", e));
+
+        // Transição da tela de introdução para a sala de cinema principal
+        setTimeout(() => {
+            introScreen.classList.add('fade-out');
+            setTimeout(() => {
+                introScreen.style.display = 'none';
+                cinemaContainer.classList.remove('hidden'); // Mostra o cinema container
+                cinemaContainer.classList.add('float-in'); // Garante a animação de entrada
+            }, 1000); // Tempo da transição de fade-out
+        }, 12000); // 12 segundos para a introdução
+    });
 
     // Adiciona som de clique a todos os botões
     document.querySelectorAll('button').forEach(button => {
       button.addEventListener('click', () => {
-        clickSound.currentTime = 0;
-        clickSound.play().catch(() => console.log('Som de clique bloqueado'));
+        // NOVO: Toca um som de clique aleatório
+        const randomClickSound = clickSounds[Math.floor(Math.random() * clickSounds.length)];
+        randomClickSound.currentTime = 0; // Reinicia o som
+        randomClickSound.play().catch(() => console.log('Som de clique bloqueado'));
       });
     });
 
@@ -585,7 +803,7 @@
         peer.on('error', (err) => {
           connectionStatus.textContent = `Status: Erro - ${err.type}. ${err.type === 'peer-unavailable' ? 'Verifique o Peer ID ou garanta que o amigo esteja online.' : 'Verifique a rede ou tente novamente.'}`;
           connectionStatus.classList.add('status-error');
-          console.error('Erro de nova tentativa PeerJS:', err);
+          console.error('Erro PeerJS:', err);
         });
         peer.on('connection', (connection) => {
           conn = connection;
@@ -660,25 +878,50 @@
         }
     }
 
-    // NOVO: Função para atualizar o ícone do botão de play/pause no overlay
+    // Função para atualizar o ícone do botão de play/pause no overlay
     function updateOverlayPlayPauseButtonIcon() {
         if (moviePlayer.paused) {
             overlayPlayIcon.classList.remove('hidden');
             overlayPauseIcon.classList.add('hidden');
             overlayPlayPauseButton.classList.remove('hidden'); // Mostra o botão quando pausado
+            overlayPlayPauseButton.classList.add('is-paused'); // Adiciona classe para estilo de pausado
+            // Se pausado, o overlay e botões de reação também devem ser visíveis
+            videoOverlayControls.classList.add('show-overlay');
+            reactionButtonsInVideo.classList.add('show-buttons');
         } else {
             overlayPlayIcon.classList.add('hidden');
             overlayPauseIcon.classList.remove('hidden');
-            overlayPlayPauseButton.classList.remove('hidden'); // Mantém visível mas pode ser escondido por CSS no futuro
+            overlayPlayPauseButton.classList.add('hidden'); // Esconde o botão quando está tocando
+            overlayPlayPauseButton.classList.remove('is-paused'); // Remove classe de pausado
+            // Se tocando, esconde o overlay e botões de reação após um tempo
+            videoOverlayControls.classList.remove('show-overlay');
+            reactionButtonsInVideo.classList.remove('show-buttons');
         }
     }
 
-    // NOVO: Função para alternar play/pause no overlay
+    // Função para alternar play/pause no overlay
     function toggleOverlayPlayPause() {
         if (moviePlayer.paused) {
             moviePlayer.play();
         } else {
             moviePlayer.pause();
+        }
+    }
+
+    // Funções para controlar a visibilidade do overlay (interação)
+    let hideControlsTimeout;
+    function showControlsTemporarily() {
+        videoOverlayControls.classList.add('show-overlay');
+        reactionButtonsInVideo.classList.add('show-buttons'); // Mostra botões de reação também
+        overlayPlayPauseButton.classList.add('show-button'); // Mostra o botão central temporariamente
+
+        clearTimeout(hideControlsTimeout);
+        if (!moviePlayer.paused) { // Apenas esconde se o vídeo estiver tocando
+            hideControlsTimeout = setTimeout(() => {
+                videoOverlayControls.classList.remove('show-overlay');
+                reactionButtonsInVideo.classList.remove('show-buttons');
+                overlayPlayPauseButton.classList.remove('show-button');
+            }, 3000); // Esconde após 3 segundos de inatividade
         }
     }
 
@@ -695,10 +938,15 @@
         moviePlayer.addEventListener('pause', handlePlayerPause);
         moviePlayer.addEventListener('seeked', handlePlayerSeeked);
         
-        // NOVO: Adiciona ouvintes para o botão de overlay play/pause
+        // Adiciona ouvintes para o botão de overlay play/pause
         moviePlayer.addEventListener('play', updateOverlayPlayPauseButtonIcon);
         moviePlayer.addEventListener('pause', updateOverlayPlayPauseButtonIcon);
         moviePlayer.addEventListener('loadedmetadata', updateOverlayPlayPauseButtonIcon); // Para estado inicial
+        
+        // Ouvintes para mostrar/esconder o overlay de controles
+        videoPlayerWrapper.addEventListener('mousemove', showControlsTemporarily); // Desktop
+        videoPlayerWrapper.addEventListener('touchstart', showControlsTemporarily); // Mobile
+        
         updateOverlayPlayPauseButtonIcon(); // Chama para definir o estado inicial
       });
 
@@ -812,17 +1060,21 @@
         }
       });
       conn.on('close', () => {
-        connectionStatus.textContent = 'Status: Desconectado';
+        connectionStatus.textContent = 'Status: Disconnected';
         connectionStatus.classList.add('status-error');
         console.log('Conexão PeerJS fechada');
         // Remove os ouvintes de evento quando a conexão é fechada
         moviePlayer.removeEventListener('play', handlePlayerPlay);
         moviePlayer.removeEventListener('pause', handlePlayerPause);
         moviePlayer.removeEventListener('seeked', handlePlayerSeeked);
-        // NOVO: Remove os ouvintes do overlay de play/pause
+        // Remove os ouvintes do overlay de play/pause
         moviePlayer.removeEventListener('play', updateOverlayPlayPauseButtonIcon);
         moviePlayer.removeEventListener('pause', updateOverlayPlayPauseButtonIcon);
         moviePlayer.removeEventListener('loadedmetadata', updateOverlayPlayPauseButtonIcon);
+        // Remove os ouvintes do wrapper do vídeo
+        videoPlayerWrapper.removeEventListener('mousemove', showControlsTemporarily);
+        videoPlayerWrapper.removeEventListener('touchstart', showControlsTemporarily);
+        clearTimeout(hideControlsTimeout); // Limpa qualquer timeout pendente
       });
     }
 
