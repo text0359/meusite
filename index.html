@@ -134,6 +134,123 @@
     .status-connected { color: #10b981; }
     .status-error { color: #ef4444; }
 
+    /* NOVO: Estilos para Overlay de Reações */
+    #reactionOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 90; /* Abaixo do menu, mas acima do conteúdo */
+      pointer-events: none; /* Não bloqueia interação com a tela */
+      overflow: hidden; /* Garante que emojis não saiam da tela se a animação os levar longe */
+    }
+
+    .reaction-emoji {
+      position: absolute;
+      font-size: 3rem; /* Tamanho inicial do emoji */
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.5); /* Centraliza e diminui */
+      animation: fade-slide-up 2.5s ease-out forwards; /* Animação */
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* Sombra para destaque */
+    }
+
+    /* Animação do Emoji */
+    @keyframes fade-slide-up {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5) translateY(50px);
+      }
+      20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1) translateY(0);
+      }
+      80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.9) translateY(-50px);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7) translateY(-100px);
+      }
+    }
+
+    /* NOVO: Estilos para o Wrapper do Player de Vídeo e Overlays Internos */
+    .video-player-wrapper {
+      position: relative;
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      overflow: hidden;
+      border-radius: 15px; /* Arredondamento igual ao vídeo */
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Sombra suave */
+    }
+
+    .video-player-overlay {
+      position: absolute;
+      inset: 0; /* Cobre todo o wrapper do vídeo */
+      z-index: 10; /* Acima do vídeo, abaixo dos controles nativos */
+      pointer-events: none; /* Permite que cliques passem para o vídeo por padrão */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1rem; /* Padding interno para os botões */
+      background-color: rgba(0,0,0,0.05); /* Fundo sutilmente translúcido */
+      transition: background-color 0.3s ease;
+    }
+
+    /* Efeito de hover no wrapper para escurecer o overlay */
+    .video-player-wrapper:hover .video-player-overlay {
+      background-color: rgba(0,0,0,0.15); /* Mais escuro no hover/touch */
+    }
+
+    /* Estilo do botão central de Play/Pause */
+    #overlayPlayPauseButton {
+      pointer-events: auto; /* Torna o botão clicável */
+      background-color: rgba(236, 72, 153, 0.7); /* Rosa com transparência */
+      color: white;
+      border-radius: 9999px; /* Círculo completo */
+      padding: 1rem;
+      font-size: 3rem; /* Ícone grande */
+      opacity: 0.8;
+      transition: opacity 0.2s ease, background-color 0.2s ease;
+      flex-shrink: 0; /* Evita encolhimento */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px; /* Tamanho fixo */
+      height: 80px; /* Tamanho fixo */
+      margin: auto; /* Centraliza horizontal e verticalmente */
+    }
+
+    #overlayPlayPauseButton:hover {
+      opacity: 1;
+      background-color: rgba(236, 72, 153, 1);
+    }
+
+    /* Estilo dos botões de reação dentro do vídeo */
+    .reaction-buttons-in-video button {
+      pointer-events: auto; /* Torna os botões clicáveis */
+      background-color: rgba(236, 72, 153, 0.7); /* Rosa com transparência */
+      color: white;
+      border-radius: 9999px; /* Círculo completo */
+      padding: 0.5rem;
+      font-size: 1.5rem; /* Tamanho do emoji */
+      opacity: 0.8;
+      transition: opacity 0.2s ease, background-color 0.2s ease;
+      width: 50px; /* Tamanho fixo para facilitar o toque */
+      height: 50px; /* Tamanho fixo */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reaction-buttons-in-video button:hover {
+      opacity: 1;
+      background-color: rgba(236, 72, 153, 1);
+    }
+
+
     /* Media Queries para Ajustes Mais Finos em Telas de Celular */
     @media (max-width: 768px) { /* Para tablets e celulares */
       .cinema-container {
@@ -158,6 +275,20 @@
       .space-y-2 > *:not([hidden]) ~ *:not([hidden]) {
         margin-top: 0.5rem; /* Ajusta espaçamento vertical para elementos empilhados */
       }
+      .reaction-emoji {
+        font-size: 2.5rem; /* Menor em telas menores */
+      }
+      /* Ajustes para botões no vídeo em telas menores */
+      #overlayPlayPauseButton {
+        font-size: 2.5rem;
+        width: 60px;
+        height: 60px;
+      }
+      .reaction-buttons-in-video button {
+        font-size: 1.25rem;
+        width: 40px;
+        height: 40px;
+      }
     }
 
     @media (max-width: 480px) { /* Para celulares muito pequenos */
@@ -179,11 +310,28 @@
       .file-upload {
         padding: 10px;
       }
+      .reaction-emoji {
+        font-size: 2rem; /* Ainda menor em telas muito pequenas */
+      }
+      /* Ajustes para botões no vídeo em telas muito pequenas */
+      #overlayPlayPauseButton {
+        font-size: 2rem;
+        width: 50px;
+        height: 50px;
+      }
+      .reaction-buttons-in-video button {
+        font-size: 1rem;
+        width: 35px;
+        height: 35px;
+      }
     }
   </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen">
   <div id="particles-js"></div>
+  <!-- NOVO: Overlay para as Reações Animadas -->
+  <div id="reactionOverlay"></div>
+
   <!-- Arquivos de áudio de fallback (substitua por caminhos locais, se necessário) -->
   <audio id="clickSound" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound')"></audio>
   <audio id="bgMusic" src="https://freesound.org/data/previews/235/235655_4229646-lq.mp3" loop onerror="handleAudioError('Background Music')"></audio>
@@ -225,13 +373,36 @@
       </div>
     </div>
     
-    <!-- Seção do Player de Filme/Vídeo -->
+    <!-- Seção do Player de Filme/Vídeo - AGORA COM CONTROLES E REAÇÕES DENTRO -->
     <div class="w-full mb-6 fade-in px-4">
       <h2 class="text-xl text-pink-700 mb-2">Player de Filme</h2>
-      <video id="moviePlayer" controls class="w-full h-auto">
-        <source id="movieSource" src="" type="video/mp4">
-        Seu navegador não suporta a tag de vídeo.
-      </video>
+      <div class="video-player-wrapper">
+        <video id="moviePlayer" controls class="w-full h-auto block bg-black">
+          <source id="movieSource" src="" type="video/mp4">
+          Seu navegador não suporta a tag de vídeo.
+        </video>
+
+        <!-- Overlay de Controles e Reações -->
+        <div class="video-player-overlay">
+          <!-- Controles Centrais de Play/Pause -->
+          <div class="flex flex-grow items-center justify-center">
+              <button id="overlayPlayPauseButton" onclick="toggleOverlayPlayPause()">
+                  <span id="overlayPlayIcon">▶️</span>
+                  <span id="overlayPauseIcon" class="hidden">⏸️</span>
+              </button>
+          </div>
+
+          <!-- Botões de Reação (Canto Inferior Direito) -->
+          <div class="flex justify-end gap-2 reaction-buttons-in-video">
+              <button onclick="sendReaction('❤️')">❤️</button>
+              <button onclick="sendReaction('😂')">😂</button>
+              <button onclick="sendReaction('✋')">✋</button>
+              <button onclick="sendReaction('😮')">😮</button>
+              <button onclick="sendReaction('😢')">😢</button>
+              <button onclick="sendReaction('✨')">✨</button>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- Seção de Upload e Download de Arquivos -->
@@ -239,13 +410,25 @@
       <h2 class="text-xl text-pink-700 mb-2">Carregar um Filme/Vídeo</h2>
       <input type="file" id="fileInput" accept="video/*" class="mb-4 text-pink-800 w-full text-base">
       <button onclick="uploadAndShareFile()" class="text-base">Carregar & Transmitir Vídeo</button>
-      <!-- NOVO BOTÃO PARA DOWNLOAD OPCIONAL -->
-      <button onclick="shareFileForDownload()" class="text-base mt-2">Enviar Arquivo para Download</button>
+      
+      <!-- BOTÃO E STATUS PARA DOWNLOAD OPCIONAL -->
+      <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
+        <button onclick="shareFileForDownload()" class="text-base">Enviar Arquivo para Download</button>
+        <button id="cancelDownloadButton" onclick="cancelFileDownload()" class="text-base bg-red-500 hover:bg-red-600 hidden">Cancelar Download</button>
+      </div>
+
       <div id="downloadSection" class="mt-4 text-center"></div>
       <p id="streamingStatus" class="w-full mt-4 text-center text-pink-800 font-semibold text-sm sm:text-base hidden"></p>
-      <!-- NOVO ELEMENTO PARA STATUS DO DOWNLOAD -->
       <p id="downloadProgressStatus" class="w-full mt-4 text-center text-pink-800 font-semibold text-sm sm:text-base hidden"></p>
+      
+      <p class="text-xs text-pink-700 mt-2">
+        A velocidade do download Peer-to-Peer depende da sua conexão e da do seu amigo. <br>
+        Para compartilhar links públicos ou downloads mais rápidos de arquivos grandes, um servidor externo seria necessário.
+      </p>
     </div>
+
+    <!-- Seção de Reações Antiga Removida -->
+
   </div>
 
   <script>
@@ -264,10 +447,20 @@
     const sceneList = document.getElementById('sceneList');
     const clickSound = document.getElementById('clickSound');
     const bgMusic = document.getElementById('bgMusic');
-    // Variável para armazenar dados de arquivos recebidos (para reconstrução)
-    let receivedFiles = new Map();
+    const reactionOverlay = document.getElementById('reactionOverlay'); // Elemento da sobreposição de reação
+    // Variáveis para controle de download
+    let receivedFiles = new Map(); // Mapa para armazenar dados de arquivos recebidos (para reconstrução)
+    let currentFileReader = null; // Referência ao FileReader atual para permitir abortar
+    let currentFileTransferId = null; // ID da transferência de arquivo atual
+
     // Nova flag para controlar sincronização para evitar loops infinitos
     let isSyncing = false;
+
+    // NOVO: Elementos do overlay de play/pause
+    const overlayPlayPauseButton = document.getElementById('overlayPlayPauseButton');
+    const overlayPlayIcon = document.getElementById('overlayPlayIcon');
+    const overlayPauseIcon = document.getElementById('overlayPauseIcon');
+
 
     // Função para lidar com erros de carregamento de scripts externos
     function handleScriptError(scriptName) {
@@ -414,7 +607,7 @@
       }
     }
 
-    // NOVA: Função para atualizar o progresso do download do arquivo
+    // Função para atualizar o progresso do download do arquivo
     function updateDownloadStatus(received, total, fileName = '') {
       const statusDiv = document.getElementById('downloadProgressStatus');
       statusDiv.classList.remove('hidden');
@@ -434,6 +627,61 @@
       }
     }
 
+    // Função para exibir uma reação animada
+    function displayReaction(emoji) {
+        const reactionDiv = document.createElement('div');
+        reactionDiv.className = 'reaction-emoji';
+        reactionDiv.textContent = emoji;
+
+        // Posição aleatória na tela (aproximadamente, para não ficar sempre no mesmo lugar)
+        const x = Math.random() * (window.innerWidth - 100) + 50; // Largura - 100px para bordas + 50px offset
+        const y = Math.random() * (window.innerHeight - 100) + 50; // Altura - 100px para bordas + 50px offset
+        
+        reactionDiv.style.left = `${x}px`;
+        reactionDiv.style.top = `${y}px`;
+
+        reactionOverlay.appendChild(reactionDiv);
+
+        // Remove o emoji após a animação (2.5 segundos)
+        setTimeout(() => {
+            reactionDiv.remove();
+        }, 2500);
+    }
+
+    // Função para enviar a reação via PeerJS
+    function sendReaction(emoji) {
+        if (conn && conn.open) {
+            conn.send({ type: 'reaction', emoji: emoji });
+            console.log('Reação enviada:', emoji);
+            displayReaction(emoji); // Exibe a reação localmente também
+        } else {
+            console.warn('Não conectado a um peer para enviar a reação.');
+            displayReaction(emoji); // Apenas exibe localmente se não conectado
+        }
+    }
+
+    // NOVO: Função para atualizar o ícone do botão de play/pause no overlay
+    function updateOverlayPlayPauseButtonIcon() {
+        if (moviePlayer.paused) {
+            overlayPlayIcon.classList.remove('hidden');
+            overlayPauseIcon.classList.add('hidden');
+            overlayPlayPauseButton.classList.remove('hidden'); // Mostra o botão quando pausado
+        } else {
+            overlayPlayIcon.classList.add('hidden');
+            overlayPauseIcon.classList.remove('hidden');
+            overlayPlayPauseButton.classList.remove('hidden'); // Mantém visível mas pode ser escondido por CSS no futuro
+        }
+    }
+
+    // NOVO: Função para alternar play/pause no overlay
+    function toggleOverlayPlayPause() {
+        if (moviePlayer.paused) {
+            moviePlayer.play();
+        } else {
+            moviePlayer.pause();
+        }
+    }
+
 
     // Configura os ouvintes de evento para a conexão PeerJS
     function setupConnection() {
@@ -446,9 +694,15 @@
         moviePlayer.addEventListener('play', handlePlayerPlay);
         moviePlayer.addEventListener('pause', handlePlayerPause);
         moviePlayer.addEventListener('seeked', handlePlayerSeeked);
+        
+        // NOVO: Adiciona ouvintes para o botão de overlay play/pause
+        moviePlayer.addEventListener('play', updateOverlayPlayPauseButtonIcon);
+        moviePlayer.addEventListener('pause', updateOverlayPlayPauseButtonIcon);
+        moviePlayer.addEventListener('loadedmetadata', updateOverlayPlayPauseButtonIcon); // Para estado inicial
+        updateOverlayPlayPauseButtonIcon(); // Chama para definir o estado inicial
       });
 
-      // NOVO: Lida com o recebimento de stream de mídia (áudio/vídeo)
+      // Lida com o recebimento de stream de mídia (áudio/vídeo)
       peer.on('call', (call) => {
           console.log('Recebendo chamada de vídeo do peer...');
           updateStreamingStatus('Recebendo streaming...');
@@ -515,6 +769,17 @@
             }
           }
         }
+        // Lida com a mensagem de cancelamento de download
+        else if (data.type === 'cancel-download') {
+            const fileData = receivedFiles.get(data.fileTransferId);
+            if (fileData) {
+                receivedFiles.delete(data.fileTransferId);
+                updateDownloadStatus(0, 0, ''); // Limpa o status
+                console.log(`Download de arquivo '${fileData.fileName}' cancelado pelo remetente.`);
+                document.getElementById('downloadProgressStatus').textContent = `Download de '${fileData.fileName}' cancelado.`;
+                setTimeout(() => { document.getElementById('downloadProgressStatus').classList.add('hidden'); }, 3000);
+            }
+        }
         // Lida com mensagens de sincronização (play, pause, seek)
         else if (data.type === 'play' || data.type === 'pause' || data.type === 'seek') {
           isSyncing = true; // Define a flag para evitar looping
@@ -540,6 +805,11 @@
           updateSceneList();
           console.log('Cenas recebidas:', data.scenes);
         }
+        // Lida com a reação recebida
+        else if (data.type === 'reaction') {
+            console.log('Reação recebida:', data.emoji);
+            displayReaction(data.emoji);
+        }
       });
       conn.on('close', () => {
         connectionStatus.textContent = 'Status: Desconectado';
@@ -549,6 +819,10 @@
         moviePlayer.removeEventListener('play', handlePlayerPlay);
         moviePlayer.removeEventListener('pause', handlePlayerPause);
         moviePlayer.removeEventListener('seeked', handlePlayerSeeked);
+        // NOVO: Remove os ouvintes do overlay de play/pause
+        moviePlayer.removeEventListener('play', updateOverlayPlayPauseButtonIcon);
+        moviePlayer.removeEventListener('pause', updateOverlayPlayPauseButtonIcon);
+        moviePlayer.removeEventListener('loadedmetadata', updateOverlayPlayPauseButtonIcon);
       });
     }
 
@@ -647,7 +921,7 @@
       };
     }
 
-    // NOVA: Função para enviar o arquivo completo para download (opcional)
+    // Função para enviar o arquivo completo para download (opcional)
     function shareFileForDownload() {
       const file = fileInput.files[0];
       if (!file) {
@@ -661,11 +935,24 @@
         return;
       }
 
+      // Se já houver um FileReader ativo de um envio anterior, aborta-o
+      if (currentFileReader) {
+          currentFileReader.abort();
+          console.log('Envio de arquivo anterior abortado para iniciar um novo.');
+          updateDownloadStatus(0, 0, '');
+          document.getElementById('cancelDownloadButton').classList.add('hidden');
+      }
+
       const chunkSize = 64 * 1024; // 64 KB por chunk
       let offset = 0;
       const fileTransferId = Date.now().toString(); // ID único para esta transferência
 
       const reader = new FileReader();
+      currentFileReader = reader; // Armazena a referência para o FileReader atual
+      currentFileTransferId = fileTransferId; // Armazena o ID da transferência
+
+      document.getElementById('cancelDownloadButton').classList.remove('hidden'); // Mostra o botão Cancelar
+
       reader.onload = function(e) {
           const arrayBuffer = e.target.result;
           const totalChunks = Math.ceil(arrayBuffer.byteLength / chunkSize);
@@ -697,8 +984,36 @@
           console.log('Finalizado envio do arquivo para download:', file.name);
           updateDownloadStatus(file.size, file.size, file.name); // Garante 100%
       };
+      
+      reader.onloadend = function() { // Limpa as referências quando a leitura termina (sucesso ou aborto)
+          currentFileReader = null;
+          currentFileTransferId = null;
+          document.getElementById('cancelDownloadButton').classList.add('hidden');
+      };
+
       reader.readAsArrayBuffer(file); // Lê o arquivo como ArrayBuffer
     }
+
+    // Função para cancelar o download em andamento (remetente)
+    function cancelFileDownload() {
+        if (currentFileReader) {
+            currentFileReader.abort(); // Aborta a leitura do arquivo local
+            console.log('Download de arquivo localmente cancelado (remetente).');
+            updateDownloadStatus(0, 0, ''); // Limpa o status de progresso
+            document.getElementById('cancelDownloadButton').classList.add('hidden'); // Esconde o botão
+
+            if (conn && conn.open && currentFileTransferId) {
+                // Envia uma mensagem de cancelamento para o peer remoto
+                conn.send({ type: 'cancel-download', fileTransferId: currentFileTransferId });
+                console.log('Mensagem de cancelamento enviada para o peer.');
+            }
+            currentFileReader = null; // Limpa a referência
+            currentFileTransferId = null;
+        } else {
+            console.warn('Nenhum download ativo para cancelar.');
+        }
+    }
+
 
     // As funções syncPlay e syncPause agora são chamadas pelos eventos do player
     // e suas chamadas diretas via botão são mantidas por conveniência,
