@@ -240,7 +240,7 @@
       <input type="file" id="fileInput" accept="video/*" class="mb-4 text-pink-800 w-full text-base">
       <button onclick="uploadAndShareFile()" class="text-base">Carregar & Compartilhar Vídeo</button>
       <div id="downloadSection" class="mt-4 text-center"></div>
-      <div id="fileTransferProgress" class="w-full mt-4 text-center text-pink-800 font-semibold text-sm sm:text-base"></div>
+      <p id="streamingStatus" class="w-full mt-4 text-center text-pink-800 font-semibold text-sm sm:text-base hidden"></p>
     </div>
   </div>
 
@@ -402,7 +402,7 @@
 
     // Função para atualizar o progresso da transferência de arquivo na interface
     function updateProgress(direction, received, total, fileName = '') {
-      const progressDiv = document.getElementById('fileTransferProgress');
+      const progressDiv = document.getElementById('streamingStatus'); // Usando streamingStatus para feedback
       if (total === 0) { // Evita divisão por zero
         progressDiv.textContent = '';
         return;
@@ -418,9 +418,10 @@
       if (percentage === 100) {
         progressDiv.textContent = `${statusText} - Completo!`;
         // Limpa o status após alguns segundos
-        setTimeout(() => { progressDiv.textContent = ''; }, 3000); 
+        setTimeout(() => { progressDiv.classList.add('hidden'); }, 3000); 
       } else {
         progressDiv.textContent = statusText;
+        progressDiv.classList.remove('hidden');
       }
     }
 
@@ -436,54 +437,36 @@
         moviePlayer.addEventListener('pause', handlePlayerPause);
         moviePlayer.addEventListener('seeked', handlePlayerSeeked);
       });
-      conn.on('data', (data) => {
-        // Lida com o início da transferência de arquivo
-        if (data.type === 'file-start') {
-          receivedFiles.set(data.fileTransferId, {
-            fileName: data.fileName,
-            fileType: data.fileType,
-            totalChunks: data.totalChunks,
-            receivedChunks: new Array(data.totalChunks), // Array para armazenar os chunks na ordem correta
-            receivedSize: 0,
-            fileSize: data.fileSize
+
+      // NOVO: Lida com o recebimento de stream de mídia (áudio/vídeo)
+      peer.on('call', (call) => {
+          console.log('Recebendo chamada de vídeo do peer...');
+          document.getElementById('streamingStatus').textContent = 'Recebendo streaming...';
+          document.getElementById('streamingStatus').classList.remove('hidden');
+          
+          call.answer(); // Responde à chamada de vídeo
+          call.on('stream', (remoteStream) => {
+              console.log('Stream de vídeo recebido do peer!');
+              moviePlayer.srcObject = remoteStream; // Define o stream recebido como fonte do player
+              moviePlayer.play().catch(e => console.error("Erro ao tentar tocar stream recebido:", e)); // Tenta dar play automaticamente
+              document.getElementById('streamingStatus').textContent = 'Streaming recebido e reproduzindo!';
+              setTimeout(() => {
+                  document.getElementById('streamingStatus').classList.add('hidden');
+              }, 5000);
           });
-          console.log(`Recebendo arquivo: ${data.fileName} (${data.fileSize} bytes)`);
-          updateProgress('download', 0, data.fileSize, data.fileName);
-        } 
-        // Lida com os chunks de dados do arquivo
-        else if (data.type === 'file-chunk') {
-          const fileData = receivedFiles.get(data.fileTransferId);
-          if (fileData) {
-            fileData.receivedChunks[data.chunkIndex] = data.data; // Armazena o chunk na posição correta
-            fileData.receivedSize += data.data.byteLength;
-            updateProgress('download', fileData.receivedSize, fileData.fileSize, fileData.fileName);
+          call.on('close', () => {
+              console.log('Stream de vídeo encerrado.');
+              document.getElementById('streamingStatus').textContent = 'Streaming encerrado.';
+              setTimeout(() => {
+                  document.getElementById('streamingStatus').classList.add('hidden');
+              }, 3000);
+          });
+      });
 
-            // Verifica se todos os chunks foram recebidos
-            if (fileData.receivedSize === fileData.fileSize) {
-                // Monta o arquivo completo a partir dos chunks
-                const fullBlob = new Blob(fileData.receivedChunks, { type: fileData.fileType });
-                const url = URL.createObjectURL(fullBlob);
-                currentFileUrl = url;
-                movieSource.src = url;
-                moviePlayer.load();
-                moviePlayer.classList.add('fade-in');
-
-                const downloadLink = document.createElement('a');
-                downloadLink.href = url;
-                downloadLink.download = fileData.fileName;
-                downloadLink.textContent = `Baixar ${fileData.fileName}`;
-                downloadLink.className = 'text-pink-700 underline mt-2 block';
-                downloadSection.innerHTML = '';
-                downloadSection.appendChild(downloadLink);
-                console.log('Arquivo de vídeo recebido e carregado com sucesso:', fileData.fileName);
-
-                receivedFiles.delete(data.fileTransferId); // Limpa o estado da transferência
-                updateProgress('download', fileData.fileSize, fileData.fileSize, fileData.fileName); // Garante 100%
-            }
-          }
-        }
-        // Lida com mensagens de sincronização (play, pause, seek)
-        else if (data.type === 'play' || data.type === 'pause' || data.type === 'seek') {
+      conn.on('data', (data) => {
+        // Removemos a lógica de 'file-start' e 'file-chunk' aqui, pois estamos usando stream agora
+        // MANTEMOS A LÓGICA DE SINCRONIZAÇÃO DE PLAY/PAUSE/SEEK E CENAS
+        if (data.type === 'play' || data.type === 'pause' || data.type === 'seek') {
           isSyncing = true; // Define a flag para evitar looping
 
           moviePlayer.currentTime = data.time;
@@ -541,7 +524,7 @@
       }
     }
 
-    // Função para carregar e compartilhar um arquivo de vídeo
+    // Função para carregar e compartilhar um arquivo de vídeo (agora para streaming!)
     function uploadAndShareFile() {
       const file = fileInput.files[0];
       if (!file) {
@@ -549,12 +532,12 @@
         return;
       }
       if (!conn || !conn.open) {
-        console.warn('Não conectado a um peer para compartilhar o arquivo.');
+        console.warn('Não conectado a um peer para compartilhar o vídeo.');
         alert('Por favor, conecte-se a um amigo antes de tentar compartilhar o vídeo.');
         return;
       }
 
-      // ** Exibir o vídeo imediatamente no player do remetente **
+      // 1. Exibir o vídeo imediatamente no player do remetente
       const localUrl = URL.createObjectURL(file);
       currentFileUrl = localUrl;
       movieSource.src = localUrl;
@@ -564,50 +547,60 @@
       const downloadLink = document.createElement('a');
       downloadLink.href = localUrl;
       downloadLink.download = file.name;
-      downloadLink.textContent = `Baixar ${file.name}`;
+      downloadLink.textContent = `Baixar ${file.name} (Local)`;
       downloadLink.className = 'text-pink-700 underline mt-2 block';
       downloadSection.innerHTML = '';
       downloadSection.appendChild(downloadLink);
-      console.log('Vídeo carregado localmente e pronto para envio:', file.name);
+      console.log('Vídeo carregado localmente e pronto para streaming:', file.name);
 
+      // 2. Capturar o stream do player e enviá-lo
+      document.getElementById('streamingStatus').textContent = 'Preparando streaming...';
+      document.getElementById('streamingStatus').classList.remove('hidden');
 
-      const chunkSize = 64 * 1024; // 64 KB por chunk
-      let offset = 0;
-      const fileTransferId = Date.now().toString(); // ID único para esta transferência
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-          const arrayBuffer = e.target.result;
-          const totalChunks = Math.ceil(arrayBuffer.byteLength / chunkSize);
-
-          // Envia metadados iniciais do arquivo
-          conn.send({
-              type: 'file-start',
-              fileTransferId: fileTransferId,
-              fileName: file.name,
-              fileSize: file.size,
-              fileType: file.type,
-              totalChunks: totalChunks
-          });
-          console.log(`Iniciando envio do arquivo: ${file.name} (${file.size} bytes) em ${totalChunks} chunks.`);
-          updateProgress('upload', 0, file.size);
-
-          // Envia os chunks do arquivo
-          while (offset < arrayBuffer.byteLength) {
-              const chunk = arrayBuffer.slice(offset, offset + chunkSize);
-              conn.send({
-                  type: 'file-chunk',
-                  fileTransferId: fileTransferId,
-                  chunkIndex: Math.floor(offset / chunkSize),
-                  data: chunk // Envia o ArrayBuffer do chunk
-              });
-              offset += chunkSize;
-              updateProgress('upload', offset, file.size);
+      moviePlayer.oncanplay = () => {
+          let stream;
+          try {
+              stream = moviePlayer.captureStream(); // Captura o stream de áudio/vídeo do player
+              console.log('Stream capturado do player:', stream);
+              document.getElementById('streamingStatus').textContent = 'Stream capturado. Enviando...';
+          } catch (error) {
+              console.error('Erro ao capturar stream do player:', error);
+              document.getElementById('streamingStatus').textContent = 'Erro ao capturar vídeo para streaming. Verifique as permissões.';
+              alert('Não foi possível iniciar o streaming do vídeo. Por favor, verifique se o navegador permite a captura de mídia do vídeo (geralmente exige HTTPS ou localhost).');
+              return;
           }
-          console.log('Finalizado envio do arquivo:', file.name);
-          updateProgress('upload', file.size, file.size); // Garante 100%
+
+          if (stream && conn && conn.open) {
+              const call = peer.call(conn.peer, stream); // Inicia uma chamada de vídeo para o peer
+              call.on('stream', (remoteStream) => {
+                  // Este 'stream' aqui seria um stream de volta do amigo,
+                  // o que não é o nosso foco principal para essa funcionalidade.
+                  // Pode ser ignorado por enquanto ou usado para algo mais avançado.
+                  console.log('Recebido stream de volta (eco) do amigo, ou outro stream inesperado.');
+              });
+              call.on('close', () => {
+                  console.log('Chamada de streaming encerrada.');
+                  document.getElementById('streamingStatus').textContent = 'Streaming encerrado.';
+                  setTimeout(() => {
+                      document.getElementById('streamingStatus').classList.add('hidden');
+                  }, 3000);
+              });
+              document.getElementById('streamingStatus').textContent = `Streaming de '${file.name}' iniciado!`;
+              setTimeout(() => {
+                  document.getElementById('streamingStatus').classList.add('hidden');
+              }, 5000);
+          } else {
+              console.warn('Não foi possível iniciar a chamada de streaming: Sem stream ou conexão.');
+              document.getElementById('streamingStatus').textContent = 'Erro: Não foi possível iniciar o streaming.';
+          }
       };
-      reader.readAsArrayBuffer(file); // Lê o arquivo como ArrayBuffer
+
+      // Lida com erros de carregamento do vídeo local
+      moviePlayer.onerror = () => {
+          document.getElementById('streamingStatus').textContent = 'Erro ao carregar o vídeo localmente. Tente outro arquivo.';
+          alert('Erro ao carregar o vídeo. Tente outro arquivo.');
+          console.error('Erro ao carregar o vídeo localmente.');
+      };
     }
 
     // As funções syncPlay e syncPause agora são chamadas pelos eventos do player
