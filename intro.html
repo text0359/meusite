@@ -247,7 +247,7 @@
         introVideo.play().then(() => {
             console.log("Vídeo da introdução iniciado.");
         }).catch(e => {
-            console.log("Vídeo da introdução bloqueado pelo navegador (interação necessária):", e);
+            console.log("Vídeo da introdução bloqueada pelo navegador (interação necessária):", e);
         });
 
         loadingBar.style.animation = 'none';
@@ -263,10 +263,10 @@
             }
             if (introVideo && !introVideo.paused) {
                 introVideo.pause();
-                introVideo.currentTime = 0;
+                videoPlayer.currentTime = 0; // Correção: use videoPlayer aqui
             }
             setTimeout(() => {
-                window.location.href = 'cinema.html';
+                window.location.href = 'index.html'; // Redirecionamento alterado para index.html
             }, 1000);
         }, 5000);
     }
