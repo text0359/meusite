@@ -1,6 +1,6 @@
 let peer = null;
 let conn = null;
-let isHost = false; // Indica se você é o "host" da sessão (quem carregou o vídeo ou se conectou primeiro e enviou)
+let isHost = false;
 
 // Elementos do DOM
 const videoPlayer = document.getElementById('videoPlayer');
@@ -11,23 +11,22 @@ const peerStatusDiv = document.getElementById('peerStatus');
 const mainMenu = document.getElementById('mainMenu');
 const shareIdPopup = document.getElementById('shareIdPopup');
 const myPeerIdDisplay = document.getElementById('myPeerIdDisplay');
-const emojiContainer = document.getElementById('emojiContainer'); // Novo container para emojis
+const emojiContainer = document.getElementById('emojiContainer');
 
 // Botões
 const shareBtn = document.querySelector('.share-btn');
 const connectFriendBtn = document.getElementById('connectFriendBtn');
+const disconnectBtn = document.getElementById('disconnectBtn'); // Novo botão de desconectar
 const retryConnectBtn = document.getElementById('retryConnectBtn');
 const videoInput = document.getElementById('videoInput');
 const loadStreamVideoBtn = document.getElementById('loadStreamVideoBtn');
-const syncPlayBtn = document.getElementById('syncPlayBtn');
-const syncPauseBtn = document.getElementById('syncPauseBtn');
 const addMovieToLibraryBtn = document.getElementById('addMovieToLibraryBtn');
 const sceneSelector = document.getElementById('sceneSelector');
 const addCurrentTimeAsSceneBtn = document.getElementById('addCurrentTimeAsSceneBtn');
-const playBtnSidebar = document.getElementById('playBtn'); // Botão de play na sidebar
-const emojiButtons = document.querySelectorAll('.emoji-btn'); // Botões de emoji
+const playBtnSidebar = document.getElementById('playBtn');
+const emojiButtons = document.querySelectorAll('.emoji-btn');
 
-// Sons de clique (mesmos da intro, ajuste os caminhos se forem locais)
+// Sons de clique
 const clickSounds = [
     new Audio("https://freesound.org/data/previews/171/171671_2437358-lq.mp3"),
     new Audio("https://freesound.org/data/previews/171/171668_2437358-lq.mp3"),
@@ -41,29 +40,25 @@ const movieLibrary = [];
 
 // --- Funções de UI/UX ---
 
-// Toca um som de clique aleatório
 function playClickSound() {
     const randomSound = clickSounds[Math.floor(Math.random() * clickSounds.length)];
     randomSound.currentTime = 0;
-    randomSound.play().catch(e => console.log('Erro ao tocar som de clique:', e));
+    randomSound.play().catch(e => console.warn('Erro ao tocar som de clique:', e));
 }
 
-// Alterna a visibilidade do menu principal
 function toggleMenu() {
     mainMenu.classList.toggle('show');
-    playClickSound(); // Adiciona som ao abrir/fechar menu
+    playClickSound();
 }
 
-// Alterna a visibilidade do pop-up de compartilhamento de ID
 function toggleSharePopup() {
     shareIdPopup.classList.toggle('show');
     if (shareIdPopup.classList.contains('show') && peer) {
-        myPeerIdDisplay.value = peer.id; // Exibe o ID quando o pop-up abre
+        myPeerIdDisplay.value = peer.id;
     }
     playClickSound();
 }
 
-// Copia o ID para a área de transferência
 function copyMyPeerId() {
     myPeerIdDisplay.select();
     document.execCommand('copy');
@@ -71,7 +66,6 @@ function copyMyPeerId() {
     playClickSound();
 }
 
-// Atualiza o status de conexão visualmente
 function setPeerStatus(connected) {
     if (connected) {
         peerStatusDiv.classList.remove('offline');
@@ -84,54 +78,50 @@ function setPeerStatus(connected) {
     }
 }
 
-// Formata o tempo (segundos para MM:SS)
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-// Função para animar emojis
-function animateEmoji(emoji, startX, startY) {
+// Função para animar um emoji na tela do vídeo
+function animateEmoji(emojiText) {
     const emojiEl = document.createElement('span');
     emojiEl.classList.add('animated-emoji');
-    emojiEl.textContent = emoji;
-    emojiEl.style.left = `${startX}%`;
-    emojiEl.style.top = `${startY}%`;
+    emojiEl.textContent = emojiText;
+
+    // Posiciona o emoji na parte inferior da tela, aleatoriamente na largura
+    emojiEl.style.left = `${Math.random() * 80 + 10}%`; // 10% a 90% da largura
+    emojiEl.style.bottom = `-50px`; // Começa abaixo da tela
+
     emojiContainer.appendChild(emojiEl);
 
-    // Remove o emoji após a animação (3 segundos, como definido no CSS)
+    // Remove o emoji após a animação
     emojiEl.addEventListener('animationend', () => {
         emojiEl.remove();
     });
 }
 
-// Lida com o clique nos botões de emoji
-function handleEmojiClick(event) {
+// Lida com o clique nos botões de emoji (dispara a animação e envia via PeerJS)
+function handleEmojiButtonClick(event) {
     const emoji = event.target.dataset.emoji;
     if (emoji) {
-        // Envia o emoji para o peer conectado
+        // Anima localmente
+        animateEmoji(emoji);
+        // Envia para o peer
         if (conn) {
             conn.send({ type: 'emoji', emoji: emoji });
+            console.log(`Emoji '${emoji}' enviado para o amigo.`);
+        } else {
+            console.log("Não conectado para enviar emoji.");
         }
-        // Anima o emoji localmente
-        const clickX = event.clientX;
-        const clickY = event.clientY;
-        const videoRect = videoPlayer.getBoundingClientRect();
-
-        // Calcula a posição do clique relativa ao container do vídeo (0-100%)
-        const relativeX = ((clickX - videoRect.left) / videoRect.width) * 100;
-        const relativeY = ((clickY - videoRect.top) / videoRect.height) * 100;
-
-        animateEmoji(emoji, relativeX, relativeY);
-        playClickSound(); // Toca som ao clicar em emoji
+        playClickSound();
     }
 }
 
 
 // --- Funções PeerJS ---
 
-// Inicializa o PeerJS
 function initializePeer() {
     peer = new Peer({
         host: '0.peerjs.com',
@@ -142,21 +132,33 @@ function initializePeer() {
     peer.on('open', function(id) {
         console.log('Meu ID Peer é: ' + id);
         peerIdLabel.textContent = `ID: ${id}`;
-        myPeerIdDisplay.value = id; // Define o ID no campo do pop-up também
-        setPeerStatus(false); // Inicia como OFF (ainda não conectado a ninguém)
+        myPeerIdDisplay.value = id;
+        setPeerStatus(false); // Inicialmente desconectado de um amigo
     });
 
     peer.on('connection', function(newConn) {
+        if (conn && conn.open) { // Se já houver uma conexão aberta, feche a nova
+            newConn.close();
+            console.warn("Já existe uma conexão ativa. Nova conexão rejeitada.");
+            return;
+        }
         conn = newConn;
         console.log('Conexão recebida de: ' + conn.peer);
-        isHost = true; // Você se torna o host se alguém se conecta a você
+        isHost = true; // Se alguém se conecta a você, você é o host
         handlePeerConnection(conn);
-        setPeerStatus(true); // Conectado
+        setPeerStatus(true);
         alert(`Conectado com sucesso ao amigo ID: ${conn.peer}`);
     });
 
     peer.on('disconnected', function() {
-        console.log('Peer desconectado.');
+        console.log('Peer desconectado do servidor PeerJS.');
+        setPeerStatus(false);
+        conn = null;
+        isHost = false;
+    });
+
+    peer.on('close', function() { // Tratamento para quando o peer local é destruído
+        console.log('Peer fechado (destruído).');
         setPeerStatus(false);
         conn = null;
         isHost = false;
@@ -169,50 +171,70 @@ function initializePeer() {
     });
 }
 
-// Lida com a conexão de dados (receber mensagens)
 function handlePeerConnection(c) {
     c.on('data', function(data) {
         console.log('Dados recebidos:', data);
         if (data.type === 'play') {
             videoPlayer.play();
+            playBtnSidebar.textContent = '⏸️'; // Atualiza ícone
         } else if (data.type === 'pause') {
             videoPlayer.pause();
+            playBtnSidebar.textContent = '▶️'; // Atualiza ícone
         } else if (data.type === 'seek') {
-            // Ajusta o tempo apenas se a diferença for significativa para evitar loops
-            if (Math.abs(videoPlayer.currentTime - data.time) > 2) {
+            if (Math.abs(videoPlayer.currentTime - data.time) > 2) { // Evita micro-sincronizações constantes
                 videoPlayer.currentTime = data.time;
             }
         } else if (data.type === 'videoUrl' && !isHost) {
-            // Cliente recebe URL do vídeo e carrega
             videoPlayer.src = data.url;
             videoPlayer.load();
-            videoPlayer.play(); // Inicia o vídeo no cliente após carregar
+            videoPlayer.play();
+            playBtnSidebar.textContent = '⏸️'; // Assume que vai tocar
             alert('Vídeo recebido e carregado.');
         } else if (data.type === 'requestVideoUrl' && isHost) {
-            // Se o cliente pedir a URL e você é o host, envie
             if (videoPlayer.src) {
                 c.send({ type: 'videoUrl', url: videoPlayer.src });
+                console.log(`URL do vídeo '${videoPlayer.src}' enviado em resposta à solicitação.`);
+            } else {
+                console.log("Nenhum vídeo carregado para enviar a URL.");
             }
-        } else if (data.type === 'emoji') { // Novo: Recebe comando de emoji
-            // Anima o emoji recebido em uma posição aleatória no vídeo
-            const randomX = Math.random() * 80 + 10; // 10% a 90%
-            const randomY = Math.random() * 80 + 10; // 10% a 90%
-            animateEmoji(data.emoji, randomX, randomY);
+        } else if (data.type === 'emoji') {
+            // Anima o emoji recebido
+            animateEmoji(data.emoji);
         }
     });
 
     c.on('close', function() {
-        console.log('Conexão encerrada.');
+        console.log('Conexão de dados encerrada pelo amigo.');
         setPeerStatus(false);
-        conn = null;
-        isHost = false;
+        conn = null; // Garante que a variável de conexão seja zerada
+        // isHost = false; // Não reseta isHost aqui, apenas se o peer inteiro desconectar
         alert('A conexão com o amigo foi encerrada.');
     });
 }
 
+function disconnectPeer() {
+    if (conn) {
+        console.log('Fechando conexão de dados...');
+        conn.close(); // Fecha a conexão de dados
+        conn = null;
+    }
+    if (peer) {
+        console.log('Destruindo Peer...');
+        peer.destroy(); // Destrói o Peer (libera o ID)
+        peer = null;
+    }
+    setPeerStatus(false);
+    isHost = false;
+    peerIdLabel.textContent = 'ID: Aguardando...';
+    myPeerIdDisplay.value = '';
+    alert('Desconectado com sucesso.');
+    initializePeer(); // Tenta inicializar um novo Peer ID para que o usuário possa se reconectar
+    playClickSound();
+}
+
+
 // --- Funções de Controle de Vídeo e Sincronização ---
 
-// Carrega e, se host, transmite o vídeo
 function carregarVideo() {
     const file = videoInput.files[0];
     if (file) {
@@ -220,7 +242,8 @@ function carregarVideo() {
         videoPlayer.src = url;
         videoPlayer.load();
         videoPlayer.play();
-        isHost = true; // Quem carrega o vídeo se torna o host
+        playBtnSidebar.textContent = '⏸️'; // Atualiza ícone
+        isHost = true;
 
         if (conn) {
             conn.send({ type: 'videoUrl', url: url });
@@ -234,31 +257,40 @@ function carregarVideo() {
     }
 }
 
-// Sincroniza o comando de Play
+// Alterna play/pause e sincroniza
+function togglePlayPauseSync() {
+    if (videoPlayer.paused) {
+        syncPlay();
+    } else {
+        syncPause();
+    }
+    playClickSound();
+}
+
 function syncPlay() {
     if (conn) {
         conn.send({ type: 'play' });
+        console.log("Comando 'play' enviado.");
     }
     videoPlayer.play();
-    playClickSound();
+    playBtnSidebar.textContent = '⏸️'; // Atualiza ícone para pause
 }
 
-// Sincroniza o comando de Pausar
 function syncPause() {
     if (conn) {
         conn.send({ type: 'pause' });
+        console.log("Comando 'pause' enviado.");
     }
     videoPlayer.pause();
-    playClickSound();
+    playBtnSidebar.textContent = '▶️'; // Atualiza ícone para play
 }
 
-// Salva o tempo atual do vídeo como uma cena
 function addCurrentTimeAsScene() {
     if (videoPlayer.src) {
         const currentTime = videoPlayer.currentTime;
         let sceneName = prompt("Nome para a cena atual (ex: 'Começo do Diálogo', 'Cena Engraçada'):");
         if (sceneName) {
-            sceneName = sceneName.trim() || `Cena ${scenes.length + 1}`; // Garante um nome
+            sceneName = sceneName.trim() || `Cena ${scenes.length + 1}`;
             scenes.push({ name: sceneName, time: currentTime });
             updateSceneSelector();
             alert(`Cena "${sceneName}" salva em ${formatTime(currentTime)}.`);
@@ -269,7 +301,6 @@ function addCurrentTimeAsScene() {
     playClickSound();
 }
 
-// Atualiza o dropdown de cenas
 function updateSceneSelector() {
     sceneSelector.innerHTML = '<option value="">Selecionar Cena</option>';
     scenes.forEach((scene, index) => {
@@ -280,50 +311,58 @@ function updateSceneSelector() {
     });
 }
 
-// Pula para a cena selecionada
 function jumpToScene() {
     const selectedIndex = sceneSelector.value;
     if (selectedIndex !== "" && scenes[selectedIndex]) {
         const scene = scenes[selectedIndex];
         videoPlayer.currentTime = scene.time;
-        if (conn && isHost) { // Apenas o host envia o seek
+        if (conn && isHost) { // Apenas o host sincroniza o seek
             conn.send({ type: 'seek', time: scene.time });
-            conn.send({ type: 'play' }); // Garante que o cliente também toque
+            conn.send({ type: 'play' }); // Assume que vai tocar após pular
+            console.log(`Comando 'seek' e 'play' enviado para ${formatTime(scene.time)}.`);
         }
         videoPlayer.play();
+        playBtnSidebar.textContent = '⏸️'; // Assume que vai tocar
     }
     playClickSound();
 }
 
-// Adiciona um filme à "biblioteca" (exemplo simplificado, sem persistência)
 function addMovieToLibrary() {
     const movieName = prompt("Nome do filme (ex: 'Filme X', 'Série Y Ep. Z'):");
-    if (movieName) {
-        const fileInputForMovie = document.createElement('input');
-        fileInputForMovie.type = 'file';
-        fileInputForMovie.accept = 'video/*';
-        fileInputForMovie.style.display = 'none';
-        document.body.appendChild(fileInputForMovie); // Temporariamente adiciona ao DOM
-
-        fileInputForMovie.onchange = () => {
-            const file = fileInputForMovie.files[0];
-            if (file) {
-                const url = URL.createObjectURL(file);
-                movieLibrary.push({ name: movieName, url: url });
-                updateMovieLibraryDisplay();
-                alert(`"${movieName}" adicionado à sua biblioteca local.`);
-            }
-            document.body.removeChild(fileInputForMovie); // Remove após o uso
-        };
-        fileInputForMovie.click(); // Abre o seletor de arquivos
+    if (!movieName) {
+        alert("Nome do filme é obrigatório.");
+        return;
     }
+
+    const fileInputForMovie = document.createElement('input');
+    fileInputForMovie.type = 'file';
+    fileInputForMovie.accept = 'video/*';
+    fileInputForMovie.style.display = 'none'; // Esconde o input de arquivo
+    document.body.appendChild(fileInputForMovie); // Anexa ao DOM para que possa ser clicado
+
+    // Adiciona um listener para quando um arquivo for selecionado
+    fileInputForMovie.addEventListener('change', () => {
+        const file = fileInputForMovie.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            movieLibrary.push({ name: movieName, url: url });
+            updateMovieLibraryDisplay();
+            alert(`"${movieName}" adicionado à sua biblioteca local.`);
+        } else {
+            alert("Nenhum arquivo de vídeo selecionado.");
+        }
+        document.body.removeChild(fileInputForMovie); // Remove o input após o uso
+    });
+
+    // Simula um clique no input de arquivo para abrir a janela de seleção
+    fileInputForMovie.click();
     playClickSound();
 }
 
-// Atualiza a exibição da biblioteca de filmes
+
 function updateMovieLibraryDisplay() {
     const movieLibraryDiv = document.getElementById('movieLibrary');
-    movieLibraryDiv.innerHTML = ''; // Limpa o conteúdo existente
+    movieLibraryDiv.innerHTML = '';
 
     if (movieLibrary.length === 0) {
         movieLibraryDiv.innerHTML = '<p>Nenhum filme adicionado ainda.</p>';
@@ -332,18 +371,19 @@ function updateMovieLibraryDisplay() {
             const movieItem = document.createElement('div');
             movieItem.textContent = `- ${movie.name}`;
             movieItem.addEventListener('click', () => {
-                // Carrega o filme selecionado da biblioteca
                 videoPlayer.src = movie.url;
                 videoPlayer.load();
                 videoPlayer.play();
-                isHost = true; // Quem carrega o filme se torna o host
+                playBtnSidebar.textContent = '⏸️'; // Assume que vai tocar
+                isHost = true; // Quem carrega o vídeo local se torna o host
+
                 if (conn) {
                     conn.send({ type: 'videoUrl', url: movie.url });
                     alert(`Filme "${movie.name}" carregado e transmitido!`);
                 } else {
                     alert(`Filme "${movie.name}" carregado. Conecte-se a um amigo para transmitir.`);
                 }
-                toggleMenu(); // Fecha o menu após selecionar
+                toggleMenu();
                 playClickSound();
             });
             movieLibraryDiv.appendChild(movieItem);
@@ -356,25 +396,27 @@ function updateMovieLibraryDisplay() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initializePeer();
-    updateMovieLibraryDisplay(); // Inicializa a exibição da biblioteca
-    updateSceneSelector(); // Inicializa o seletor de cenas
+    updateMovieLibraryDisplay();
+    updateSceneSelector();
 });
 
-// Atribui funções aos botões
 shareBtn.addEventListener('click', toggleSharePopup);
 connectFriendBtn.addEventListener('click', () => {
     playClickSound();
     const friendId = friendIdInput.value;
     if (peer && friendId) {
+        if (conn && conn.open) {
+            alert("Você já está conectado a um amigo. Desconecte primeiro para conectar a outro.");
+            return;
+        }
         conn = peer.connect(friendId);
         conn.on('open', function() {
             console.log('Conexão estabelecida com: ' + friendId);
             isHost = false; // Você é o cliente nesta conexão
             handlePeerConnection(conn);
-            setPeerStatus(true); // Conectado
+            setPeerStatus(true);
             alert(`Conectado com sucesso ao amigo ID: ${friendId}`);
-            // Solicitar URL do vídeo ao host imediatamente após a conexão
-            conn.send({ type: 'requestVideoUrl' });
+            conn.send({ type: 'requestVideoUrl' }); // Solicita URL do vídeo ao host
         });
         conn.on('error', function(err) {
             console.error('Erro ao conectar ao amigo:', err);
@@ -385,36 +427,41 @@ connectFriendBtn.addEventListener('click', () => {
         alert('Por favor, insira o ID do amigo.');
     }
 });
+disconnectBtn.addEventListener('click', disconnectPeer); // Listener para o novo botão de desconectar
 retryConnectBtn.addEventListener('click', () => {
     playClickSound();
-    if (peer) {
-        peer.destroy();
-    }
-    initializePeer();
+    // Reutiliza a lógica de desconexão e inicialização
+    disconnectPeer();
     alert('Tentando reiniciar a conexão...');
 });
 loadStreamVideoBtn.addEventListener('click', carregarVideo);
-syncPlayBtn.addEventListener('click', syncPlay);
-syncPauseBtn.addEventListener('click', syncPause);
+
 addCurrentTimeAsSceneBtn.addEventListener('click', addCurrentTimeAsScene);
 sceneSelector.addEventListener('change', jumpToScene);
 addMovieToLibraryBtn.addEventListener('click', addMovieToLibrary);
 
 // Adiciona listener para os botões de emoji
 emojiButtons.forEach(button => {
-    button.addEventListener('click', handleEmojiClick);
+    button.addEventListener('click', handleEmojiButtonClick);
 });
 
-// Adiciona o som de clique para o botão de play da sidebar especificamente
-playBtnSidebar.addEventListener('click', () => {
-    syncPlay(); // Usa a função de sincronizar play para garantir que o lado do PeerJS seja acionado
-});
-
+// Listener para o botão de play/pause da sidebar
+playBtnSidebar.addEventListener('click', togglePlayPauseSync);
 
 // Sincronização de progresso do vídeo (apenas do host para o cliente)
 videoPlayer.addEventListener('timeupdate', () => {
     // Envia o tempo atual para o cliente a cada ~2 segundos se for o host e estiver tocando
-    if (isHost && conn && !videoPlayer.paused && Math.floor(videoPlayer.currentTime * 10) % 20 === 0) { // Envia a cada 2 segundos
+    if (isHost && conn && !videoPlayer.paused && Math.floor(videoPlayer.currentTime * 10) % 20 === 0) {
         conn.send({ type: 'seek', time: videoPlayer.currentTime });
     }
+});
+
+// Adiciona listener para o evento 'play' e 'pause' do próprio player de vídeo
+// para manter o ícone do botão da sidebar atualizado
+videoPlayer.addEventListener('play', () => {
+    playBtnSidebar.textContent = '⏸️';
+});
+
+videoPlayer.addEventListener('pause', () => {
+    playBtnSidebar.textContent = '▶️';
 });
