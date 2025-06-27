@@ -11,6 +11,7 @@ const peerStatusDiv = document.getElementById('peerStatus');
 const mainMenu = document.getElementById('mainMenu');
 const shareIdPopup = document.getElementById('shareIdPopup');
 const myPeerIdDisplay = document.getElementById('myPeerIdDisplay');
+const emojiContainer = document.getElementById('emojiContainer'); // Novo container para emojis
 
 // Botões
 const shareBtn = document.querySelector('.share-btn');
@@ -24,6 +25,7 @@ const addMovieToLibraryBtn = document.getElementById('addMovieToLibraryBtn');
 const sceneSelector = document.getElementById('sceneSelector');
 const addCurrentTimeAsSceneBtn = document.getElementById('addCurrentTimeAsSceneBtn');
 const playBtnSidebar = document.getElementById('playBtn'); // Botão de play na sidebar
+const emojiButtons = document.querySelectorAll('.emoji-btn'); // Botões de emoji
 
 // Sons de clique (mesmos da intro, ajuste os caminhos se forem locais)
 const clickSounds = [
@@ -89,6 +91,44 @@ function formatTime(seconds) {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
+// Função para animar emojis
+function animateEmoji(emoji, startX, startY) {
+    const emojiEl = document.createElement('span');
+    emojiEl.classList.add('animated-emoji');
+    emojiEl.textContent = emoji;
+    emojiEl.style.left = `${startX}%`;
+    emojiEl.style.top = `${startY}%`;
+    emojiContainer.appendChild(emojiEl);
+
+    // Remove o emoji após a animação (3 segundos, como definido no CSS)
+    emojiEl.addEventListener('animationend', () => {
+        emojiEl.remove();
+    });
+}
+
+// Lida com o clique nos botões de emoji
+function handleEmojiClick(event) {
+    const emoji = event.target.dataset.emoji;
+    if (emoji) {
+        // Envia o emoji para o peer conectado
+        if (conn) {
+            conn.send({ type: 'emoji', emoji: emoji });
+        }
+        // Anima o emoji localmente
+        const clickX = event.clientX;
+        const clickY = event.clientY;
+        const videoRect = videoPlayer.getBoundingClientRect();
+
+        // Calcula a posição do clique relativa ao container do vídeo (0-100%)
+        const relativeX = ((clickX - videoRect.left) / videoRect.width) * 100;
+        const relativeY = ((clickY - videoRect.top) / videoRect.height) * 100;
+
+        animateEmoji(emoji, relativeX, relativeY);
+        playClickSound(); // Toca som ao clicar em emoji
+    }
+}
+
+
 // --- Funções PeerJS ---
 
 // Inicializa o PeerJS
@@ -141,7 +181,6 @@ function handlePeerConnection(c) {
             // Ajusta o tempo apenas se a diferença for significativa para evitar loops
             if (Math.abs(videoPlayer.currentTime - data.time) > 2) {
                 videoPlayer.currentTime = data.time;
-                // videoPlayer.play(); // Opcional: tocar após o seek
             }
         } else if (data.type === 'videoUrl' && !isHost) {
             // Cliente recebe URL do vídeo e carrega
@@ -154,6 +193,11 @@ function handlePeerConnection(c) {
             if (videoPlayer.src) {
                 c.send({ type: 'videoUrl', url: videoPlayer.src });
             }
+        } else if (data.type === 'emoji') { // Novo: Recebe comando de emoji
+            // Anima o emoji recebido em uma posição aleatória no vídeo
+            const randomX = Math.random() * 80 + 10; // 10% a 90%
+            const randomY = Math.random() * 80 + 10; // 10% a 90%
+            animateEmoji(data.emoji, randomX, randomY);
         }
     });
 
@@ -356,14 +400,9 @@ addCurrentTimeAsSceneBtn.addEventListener('click', addCurrentTimeAsScene);
 sceneSelector.addEventListener('change', jumpToScene);
 addMovieToLibraryBtn.addEventListener('click', addMovieToLibrary);
 
-// Adiciona som de clique a todos os botões na side-bar e menu (exceto o close-btn, já tratado)
-document.querySelectorAll('.side-bar button, .main-menu .btn, .share-popup .copy-btn').forEach(button => {
-    // Evita adicionar o listener novamente se já tiver (ex: o toggleMenu já chama playClickSound)
-    if (button.id !== 'connectFriendBtn' && button.id !== 'retryConnectBtn' && button.id !== 'loadStreamVideoBtn' &&
-        button.id !== 'syncPlayBtn' && button.id !== 'syncPauseBtn' && button.id !== 'addCurrentTimeAsSceneBtn' &&
-        button.id !== 'addMovieToLibraryBtn' && button.id !== 'playBtn' && button.className.indexOf('close-btn') === -1) {
-        button.addEventListener('click', playClickSound);
-    }
+// Adiciona listener para os botões de emoji
+emojiButtons.forEach(button => {
+    button.addEventListener('click', handleEmojiClick);
 });
 
 // Adiciona o som de clique para o botão de play da sidebar especificamente
