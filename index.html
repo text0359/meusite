@@ -3,375 +3,279 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Área do Filme</title>
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <title>Bem-vindo ao Cinema Rosa Encantada</title>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js" onerror="handleScriptError('Particles.js')"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
+    /* Variáveis CSS para Cores - Mantidas para consistência visual */
+    :root {
+      --pink-primary: #ec4899; /* Rosa forte para o fundo principal do container */
+      --pink-secondary: #f472b6; /* Rosa médio para barras (topo, lateral, upload) */
+      --pink-light: #f9a8d4; /* Rosa claro para acentos e textos */
+      --pink-very-light: #fef2f2; /* Quase branco rosado para inputs e contrastes */
+      --purple-accent: #a020f0; /* Roxo para introdução e acentos */
+      --text-dark-pink: #881337; /* Rosa escuro para textos */
+      --text-light: white; /* Texto claro */
     }
 
     body {
-      background: linear-gradient(to right, #d88adb, #8b7ff6);
+      background: linear-gradient(45deg, var(--purple-accent), var(--pink-light), var(--pink-primary));
+      font-family: 'Poppins', sans-serif;
       overflow: hidden;
-    }
-
-    .top-bar {
-      background: #fff;
-      padding: 10px 20px;
+      margin: 0;
+      padding: 0;
       display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: bold;
-      border-bottom: 3px solid #ff6bb2;
-    }
-
-    .id-label {
-      flex: 1;
-      color: #ff2691;
-    }
-
-    .share-btn,
-    .menu-btn {
-      background: transparent;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-weight: bold;
-      color: #fff;
-      background: #ccc;
-      padding: 5px 10px;
-      border-radius: 20px;
-    }
-
-    .status.online {
-      background: #2ecc71;
-    }
-
-    .status.offline {
-      background: #e74c3c;
-    }
-
-    .status .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    .film-area {
-      display: flex;
-      height: calc(100vh - 60px);
-      position: relative;
-    }
-
-    .video-container {
-      flex: 1;
-      background: black;
-      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-radius: 0 20px 20px 0;
-      overflow: hidden;
+      min-height: 100vh;
+      color: var(--text-light);
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
-    .video-container video {
+    /* Partículas de Fundo */
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      z-index: -1;
     }
 
-    .side-bar {
-      width: 60px;
-      background: #ff6bb2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 0;
-      gap: 10px;
-      border-top-right-radius: 20px;
-      border-bottom-right-radius: 20px;
-    }
-
-    .side-bar button {
-      background: #fff;
-      border: none;
-      border-radius: 50%;
-      padding: 8px;
-      font-size: 20px;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
-    }
-    .side-bar button:hover {
-        transform: scale(1.1);
-        background: #f0f0f0;
-    }
-
-    .main-menu {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(to bottom, #ff7fb8, #e79ac2);
-      border-radius: 20px;
-      padding: 20px;
-      width: 280px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 0 20px #c42b83;
-      color: white;
-      display: none;
-      z-index: 1000;
-    }
-
-    .main-menu.show {
-      display: block;
-    }
-
-    .main-menu h2 {
-      font-size: 1.4rem;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .main-menu h3 {
-        font-size: 1.2rem;
-        margin-top: 20px;
-        margin-bottom: 8px;
+    /* ESTILOS DA TELA DE INTRODUÇÃO */
+    #introScreen {
+        position: relative; /* Para centralizar o conteúdo dentro do body */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%; /* Ocupa a largura total para centralizar */
+        height: 100vh; /* Ocupa a altura total da viewport */
+        transition: opacity 1s ease-out;
+        opacity: 1;
         text-align: center;
-        border-bottom: 1px solid rgba(255,255,255,0.5);
-        padding-bottom: 5px;
     }
-
-    .close-btn {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-      background: transparent;
-      border: none;
-      font-size: 20px;
-      color: white;
-      cursor: pointer;
+    #introScreen.fade-out {
+        opacity: 0;
+        pointer-events: none; /* Impede interação após fade-out */
     }
-
-    .main-menu input[type="text"],
-    .main-menu input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 13px;
-      background-color: rgba(255,255,255,0.8);
-      color: #333;
+    #introTitle {
+        font-family: 'Times New Roman', serif;
+        font-size: 3.5rem;
+        font-weight: bold;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+        animation: fadeInScale 1s ease-out forwards, neonGlow 1.5s ease-in-out infinite alternate 1s;
     }
-
-    .btn {
-      width: 100%;
-      padding: 12px;
-      margin: 6px 0;
-      border: none;
-      border-radius: 20px;
-      font-weight: bold;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+    @keyframes fadeInScale {
+        0% { opacity: 0; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1); }
     }
-
-    .btn.purple {
-      background: linear-gradient(to right, #7f00ff, #a333ff);
+    @keyframes neonGlow {
+        from { text-shadow: 0 0 5px #fff, 0 0 10px var(--pink-primary), 0 0 20px var(--pink-primary), 0 0 30px var(--pink-primary); }
+        to { text-shadow: 0 0 10px #fff, 0 0 20px var(--pink-primary), 0 0 30px var(--pink-primary), 0 0 40px var(--pink-primary); }
     }
-
-    .btn.pink {
-      background: #ff4488;
-    }
-    .main-menu .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
-
-    .scene-select {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .scene-select select {
-      padding: 8px;
-      border-radius: 8px;
-      border: none;
-      margin-top: 5px;
-      width: 100%;
-      background-color: rgba(255,255,255,0.8);
-      color: #333;
-    }
-
-    /* Estilo para o pop-up de ID */
-    .share-popup {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(to bottom, #ff7fb8, #e79ac2);
+    #introVideoContainer {
+        width: 80%;
+        max-width: 600px;
+        border: 7px solid var(--pink-primary);
         border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 0 25px rgba(0,0,0,0.5);
-        z-index: 1001;
-        text-align: center;
-        color: white;
-        width: 300px;
-        max-width: 90%;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 0 30px rgba(0,0,0,0.7);
+        animation: fadeInScale 1.5s ease-out forwards, borderGlow 2s ease-in-out infinite alternate;
     }
-
-    .share-popup.show {
+    @keyframes borderGlow {
+        from { border-color: var(--pink-primary); box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 30px var(--pink-primary); }
+        to { border-color: var(--pink-light); box-shadow: 0 0 30px var(--pink-light), 0 0 40px var(--pink-secondary); }
+    }
+    #introVideo {
+        width: 100%;
+        height: auto;
         display: block;
     }
-
-    .share-popup h3 {
-        margin-bottom: 15px;
-        font-size: 1.5rem;
+    #loadingBarContainer {
+        width: 70%;
+        max-width: 400px;
+        background-color: rgba(var(--text-light-rgb),0.3);
+        border-radius: 5px;
+        height: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
     }
-
-    .share-popup input[type="text"] {
-        width: calc(100% - 20px);
-        padding: 10px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        border: none;
-        font-size: 1rem;
-        text-align: center;
-        background-color: rgba(255,255,255,0.8);
-        color: #ff2691;
-        font-weight: bold;
+    #loadingBar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--pink-secondary), var(--pink-primary));
+        animation: loadingFill 12s linear forwards;
     }
-
-    .share-popup .copy-btn {
-        background: #a333ff;
-        color: white;
-        border: none;
-        padding: 10px 20px;
+    @keyframes loadingFill {
+        from { width: 0%; }
+        to { width: 100%; }
+    }
+    #loadingText {
+        margin-top: 0.5rem;
+        font-size: 1.2rem;
+        color: var(--pink-light);
+    }
+    #startButton {
+        background: linear-gradient(45deg, var(--purple-accent), var(--pink-primary));
+        color: var(--text-light);
+        padding: 18px 35px;
         border-radius: 20px;
-        cursor: pointer;
+        border: none;
+        font-size: 1.6rem;
         font-weight: bold;
-        transition: background 0.3s;
-    }
-
-    .share-popup .copy-btn:hover {
-        background: #7f00ff;
-    }
-
-    /* Estilo da biblioteca de filmes */
-    #movieLibrary {
-        margin-top: 10px;
-        max-height: 200px;
-        overflow-y: auto;
-        background-color: rgba(255,255,255,0.2);
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.4);
-    }
-    #movieLibrary p {
-        text-align: center;
-        color: rgba(255,255,255,0.7);
-        font-style: italic;
-    }
-    #movieLibrary div {
-        padding: 8px;
         cursor: pointer;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        color: white;
-        transition: background-color 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 2rem;
+        box-shadow: 0 5px 20px rgba(var(--purple-accent-rgb), 0.5);
+        animation: fadeInScale 1s ease-out forwards;
     }
-    #movieLibrary div:hover {
-        background-color: rgba(255,255,255,0.3);
+    #startButton:hover {
+        transform: scale(1.08);
+        box-shadow: 0 0 30px rgba(var(--purple-accent-rgb), 0.8), 0 0 40px rgba(var(--pink-primary-rgb), 0.7);
     }
-    #movieLibrary div:last-child {
-        border-bottom: none;
+
+    /* MEDIA QUERIES para responsividade da Intro Screen */
+    @media (max-width: 900px) {
+        #introTitle { font-size: 2.5rem; }
+        #introVideoContainer { width: 90%; }
+        #startButton { padding: 15px 30px; font-size: 1.4rem; }
+        #loadingBarContainer { width: 80%; max-width: 350px; }
+    }
+
+    @media (max-width: 480px) {
+        #introTitle { font-size: 1.8rem; margin-bottom: 1.5rem;}
+        #introVideoContainer { width: 95%; border-width: 5px;}
+        #startButton { padding: 12px 25px; font-size: 1.2rem; margin-top: 1.5rem;}
+        #loadingBarContainer { width: 90%; max-width: 300px; }
+        #loadingText { font-size: 1rem; }
     }
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <span class="id-label">ID: Aguardando...</span>
-    <button class="share-btn">🔗</button>
-    <div class="status offline" id="peerStatus">
-      <span id="statusText">OFF</span>
-      <div class="dot"></div>
+  <div id="particles-js"></div>
+
+  <div id="introScreen">
+    <h1 id="introTitle">Werveson & Leticia's Home Cinema</h1>
+    <div id="introVideoContainer">
+        <video id="introVideo" loop playsinline>
+            <source src="https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4" type="video/mp4">
+            O seu navegador não suporta a tag de vídeo.
+        </video>
     </div>
-    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    <p id="loadingText">A carregar a experiência...</p>
+    <div id="loadingBarContainer">
+        <div id="loadingBar"></div>
+    </div>
+    <button id="startButton" onclick="startCinemaExperience()">Iniciar Cinema</button>
   </div>
 
-  <div class="film-area">
-    <div class="video-container">
-      <video id="videoPlayer" controls></video>
-    </div>
-    <div class="side-bar">
-      <button id="playBtn">▶️</button>
-      <button>😂</button>
-      <button>😴</button>
-      <button>😭</button>
-      <button>😱</button>
-      <button>😍</button>
-      <button>🥺</button>
-      <button>😅</button>
-    </div>
-  </div>
+  <audio id="clickSound1" src="https://freesound.org/data/previews/171/171671_2437358-lq.mp3" onerror="handleAudioError('Click Sound 1')"></audio>
+  <audio id="clickSound2" src="https://freesound.org/data/previews/171/171668_2437358-lq.mp3" onerror="handleAudioError('Click Sound 2')"></audio>
+  <audio id="clickSound3" src="https://freesound.org/data/previews/171/171670_2437358-lq.mp3" onerror="handleAudioError('Click Sound 3')"></audio>
+  <audio id="bgMusic" src="https://freesound.org/data/previews/235/235655_4229646-lq.mp3" loop onerror="handleAudioError('Background Music')"></audio>
 
-  <div class="share-popup" id="shareIdPopup">
-      <button class="close-btn" onclick="toggleSharePopup()">✖</button>
-      <h3>Seu ID da Sessão</h3>
-      <input type="text" id="myPeerIdDisplay" readonly>
-      <button class="copy-btn" onclick="copyMyPeerId()">Copiar ID</button>
-  </div>
+  <script>
+    let introStarted = false;
+    const bgMusic = document.getElementById('bgMusic');
+    const introVideo = document.getElementById('introVideo');
+    const loadingBar = document.getElementById('loadingBar');
+    const loadingText = document.getElementById('loadingText');
+    const introScreen = document.getElementById('introScreen');
+    const startButton = document.getElementById('startButton');
 
-  <div class="main-menu" id="mainMenu">
-    <h2>Menu Principal</h2>
-    <button class="close-btn" onclick="toggleMenu()">✖</button>
+    const clickSounds = [
+      new Audio("https://freesound.org/data/previews/171/171671_2437358-lq.mp3"),
+      new Audio("https://freesound.org/data/previews/171/171668_2437358-lq.mp3"),
+      new Audio("https://freesound.org/data/previews/171/171670_2437358-lq.mp3")
+    ];
+    clickSounds.forEach(s => s.volume = 0.1);
 
-    <h3>Conexão</h3>
-    <label for="friendId">ID do amigo:</label>
-    <input type="text" id="friendId" placeholder="Insira o ID do amigo">
+    function handleScriptError(scriptName) {
+      console.error(`${scriptName} falhou ao carregar. Verifique a sua conexão com a internet ou se o link do script está correto.`);
+    }
 
-    <button class="btn purple" id="connectFriendBtn">Conectar Amigo</button>
-    <button class="btn purple" id="retryConnectBtn">Tentar Novamente</button>
+    function handleAudioError(audioName) {
+      console.warn(`${audioName} falhou ao carregar. Considere hospedar ficheiros de áudio localmente.`);
+    }
 
-    <h3>Controle de Vídeo</h3>
-    <input type="file" id="videoInput" accept="video/*">
-    <button class="btn pink" id="loadStreamVideoBtn">Carregar & Transmitir Vídeo</button>
-    <button class="btn pink" id="syncPlayBtn">Sincronizar Play</button>
-    <button class="btn pink" id="syncPauseBtn">Sincronizar Pausar</button>
+    if (typeof particlesJS !== 'undefined') {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: '#f9a8d4' },
+          shape: { type: 'circle' },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: { enable: false },
+          move: { enable: true, speed: 2, direction: 'none', random: true }
+        },
+        interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'repulse' } } }
+      });
+    } else {
+      console.warn('Particle.js não carregado. O fundo animado não estará disponível.');
+    }
 
-    <h3>Biblioteca de Filmes</h3>
-    <div id="movieLibrary">
-        <p>Nenhum filme adicionado ainda.</p>
-    </div>
-    <button class="btn pink" id="addMovieToLibraryBtn" style="margin-top: 10px;">Adicionar Filme à Biblioteca</button>
+    if (startButton) {
+      startButton.addEventListener('click', () => {
+        const randomClickSound = clickSounds[Math.floor(Math.random() * clickSounds.length)];
+        randomClickSound.currentTime = 0;
+        randomClickSound.play().catch(() => console.log('Som de clique bloqueado.'));
+      });
+    }
 
-    <h3>Cenas Rápidas</h3>
-    <div class="scene-select">
-      <label for="sceneSelector">Cenas</label>
-      <select id="sceneSelector">
-        <option value="">Selecionar Cena</option>
-      </select>
-      <button class="btn pink" style="margin-top: 5px;" id="addCurrentTimeAsSceneBtn">Salvar Cena Atual</button>
-    </div>
-  </div>
+    function startCinemaExperience() {
+        if (introStarted) return;
+        introStarted = true;
 
-  <script src="cinema.js"></script>
+        if (startButton) {
+            startButton.disabled = true;
+            startButton.textContent = "A iniciar...";
+        }
+
+        bgMusic.volume = 0.3;
+        bgMusic.play().then(() => {
+            console.log("Música de fundo iniciada.");
+        }).catch(e => {
+            console.log("Música de fundo bloqueada pelo navegador (interação necessária):", e);
+        });
+
+        introVideo.play().then(() => {
+            console.log("Vídeo da introdução iniciado.");
+        }).catch(e => {
+            console.log("Vídeo da introdução bloqueado pelo navegador (interação necessária):", e);
+        });
+
+        loadingBar.style.animation = 'none';
+        void loadingBar.offsetWidth;
+        loadingBar.style.animation = 'loadingFill 5s linear forwards';
+        loadingText.textContent = "A carregar a experiência do cinema...";
+
+        setTimeout(() => {
+            introScreen.classList.add('fade-out');
+            if (bgMusic && !bgMusic.paused) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+            if (introVideo && !introVideo.paused) {
+                introVideo.pause();
+                introVideo.currentTime = 0;
+            }
+            setTimeout(() => {
+                // Redireciona para cinema.html
+                window.location.href = 'cinema.html';
+            }, 1000); // Espera o fade-out da intro (1 segundo)
+        }, 5000); // Tempo total da animação da barra de carregamento
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        bgMusic.load();
+        clickSounds.forEach(s => s.load());
+    });
+  </script>
 </body>
 </html>
