@@ -1,415 +1,1072 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Área do Filme</title>
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream de Filmes com Amigos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
-    body {
-      background: linear-gradient(to right, #d88adb, #8b7ff6);
-      overflow: hidden;
-    }
-
-    .top-bar {
-      background: #fff;
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: bold;
-      border-bottom: 3px solid #ff6bb2;
-    }
-
-    .id-label {
-      flex: 1;
-      color: #ff2691;
-    }
-
-    .share-btn,
-    .menu-btn {
-      background: transparent;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-weight: bold;
-      color: #fff;
-      background: #ccc;
-      padding: 5px 10px;
-      border-radius: 20px;
-    }
-
-    .status.online {
-      background: #2ecc71;
-    }
-
-    .status.offline {
-      background: #e74c3c;
-    }
-
-    .status .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    .film-area {
-      display: flex;
-      height: calc(100vh - 60px);
-      position: relative;
-    }
-
-    .video-container {
-      flex: 1;
-      background: black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 0 20px 20px 0;
-      overflow: hidden;
-      position: relative; /* Necessário para posicionar os emojis */
-    }
-
-    .video-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      z-index: 1; /* Garante que o vídeo fique por baixo dos emojis */
-    }
-
-    /* Container para os emojis animados */
-    .emoji-animation-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden; /* Garante que emojis saiam da tela */
-        pointer-events: none; /* Permite interagir com o vídeo por trás dos emojis */
-        z-index: 2; /* Acima do vídeo */
-    }
-
-    .animated-emoji {
-        position: absolute;
-        font-size: 3em; /* Tamanho dos emojis */
-        opacity: 0;
-        animation: floatUpFadeOut 3s ease-out forwards;
-        transform: translate(-50%, -50%); /* Centraliza o emoji em seu ponto de origem */
-        will-change: transform, opacity; /* Otimização para animação */
-    }
-
-    @keyframes floatUpFadeOut {
-        0% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            filter: blur(0);
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background: linear-gradient(to right, #fbcfe8, #d8b4fe); /* Gradient from pink-300 to purple-400 */
         }
-        50% {
-            opacity: 1;
+
+        /* Base styles for the cinema container */
+        .cinema-container {
+            position: relative;
+            background-color: #ff69b4; /* Darker pink border */
+            border-radius: 2rem; /* More rounded corners */
+            padding: 1.5rem; /* Padding for the pink border effect */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1000px; /* Max width for larger screens */
+            min-height: 500px;
         }
-        100% {
+
+        /* Top Bar styling */
+        .top-bar {
+            background-color: #ffc0cb; /* Lighter pink for the bar itself */
+            border-radius: 1.5rem 1.5rem 0 0; /* Rounded top corners */
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 1.5rem; /* Space between top bar and video area */
+            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        .id-display {
+            background-color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px; /* Pill shape */
+            color: #ff69b4;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Specific style for the copy button within id-display */
+        .id-display .copy-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ff69b4; /* Match ID text color */
+            font-size: 1.1rem; /* Adjust icon size */
+            padding: 0; /* Remove default button padding */
+            margin-left: 0.5rem; /* Space from text */
+            transition: color 0.2s ease;
+        }
+        .id-display .copy-button:hover {
+            color: #c71585; /* Darker pink on hover */
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .switch-label {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch-label input {
             opacity: 0;
-            transform: translateY(-200px) scale(1.5); /* Sobe e cresce um pouco */
-            filter: blur(5px); /* Efeito de desfoque ao sumir */
+            width: 0;
+            height: 0;
         }
-    }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4CAF50; /* Green for ON */
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        /* Friend status indicator */
+        .friend-status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #9ca3af; /* Gray when not connected */
+            transition: background-color 0.3s ease;
+        }
+        .friend-status-indicator.connected {
+            background-color: #4CAF50; /* Green when connected */
+        }
 
 
-    .side-bar {
-      width: 60px;
-      background: #ff6bb2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 0;
-      gap: 10px;
-      border-top-right-radius: 20px;
-      border-bottom-right-radius: 20px;
-    }
+        .video-main-area {
+            display: flex;
+            gap: 1.5rem; /* Space between video and side controls */
+            flex-grow: 1; /* Allows it to take available space */
+            position: relative;
+            margin-bottom: 1.5rem; /* Space before potential bottom elements */
+        }
 
-    .side-bar button {
-      background: #fff;
-      border: none;
-      border-radius: 50%;
-      padding: 8px;
-      font-size: 20px;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
-    }
-    .side-bar button:hover {
-        transform: scale(1.1);
-        background: #f0f0f0;
-    }
+        .video-player-wrapper {
+            background-color: black;
+            border-radius: 1.5rem; /* Rounded corners for the black video area */
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden; /* Important for containing floating emojis */
+            border: 4px solid #333; /* Inner border for the screen */
+        }
 
-    .main-menu {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(to bottom, #ff7fb8, #e79ac2);
-      border-radius: 20px;
-      padding: 20px;
-      width: 280px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 0 20px #c42b83;
-      color: white;
-      display: none;
-      z-index: 1000;
-    }
+        .movie-player {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
 
-    .main-menu.show {
-      display: block;
-    }
+        .overlay-text {
+            position: absolute;
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+            text-align: center;
+        }
 
-    .main-menu h2 {
-      font-size: 1.4rem;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .main-menu h3 {
-        font-size: 1.2rem;
-        margin-top: 20px;
-        margin-bottom: 8px;
-        text-align: center;
-        border-bottom: 1px solid rgba(255,255,255,0.5);
-        padding-bottom: 5px;
-    }
+        /* Hide overlay when video is loaded */
+        video:not([src=""]) + .overlay-text {
+            display: none;
+        }
 
-    .close-btn {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-      background: transparent;
-      border: none;
-      font-size: 20px;
-      color: white;
-      cursor: pointer;
-    }
+        .right-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem; /* Space between buttons */
+            background-color: #ffc0cb; /* Lighter pink background for controls */
+            padding: 1rem;
+            border-radius: 1.5rem;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
 
-    .main-menu input[type="text"],
-    .main-menu input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 13px;
-      background-color: rgba(255,255,255,0.8);
-      color: #333;
-    }
+        .control-button {
+            background-color: #ff69b4; /* Darker pink for buttons */
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
 
-    .btn {
-      width: 100%;
-      padding: 12px;
-      margin: 6px 0;
-      border: none;
-      border-radius: 20px;
-      font-weight: bold;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
-    }
+        .control-button:hover {
+            background-color: #c71585;
+            transform: translateY(-2px);
+        }
 
-    .btn.purple {
-      background: linear-gradient(to right, #7f00ff, #a333ff);
-    }
+        /* Emoji animation styling */
+        .emoji-reaction {
+            position: absolute;
+            bottom: 0; /* Always starts from the bottom of the video player wrapper */
+            font-size: 3.5em; /* Larger size for better visibility */
+            pointer-events: none;
+            opacity: 1; /* Start fully visible */
+            transform-origin: center bottom; /* Transform from the bottom center */
+            animation: floatAndFade 5s ease-out forwards; /* Longer duration for better visibility */
+            z-index: 10;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
 
-    .btn.pink {
-      background: #ff4488;
-    }
-    .main-menu .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
+        @keyframes floatAndFade {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1); /* Start at bottom, normal size */
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-500px) scale(0.3); /* Float up 500px, shrink to 30% */
+            }
+        }
 
-    .scene-select {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      text-align: center;
-    }
 
-    .scene-select select {
-      padding: 8px;
-      border-radius: 8px;
-      border: none;
-      margin-top: 5px;
-      width: 100%;
-      background-color: rgba(255,255,255,0.8);
-      color: #333;
-    }
+        /* Popup menu styling */
+        .menu-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffc0cb; /* Pink background like the menu image */
+            border-radius: 1.5rem;
+            padding: 1.2rem; /* Reduced padding further */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000; /* Above everything else */
+            width: 95%; /* Wider on small screens to fit more content */
+            max-width: 400px; /* Reduced max-width for overall smaller size */
+            max-height: 90vh; /* Set max height to 90% of viewport height */
+            overflow-y: auto; /* Enable vertical scrolling if content overflows */
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 0.8rem; /* Reduced gap between sections */
+            border: 4px solid #ff69b4; /* Matching border */
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
 
-    /* Estilo para o pop-up de ID */
-    .share-popup {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(to bottom, #ff7fb8, #e79ac2);
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 0 25px rgba(0,0,0,0.5);
-        z-index: 1001;
-        text-align: center;
-        color: white;
-        width: 300px;
-        max-width: 90%;
-    }
+        .menu-popup.active {
+            display: flex;
+        }
 
-    .share-popup.show {
-        display: block;
-    }
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5rem; /* Slightly reduced font size */
+            font-weight: bold;
+            color: #ff1493; /* Darker pink for menu title */
+            margin-bottom: 0.4rem; /* Reduced margin */
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
 
-    .share-popup h3 {
-        margin-bottom: 15px;
-        font-size: 1.5rem;
-    }
+        .menu-close-btn {
+            background-color: white;
+            color: #ff1493;
+            border: none;
+            border-radius: 50%;
+            width: 30px; /* Reduced size */
+            height: 30px; /* Reduced size */
+            font-size: 1.1rem; /* Slightly reduced font size */
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+            flex-shrink: 0; /* Prevent button from shrinking */
+        }
 
-    .share-popup input[type="text"] {
-        width: calc(100% - 20px);
-        padding: 10px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        border: none;
-        font-size: 1rem;
-        text-align: center;
-        background-color: rgba(255,255,255,0.8);
-        color: #ff2691;
-        font-weight: bold;
-    }
+        .menu-close-btn:hover {
+            background-color: #ffe0f0;
+        }
 
-    .share-popup .copy-btn {
-        background: #a333ff;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 20px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background 0.3s;
-    }
+        .menu-section {
+            background-color: white; /* Added background to sections */
+            border-radius: 0.75rem; /* Rounded corners for sections */
+            padding: 1rem; /* Reduced padding for sections */
+            margin-bottom: 0.8rem; /* Reduced margin between sections */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Soft shadow for sections */
+            flex-shrink: 0; /* Prevent sections from shrinking */
+        }
 
-    .share-popup .copy-btn:hover {
-        background: #7f00ff;
-    }
+        .menu-section label {
+            display: block;
+            margin-bottom: 0.3rem; /* Reduced margin */
+            font-weight: bold;
+            color: #333;
+            font-size: 0.95rem; /* Slightly reduced font size */
+        }
 
-    /* Estilo da biblioteca de filmes */
-    #movieLibrary {
-        margin-top: 10px;
-        max-height: 200px;
-        overflow-y: auto;
-        background-color: rgba(255,255,255,0.2);
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.4);
-    }
-    #movieLibrary p {
-        text-align: center;
-        color: rgba(255,255,255,0.7);
-        font-style: italic;
-    }
-    #movieLibrary div {
-        padding: 8px;
-        cursor: pointer;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        color: white;
-        transition: background-color 0.2s;
-    }
-    #movieLibrary div:hover {
-        background-color: rgba(255,255,255,0.3);
-    }
-    #movieLibrary div:last-child {
-        border-bottom: none;
-    }
-  </style>
+        .menu-section input[type="text"] {
+            width: 100%;
+            padding: 0.5rem; /* Reduced padding */
+            border: 1px solid #ddd;
+            border-radius: 0.4rem; /* Slightly reduced border radius */
+            font-size: 0.9rem; /* Slightly reduced font size */
+            margin-bottom: 0.6rem; /* Reduced margin */
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 0.8rem; /* Reduced padding */
+            border: none;
+            border-radius: 0.6rem; /* Slightly reduced border radius */
+            color: white;
+            font-size: 0.95rem; /* Slightly reduced font size */
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1); /* Adjusted shadow */
+        }
+
+        .menu-btn.purple {
+            background-color: #8a2be2; /* Roxo */
+        }
+        .menu-btn.purple:hover {
+            background-color: #6a0dad;
+            transform: translateY(-2px);
+        }
+
+        .menu-btn.pink {
+            background-color: #ff1493; /* Rosa choque */
+        }
+        .menu-btn.pink:hover {
+            background-color: #c71585;
+            transform: translateY(-2px);
+        }
+
+        .menu-btn:disabled {
+            background-color: #ff80ab; /* Lighter pink for disabled */
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .scenes-section {
+            background-color: white;
+            border-radius: 0.75rem; /* Reduced border radius */
+            padding: 1rem; /* Reduced padding */
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Soft shadow */
+            margin-top: 0.8rem; /* Reduced margin */
+            flex-shrink: 0; /* Prevent section from shrinking */
+        }
+
+        .scenes-list {
+            min-height: 50px; /* Reduced min-height */
+            border: 2px dashed #ffc0cb;
+            border-radius: 0.6rem;
+            margin-bottom: 0.6rem; /* Reduced margin */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #888;
+            padding: 0.3rem; /* Reduced padding */
+            overflow-y: auto;
+        }
+
+        .scroll-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem; /* Reduced gap */
+        }
+
+        .scroll-buttons button {
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 0.4rem;
+            width: 35px; /* Reduced width */
+            height: 28px; /* Reduced height */
+            font-size: 1.1em; /* Slightly reduced font size */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .scroll-buttons button:hover {
+            background-color: #c71585;
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .cinema-container {
+                padding: 1rem;
+                border-radius: 1.5rem;
+            }
+            .top-bar {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+                margin-bottom: 1rem;
+            }
+            .id-display {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+            .video-main-area {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .right-controls {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 0.75rem;
+                border-radius: 1rem;
+            }
+            .control-button {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
+            }
+            .overlay-text {
+                font-size: 2em;
+            }
+            /* Specific adjustments for menu popup on small screens */
+            .menu-popup {
+                padding: 0.8rem; /* Further reduced padding on very small screens */
+                width: 98%; /* Ensure it's wide enough */
+                max-width: 300px; /* Even smaller max-width to be compact */
+                max-height: 95vh; /* Allow more height on smaller screens if needed */
+            }
+            .menu-header {
+                font-size: 1.2rem; /* Further reduced */
+            }
+            .menu-close-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9rem;
+            }
+            .menu-section label {
+                font-size: 0.85rem;
+            }
+            .menu-section input[type="text"] {
+                padding: 0.4rem;
+                font-size: 0.85rem;
+            }
+            .menu-btn {
+                padding: 0.6rem;
+                font-size: 0.9rem;
+            }
+            .scenes-section {
+                padding: 0.8rem;
+            }
+            .scenes-list {
+                min-height: 40px;
+            }
+            .scroll-buttons button {
+                width: 30px;
+                height: 22px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
 </head>
-<body>
-  <div class="top-bar">
-    <span class="id-label">ID: Aguardando...</span>
-    <button class="share-btn">🔗</button>
-    <div class="status offline" id="peerStatus">
-      <span id="statusText">OFF</span>
-      <div class="dot"></div>
+<body class="bg-gradient-to-r from-pink-300 to-purple-400">
+
+    <div id="loadingIndicator" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 text-white text-2xl z-50 hidden rounded-xl">
+        Carregando...
     </div>
-    <button class="menu-btn" onclick="toggleMenu()">☰</button>
-  </div>
 
-  <div class="film-area">
-    <div class="video-container">
-      <video id="videoPlayer" controls></video>
-      <div class="emoji-animation-container" id="emojiContainer"></div>
+    <!-- Cinema Screen Container -->
+    <div class="cinema-container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="id-display" id="cinemaRoomIdDisplay">
+                <span id="roomStatusText">SALA: PRONTO PARA CONEXÃO</span>
+                <button id="copyRoomIdBtn" class="copy-button ml-2">🔗</button>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Friend status indicator -->
+                <div id="friendStatusIndicator" class="friend-status-indicator"></div>
+                <!-- Toggle Switch for Synchronization -->
+                <div class="toggle-switch">
+                    <span class="text-black font-semibold">SYNC</span>
+                    <label class="switch-label">
+                        <input type="checkbox" id="syncToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button id="openMenuBtn" class="control-button bg-pink-500 hover:bg-pink-600 text-white w-10 h-10 rounded-full flex items-center justify-center text-2xl">
+                    &#x2261; <!-- Hamburger menu icon -->
+                </button>
+            </div>
+        </div>
+
+        <!-- Video Player and Right Controls -->
+        <div class="video-main-area">
+            <div class="video-player-wrapper">
+                <video id="videoPlayer" controls class="movie-player"></video>
+                <div id="overlayText" class="overlay-text">
+                    ÁREA DO FILME
+                </div>
+            </div>
+            <!-- Right-side controls -->
+            <div class="right-controls">
+                <!-- Reaction Buttons -->
+                <button class="control-button reaction-button" data-emoji="😂">😂</button>
+                <button class="control-button reaction-button" data-emoji="😴">😴</button>
+                <button class="control-button reaction-button" data-emoji="😭">😭</button>
+                <button class="control-button reaction-button" data-emoji="🥶">🥶</button>
+                <button class="control-button reaction-button" data-emoji="👍">👍</button>
+                <button class="control-button reaction-button" data-emoji="✨">✨</button>
+            </div>
+        </div>
     </div>
-    <div class="side-bar">
-      <button id="playBtn">▶️</button>
-      <button class="emoji-btn" data-emoji="😂">😂</button>
-      <button class="emoji-btn" data-emoji="😴">😴</button>
-      <button class="emoji-btn" data-emoji="😭">😭</button>
-      <button class="emoji-btn" data-emoji="😱">😱</button>
-      <button class="emoji-btn" data-emoji="😍">😍</button>
-      <button class="emoji-btn" data-emoji="🥺">🥺</button>
-      <button class="emoji-btn" data-emoji="😅">😅</button>
+
+    <!-- Main Menu Popup -->
+    <div id="mainMenuPopup" class="menu-popup hidden">
+        <div class="menu-header">
+            <span>Menu Principal</span>
+            <button id="closeMenuPopupBtn" class="menu-close-btn">X</button>
+        </div>
+
+        <!-- Connection Section -->
+        <div class="menu-section">
+            <label for="roomIdInput">ID do amigo:</label>
+            <input type="text" id="roomIdInput" placeholder="Insira ou gere um ID de sala">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button id="connectBtn" class="menu-btn purple">Conectar Amigo</button>
+                <button id="disconnectBtn" class="menu-btn purple">Desconectar</button>
+            </div>
+            <p id="currentUserIdDisplay" class="text-gray-600 text-sm mt-3 text-center"></p>
+            <p id="currentRoomIdDisplay" class="text-gray-600 text-sm mt-1 text-center"></p>
+        </div>
+
+        <!-- Video Control Section -->
+        <div class="menu-section">
+            <label for="loadVideoUrlInput">URL do Vídeo (Online):</label>
+            <input type="text" id="loadVideoUrlInput" placeholder="Cole a URL do vídeo (ex: .mp4)">
+            <button id="loadVideoBtn" class="menu-btn pink">Carregar Vídeo Online e Transmitir</button>
+
+            <label for="localVideoFile" class="mt-4 block text-gray-700 text-lg font-semibold mb-2">Carregar Vídeo Local (Só para você):</label>
+            <input type="file" id="localVideoFile" accept="video/*" class="hidden">
+            <button id="loadLocalVideoBtn" class="menu-btn pink">Carregar Vídeo Local</button>
+            <p class="text-xs text-gray-500 mt-1">
+                *Vídeos locais só são reproduzidos no seu dispositivo. Para assistir junto, use URLs de vídeos online.
+            </p>
+
+            <button id="syncPlayPauseBtn" class="menu-btn pink mt-4">Play e Pause Sincronizado</button>
+            <button class="menu-btn pink opacity-75 cursor-not-allowed" disabled>Adicionar Cenas (Em Breve)</button>
+            <button class="menu-btn pink opacity-75 cursor-not-allowed" disabled>Baixar Vídeo (Em Breve)</button>
+        </div>
+
+        <!-- Scenes Section (Placeholder for future feature) -->
+        <div class="scenes-section">
+            <h3 class="text-gray-700 text-xl font-bold mb-3">Cenas</h3>
+            <div class="scenes-list">
+                Nenhuma cena adicionada ainda.
+            </div>
+            <div class="scroll-buttons">
+                <button class="opacity-75 cursor-not-allowed" disabled>▲</button>
+                <button class="opacity-75 cursor-not-allowed" disabled>▼</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="share-popup" id="shareIdPopup">
-      <button class="close-btn" onclick="toggleSharePopup()">✖</button>
-      <h3>Seu ID da Sessão</h3>
-      <input type="text" id="myPeerIdDisplay" readonly>
-      <button class="copy-btn" onclick="copyMyPeerId()">Copiar ID</button>
-  </div>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  <div class="main-menu" id="mainMenu">
-    <h2>Menu Principal</h2>
-    <button class="close-btn" onclick="toggleMenu()">✖</button>
+        // Firebase Global Variables (MUST BE USED)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-    <h3>Conexão</h3>
-    <label for="friendId">ID do amigo:</label>
-    <input type="text" id="friendId" placeholder="Insira o ID do amigo">
+        // Initialize Firebase
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let currentRoomRef = null;
+        let unsubscribeRoomListener = null; // To store the unsubscribe function for onSnapshot
+        let currentConnectedRoomId = null; // Store the currently connected room ID
+        let isSyncActive = true; // State for the synchronization toggle
 
-    <button class="btn purple" id="connectFriendBtn">Conectar Amigo</button>
-    <button class="btn purple" id="disconnectBtn">Desconectar</button> <button class="btn purple" id="retryConnectBtn">Tentar Novamente</button>
+        // UI Elements
+        const videoPlayer = document.getElementById('videoPlayer');
+        const roomIdInput = document.getElementById('roomIdInput');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const loadVideoUrlInput = document.getElementById('loadVideoUrlInput');
+        const loadVideoBtn = document.getElementById('loadVideoBtn');
+        const localVideoFile = document.getElementById('localVideoFile');
+        const loadLocalVideoBtn = document.getElementById('loadLocalVideoBtn');
+        const syncPlayPauseBtn = document.getElementById('syncPlayPauseBtn');
+        const overlayText = document.getElementById('overlayText');
+        const currentUserIdDisplay = document.getElementById('currentUserIdDisplay');
+        const currentRoomIdDisplay = document.getElementById('currentRoomIdDisplay');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const mainMenuPopup = document.getElementById('mainMenuPopup');
+        const openMenuBtn = document.getElementById('openMenuBtn');
+        const closeMenuPopupBtn = document.getElementById('closeMenuPopupBtn');
+        const roomStatusText = document.getElementById('roomStatusText');
+        const copyRoomIdBtn = document.getElementById('copyRoomIdBtn');
+        const syncToggle = document.getElementById('syncToggle');
+        const friendStatusIndicator = document.getElementById('friendStatusIndicator');
+        const reactionButtons = document.querySelectorAll('.reaction-button'); // All reaction buttons
+        const videoPlayerWrapper = document.querySelector('.video-player-wrapper'); // Video wrapper for emoji overlay
 
-    <h3>Controle de Vídeo</h3>
-    <input type="file" id="videoInput" accept="video/*">
-    <button class="btn pink" id="loadStreamVideoBtn">Carregar & Transmitir Vídeo</button>
-    <h3>Biblioteca de Filmes</h3>
-    <div id="movieLibrary">
-        <p>Nenhum filme adicionado ainda.</p>
-    </div>
-    <button class="btn pink" id="addMovieToLibraryBtn" style="margin-top: 10px;">Adicionar Filme à Biblioteca</button>
+        // Show loading indicator
+        function showLoading() {
+            loadingIndicator.classList.remove('hidden');
+        }
 
-    <h3>Cenas Rápidas</h3>
-    <div class="scene-select">
-      <label for="sceneSelector">Cenas</label>
-      <select id="sceneSelector">
-        <option value="">Selecionar Cena</option>
-      </select>
-      <button class="btn pink" style="margin-top: 5px;" id="addCurrentTimeAsSceneBtn">Salvar Cena Atual</button>
-    </div>
-  </div>
+        // Hide loading indicator
+        function hideLoading() {
+            loadingIndicator.classList.add('hidden');
+        }
 
-  <script src="cinema.js"></script>
+        // Function to generate a random room ID
+        function generateRoomId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Initialize Firebase and Auth
+        async function initializeFirebase() {
+            showLoading();
+            try {
+                if (!app) { // Initialize only once
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (initialAuthToken) {
+                        try {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } catch (error) {
+                            if (error.code === 'auth/invalid-custom-token' || error.code === 'auth/invalid-claims') {
+                                console.warn("Token de autenticação personalizado inválido ou expirado. Tentando login anônimo.");
+                                await signInAnonymously(auth);
+                            } else {
+                                throw error; // Re-throw other errors
+                            }
+                        }
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    // Listen for auth state changes
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            currentUserIdDisplay.textContent = `Seu ID de Usuário: ${userId}`;
+                            console.log("Usuário autenticado:", userId);
+                        } else {
+                            userId = null;
+                            currentUserIdDisplay.textContent = 'Não autenticado';
+                            console.log("Nenhum usuário autenticado.");
+                            // If user logs out, disconnect from room as well
+                            disconnectFromRoom();
+                        }
+                        hideLoading();
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase ou autenticar:", error);
+                alert("Erro ao iniciar o aplicativo. Por favor, tente novamente.");
+                hideLoading();
+            }
+        }
+
+        // Connect to a specific room
+        async function connectToRoom() {
+            let roomId = roomIdInput.value.trim();
+            if (!roomId) {
+                // Generate a new ID if input is empty
+                roomId = generateRoomId();
+                roomIdInput.value = roomId; // Update input field with generated ID
+                alert(`Nenhum ID inserido. Gerando novo ID de sala: ${roomId}`);
+            }
+            if (!userId) {
+                alert('Aguarde a autenticação do usuário.');
+                return;
+            }
+            
+            // If already connected to this room, just ensure sync is active
+            if (currentConnectedRoomId === roomId && isSyncActive) {
+                alert(`Já conectado à sala: ${roomId}`);
+                mainMenuPopup.classList.remove('active');
+                return;
+            }
+
+            showLoading();
+            try {
+                // Disconnect from any previous room
+                disconnectFromRoom(false); // Pass false to avoid redundant alert
+
+                currentConnectedRoomId = roomId; // Store the connected room ID
+
+                currentRoomRef = doc(db, `artifacts/${appId}/public/data/movieRooms`, roomId);
+
+                const roomSnap = await getDoc(currentRoomRef);
+                if (!roomSnap.exists()) {
+                    await setDoc(currentRoomRef, {
+                        videoUrl: '',
+                        isPlaying: false,
+                        currentTime: 0,
+                        lastUpdatedBy: userId,
+                        createdAt: Date.now(),
+                        lastEmoji: null // Initialize lastEmoji field
+                    });
+                    console.log(`Sala '${roomId}' criada.`);
+                } else {
+                    console.log(`Conectado à sala existente '${roomId}'.`);
+                }
+
+                currentRoomIdDisplay.textContent = `Conectado à Sala: ${roomId}`;
+                roomStatusText.textContent = `SALA: CONECTADA`;
+                friendStatusIndicator.classList.add('connected'); // Set indicator to green
+
+                // Only start listener if sync is active
+                if (syncToggle.checked) {
+                    startRoomListener();
+                } else {
+                     alert("Conectado à sala, mas a sincronização está desativada. Ligue para sincronizar.");
+                }
+
+                alert(`Conectado à sala: ${roomId}`);
+                mainMenuPopup.classList.remove('active'); // Close menu after connecting
+            } catch (error) {
+                console.error("Erro ao conectar à sala:", error);
+                alert("Erro ao conectar à sala. Certifique-se de que o ID da sala é válido.");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Function to start the real-time listener for the room
+        function startRoomListener() {
+            if (currentRoomRef && !unsubscribeRoomListener) { // Only start if not already listening
+                unsubscribeRoomListener = onSnapshot(currentRoomRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        console.log("Dados da sala atualizados:", data);
+                        // Apply video state updates only if not initiated by this client
+                        if (data.lastUpdatedBy !== userId) {
+                            applyRoomStateToVideoPlayer(data);
+                        }
+                        // Handle incoming emoji reactions
+                        // Check timestamp to ensure it's a new, unique reaction (within ~1.5s window)
+                        if (data.lastEmoji && data.lastEmoji.senderId !== userId && data.lastEmoji.timestamp > (Date.now() - 1500)) { 
+                            launchEmoji(data.lastEmoji.emoji, true); // Launch emoji on receiving client
+                        }
+                    } else {
+                        console.log("A sala não existe mais ou foi excluída.");
+                        disconnectFromRoom();
+                    }
+                }, (error) => {
+                    console.error("Erro ao ouvir atualizações da sala:", error);
+                    alert("Erro ao sincronizar com a sala.");
+                    disconnectFromRoom(); // Disconnect on listener error
+                });
+                isSyncActive = true;
+                console.log("Listener de sala ativado.");
+            }
+        }
+
+        // Disconnect from the current room
+        function disconnectFromRoom(showAlert = true) {
+            if (unsubscribeRoomListener) {
+                unsubscribeRoomListener();
+                unsubscribeRoomListener = null;
+                console.log("Listener de sala desativado.");
+            }
+            currentRoomRef = null;
+            currentConnectedRoomId = null; // Clear stored ID
+            roomIdInput.value = ''; // Clear room ID input
+            videoPlayer.src = ''; // Clear video
+            overlayText.classList.remove('hidden'); // Show overlay
+            currentUserIdDisplay.textContent = ''; // Clear user ID display
+            currentRoomIdDisplay.textContent = ''; // Clear menu room ID display
+            roomStatusText.textContent = `SALA: PRONTO PARA CONEXÃO`; // Update main display
+            friendStatusIndicator.classList.remove('connected'); // Set indicator to grey
+            
+            // Ensure sync toggle is unchecked when disconnected explicitly
+            syncToggle.checked = false;
+            isSyncActive = false;
+
+            if (showAlert) {
+                alert('Desconectado da sala.');
+            }
+            console.log("Desconectado da sala.");
+        }
+
+        // Function to copy the room ID to clipboard
+        async function copyRoomIdToClipboard() {
+            console.log("Copy button clicked. currentConnectedRoomId:", currentConnectedRoomId); // Debug log
+            if (currentConnectedRoomId) {
+                try {
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = currentConnectedRoomId;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    const success = document.execCommand('copy'); // Capture success result
+                    document.body.removeChild(tempInput);
+
+                    if (success) {
+                        alert(`ID da sala '${currentConnectedRoomId}' copiado para a área de transferência!`);
+                    } else {
+                        alert('Erro ao copiar o ID da sala. O navegador não permitiu a cópia automática. Por favor, copie manualmente.');
+                    }
+                } catch (err) {
+                    console.error('Falha ao copiar o ID da sala: ', err);
+                    alert('Erro ao copiar o ID da sala. Por favor, copie manualmente. Detalhes do erro no console.');
+                }
+            } else {
+                alert('Nenhum ID de sala para copiar. Conecte-se a uma sala primeiro.');
+            }
+        }
+
+        // Function to launch an emoji animation on screen
+        function launchEmoji(emoji, isIncoming = false) {
+            console.log("Launching emoji:", emoji, "Incoming:", isIncoming); // Debug log
+            if (!videoPlayerWrapper) {
+                console.error("videoPlayerWrapper not found.");
+                return;
+            }
+
+            const emojiDiv = document.createElement('div');
+            emojiDiv.classList.add('emoji-reaction');
+            emojiDiv.textContent = emoji;
+
+            // Random horizontal position within the wrapper
+            const wrapperWidth = videoPlayerWrapper.clientWidth;
+            const emojiApproxSize = 50; // pixels
+            const randomLeft = Math.random() * (wrapperWidth - emojiApproxSize);
+            emojiDiv.style.left = `${randomLeft}px`;
+
+            // Emoji will start from bottom: 0 as defined in CSS
+            // The animation will then handle the translateY to move it up
+
+            videoPlayerWrapper.appendChild(emojiDiv);
+
+            // Set a timeout to remove the emoji if animationend doesn't fire for some reason
+            // (though animationend is more reliable for CSS animations)
+            setTimeout(() => {
+                if (emojiDiv.parentNode) {
+                    emojiDiv.remove();
+                }
+            }, 5000); // Match animation duration
+
+
+            // If it's an outgoing emoji, send to Firestore
+            if (!isIncoming && currentRoomRef && userId && isSyncActive) {
+                updateDoc(currentRoomRef, {
+                    lastEmoji: {
+                        emoji: emoji,
+                        senderId: userId,
+                        timestamp: Date.now()
+                    }
+                }).catch(e => console.error("Erro ao enviar emoji para Firestore:", e));
+            }
+        }
+
+
+        // Update video player state based on Firestore data
+        function applyRoomStateToVideoPlayer(data) {
+            // Only update if a URL is provided and it's different from current
+            if (data.videoUrl && videoPlayer.src !== data.videoUrl) {
+                videoPlayer.src = data.videoUrl;
+                videoPlayer.load(); // Load the new video
+                overlayText.classList.add('hidden'); // Hide overlay text
+            } else if (!data.videoUrl) {
+                // If no video URL, clear player and show overlay
+                videoPlayer.src = '';
+                overlayText.classList.remove('hidden');
+            }
+
+            // Set current time if different (and not too far off to avoid excessive seeking)
+            const timeDifference = Math.abs(videoPlayer.currentTime - data.currentTime);
+            if (timeDifference > 1 || videoPlayer.src !== data.videoUrl) { // Seek if diff > 1 sec or new video
+                 videoPlayer.currentTime = data.currentTime;
+            }
+
+            // Sync play/pause state, but only if the video is loaded and sync is active
+            if (isSyncActive && videoPlayer.readyState >= 3) {
+                if (data.isPlaying && videoPlayer.paused) {
+                    videoPlayer.play().catch(e => console.error("Erro ao sincronizar play:", e));
+                } else if (!data.isPlaying && !videoPlayer.paused) {
+                    videoPlayer.pause();
+                }
+            }
+        }
+
+        // Update Firestore when local video state changes
+        async function updateRoomStateInFirestore(newState) {
+            if (!currentRoomRef || !userId || !isSyncActive) { // Only update if connected and sync is active
+                console.warn("Não conectado a uma sala, usuário não autenticado ou sincronização desativada. Nenhuma atualização enviada para o Firestore.");
+                return;
+            }
+            try {
+                // Merge the new state with existing data
+                await setDoc(currentRoomRef, { ...newState, lastUpdatedBy: userId }, { merge: true });
+                console.log("Estado da sala atualizado no Firestore:", newState);
+            } catch (error) {
+                console.error("Erro ao atualizar o estado da sala no Firestore:", error);
+                alert("Erro ao sincronizar seu estado com a sala.");
+            }
+        }
+
+        // Event Listeners for Video Player
+        videoPlayer.addEventListener('play', () => {
+            updateRoomStateInFirestore({ isPlaying: true, currentTime: videoPlayer.currentTime });
+        });
+
+        videoPlayer.addEventListener('pause', () => {
+            updateRoomStateInFirestore({ isPlaying: false, currentTime: videoPlayer.currentTime });
+        });
+
+        videoPlayer.addEventListener('seeked', () => {
+            updateRoomStateInFirestore({ currentTime: videoPlayer.currentTime });
+        });
+
+        // Event Listener for Video Player loadeddata
+        videoPlayer.addEventListener('loadeddata', () => {
+            if (videoPlayer.src) {
+                overlayText.classList.add('hidden');
+            }
+        });
+
+        // Event Listener for Video Player error
+        videoPlayer.addEventListener('error', (e) => {
+            console.error("Erro no player de vídeo:", e);
+            alert("Não foi possível carregar o vídeo. Verifique a URL ou o formato do arquivo.");
+            videoPlayer.src = '';
+            overlayText.classList.remove('hidden');
+        });
+
+        // UI Button Event Listeners
+        connectBtn.addEventListener('click', connectToRoom);
+        disconnectBtn.addEventListener('click', () => disconnectFromRoom(true)); // Pass true to show alert
+
+        loadVideoBtn.addEventListener('click', () => {
+            const videoUrl = loadVideoUrlInput.value.trim();
+            if (!videoUrl) {
+                alert('Por favor, insira a URL do vídeo online.');
+                return;
+            }
+            if (!currentRoomRef) {
+                alert('Por favor, conecte-se a uma sala primeiro.');
+                return;
+            }
+            updateRoomStateInFirestore({
+                videoUrl: videoUrl,
+                isPlaying: false, // Start paused when new video loads
+                currentTime: 0
+            });
+            videoPlayer.src = videoUrl;
+            videoPlayer.load();
+            videoPlayer.pause();
+            videoPlayer.currentTime = 0;
+            overlayText.classList.add('hidden');
+        });
+
+        // Handle local video file selection
+        loadLocalVideoBtn.addEventListener('click', () => {
+            localVideoFile.click();
+        });
+
+        localVideoFile.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                videoPlayer.src = fileURL;
+                videoPlayer.load();
+                videoPlayer.pause();
+                videoPlayer.currentTime = 0;
+                overlayText.classList.add('hidden');
+                alert("Vídeo local carregado! Lembre-se que este vídeo só pode ser visto no seu dispositivo. Não será sincronizado.");
+            }
+        });
+
+        // The sync play/pause button will just trigger the state update
+        syncPlayPauseBtn.addEventListener('click', () => {
+            if (!currentRoomRef || !videoPlayer.src) {
+                alert('Conecte-se a uma sala e carregue um vídeo primeiro.');
+                return;
+            }
+            if (!isSyncActive) {
+                alert('Sincronização desativada. Ligue o SYNC para sincronizar o play/pause.');
+                return;
+            }
+            if (videoPlayer.paused) {
+                videoPlayer.play().catch(e => console.error("Erro ao iniciar reprodução:", e));
+            } else {
+                videoPlayer.pause();
+            }
+        });
+
+        // Popup Menu Control
+        openMenuBtn.addEventListener('click', () => {
+            mainMenuPopup.classList.add('active');
+        });
+
+        closeMenuPopupBtn.addEventListener('click', () => {
+            mainMenuPopup.classList.remove('active');
+        });
+
+        // Copy Room ID Button Listener
+        copyRoomIdBtn.addEventListener('click', copyRoomIdToClipboard);
+
+        // Sync Toggle Listener
+        syncToggle.addEventListener('change', () => {
+            if (syncToggle.checked) {
+                isSyncActive = true;
+                if (currentRoomRef && !unsubscribeRoomListener) {
+                    startRoomListener();
+                    alert("Sincronização ativada! Retomando conexão com a sala.");
+                } else if (!currentRoomRef) {
+                    alert("Sincronização ativada, mas você não está conectado a uma sala. Conecte-se para sincronizar.");
+                }
+            } else {
+                isSyncActive = false;
+                if (unsubscribeRoomListener) {
+                    unsubscribeRoomListener(); // Unsubscribe from Firestore listener
+                    unsubscribeRoomListener = null;
+                    console.log("Listener de sala desativado (sincronização OFF).");
+                }
+                alert("Sincronização desativada. O player não enviará nem receberá atualizações.");
+            }
+        });
+
+        // Add event listeners for reaction buttons
+        reactionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (!currentRoomRef || !isSyncActive) {
+                    alert('Conecte-se a uma sala e ative a sincronização para enviar reações.');
+                    return;
+                }
+                const emoji = button.dataset.emoji;
+                launchEmoji(emoji); // Launch locally and send to Firestore
+            });
+        });
+
+        // Initial Firebase setup on window load
+        window.onload = initializeFirebase;
+    </script>
 </body>
 </html>
