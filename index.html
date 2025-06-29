@@ -8,124 +8,88 @@
 </head>
 <body>
 
-    <div class="cinema-container">
+    <div class="video-container">
+        <video id="videoPlayer" class="movie-player"></video>
+        <div id="overlayText" class="overlay-text">ÁREA DO FILME</div>
+    </div>
 
-        <div class="top-bar">
-            <div class="id-display" id="roomIdDisplay" style="display: none;">
-                <img src="icons/id-card.svg" alt="ID da sala" class="id-icon">
-                <span id="currentRoomId">Gerando ID...</span>
-                <button id="copyRoomIdBtn" class="icon-button" aria-label="Copiar ID da sala">
-                    <img src="icons/copy-link.svg" alt="Copiar ID">
-                </button>
+    <div id="uiShell" class="ui-shell">
+        <header class="top-bar-container">
+            <div class="top-bar">
+                <button id="powerButton" class="btn-circular btn-power" aria-label="Ligar/Desligar Servidor"><img src="icons/power-button-off.svg" alt="Servidor"></button>
+                <div class="id-display" id="roomIdDisplay" style="display: none;">
+                    <img src="icons/id-card.svg" alt="ID da sala" class="id-icon">
+                    <span id="currentRoomId">Gerando ID...</span>
+                    <button id="copyRoomIdBtn" class="icon-button" aria-label="Copiar ID da sala"><img src="icons/copy-link.svg" alt="Copiar ID"></button>
+                </div>
+                <button id="openMenuBtn" class="btn-circular btn-menu" aria-label="Abrir menu"><img src="icons/menu-hamburger.svg" alt="Menu"></button>
             </div>
+        </header>
 
-            <div class="top-bar-controls">
-                <button id="powerButton" class="power-button" aria-label="Ligar/Desligar Servidor">
-                    <img src="icons/power-button off.svg" alt="Servidor Desligado">
-                </button>
-                <button id="openMenuBtn" class="icon-button menu-hamburger-btn" aria-label="Abrir menu">
-                    <img src="icons/menu-hamburger.svg" alt="Menu">
-                </button>
+        <main class="main-content"></main>
+
+        <aside class="right-controls desktop-reactions">
+            <button class="control-button reaction-button" data-emoji="laugh" aria-label="Reação de risada"><img src="icons/reaction-laugh.svg" alt="Risada"></button>
+            <button class="control-button reaction-button" data-emoji="heart" aria-label="Reação de apaixonado"><img src="icons/reaction-heart.svg" alt="Coração"></button>
+            <button class="control-button reaction-button" data-emoji="cry" aria-label="Reação de choro"><img src="icons/reaction-cry.svg" alt="Choro"></button>
+            <button class="control-button reaction-button" data-emoji="sleep" aria-label="Reação de sono"><img src="icons/reaction-sleep.svg" alt="Sono"></button>
+            <button class="control-button reaction-button" data-emoji="cold" aria-label="Reação de frio"><img src="icons/reaction-cold.svg" alt="Frio"></button>
+            <button class="control-button reaction-button" data-emoji="clap" aria-label="Reação de palmas"><img src="icons/reaction-clap.svg" alt="Palmas"></button>
+        </aside>
+
+        <div class="mobile-reactions-container">
+             <div id="reactionsPopup" class="reactions-popup hidden">
+                <button class="control-button reaction-button" data-emoji="laugh" aria-label="Reação de risada"><img src="icons/reaction-laugh.svg" alt="Risada"></button>
+                <button class="control-button reaction-button" data-emoji="heart" aria-label="Reação de apaixonado"><img src="icons/reaction-heart.svg" alt="Coração"></button>
+                <button class="control-button reaction-button" data-emoji="cry" aria-label="Reação de choro"><img src="icons/reaction-cry.svg" alt="Choro"></button>
+                <button class="control-button reaction-button" data-emoji="sleep" aria-label="Reação de sono"><img src="icons/reaction-sleep.svg" alt="Sono"></button>
+                <button class="control-button reaction-button" data-emoji="cold" aria-label="Reação de frio"><img src="icons/reaction-cold.svg" alt="Frio"></button>
+                <button class="control-button reaction-button" data-emoji="clap" aria-label="Reação de palmas"><img src="icons/reaction-clap.svg" alt="Palmas"></button>
             </div>
+            <button id="reactionsFloatBtn" class="btn-circular reactions-float-btn">
+                <img src="icons/reaction-laugh.svg" alt="Reações">
+            </button>
         </div>
 
-        <div class="video-main-area">
-            <div class="video-player-wrapper" id="videoPlayerWrapper">
-                <video id="videoPlayer" class="movie-player"></video> 
-                <div id="overlayText" class="overlay-text">
-                    ÁREA DO FILME
+
+        <footer id="bottomBarContainer" class="bottom-bar-container">
+            <div class="bottom-bar">
+                <button class="btn-circular" id="playPauseBtn" aria-label="Play/Pause"><img src="icons/play-button.svg" alt="Play"></button>
+                <span id="currentTimeDisplay" class="time-display">00:00</span>
+                <input type="range" id="seekBar" class="seek-bar" value="0" step="0.1">
+                <span id="totalDurationDisplay" class="time-display">00:00</span>
+                <div class="volume-wrapper">
+                    <button class="btn-circular" id="volumeBtn" aria-label="Controle de Volume"><img src="icons/volume-high.svg" alt="Volume" id="volumeBtnIcon"></button>
+                    <div id="volumeControl" class="volume-control hidden">
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+                        <button id="muteToggleBtn" class="icon-button"><img src="icons/volume-high.svg" alt="Mudo"></button>
+                    </div>
                 </div>
             </div>
-            <div class="right-controls">
-                <button class="control-button" id="rotateVideoBtn" aria-label="Girar Vídeo">
-                    <img src="icons/rotate-video.svg" alt="Girar Vídeo">
-                </button>
-                <button class="control-button" id="playPauseBtn" aria-label="Play/Pause">
-                    <img src="icons/play-button.svg" alt="Play">
-                </button>
-                <button class="control-button" id="volumeBtn" aria-label="Controle de Volume">
-                    <img src="icons/volume-high.svg" alt="Volume">
-                </button>
-                 <div id="volumeControl" class="volume-control hidden">
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
-                    <button id="muteToggleBtn" class="volume-icon-btn">
-                        <img src="icons/volume-high.svg" alt="Volume Alto">
-                    </button>
-                </div>
-                <button class="control-button reaction-button" data-emoji="laugh" aria-label="Reação de risada">
-                    <img src="icons/reaction-laugh.svg" alt="Risada">
-                </button>
-                 <button class="control-button reaction-button" data-emoji="heart" aria-label="Reação de apaixonado">
-                    <img src="icons/reaction-heart.svg" alt="Coração">
-                </button>
-                 <button class="control-button reaction-button" data-emoji="cry" aria-label="Reação de choro">
-                    <img src="icons/reaction-cry.svg" alt="Choro">
-                </button>
-                <button class="control-button reaction-button" data-emoji="sleep" aria-label="Reação de sono">
-                    <img src="icons/reaction-sleep.svg" alt="Sono">
-                </button>
-                <button class="control-button reaction-button" data-emoji="cold" aria-label="Reação de frio">
-                    <img src="icons/reaction-cold.svg" alt="Frio">
-                </button>
-                <button class="control-button reaction-button" data-emoji="clap" aria-label="Reação de palmas">
-                    <img src="icons/reaction-clap.svg" alt="Palmas">
-                </button>
-            </div>
-        </div>
+        </footer>
     </div>
 
     <div id="mainMenuPopup" class="menu-popup">
         <div class="menu-header">
             <h2>Menu Principal</h2>
-            <button id="closeMenuPopupBtn" class="icon-button close-btn" aria-label="Fechar menu">
-                <img src="icons/close-x.svg" alt="Fechar">
-            </button>
+            <button id="closeMenuPopupBtn" class="icon-button close-btn" aria-label="Fechar menu"><img src="icons/close-x.svg" alt="Fechar"></button>
         </div>
-
         <div class="menu-section connection-section">
             <label for="friendIdInput">ID do amigo:</label>
             <input type="text" id="friendIdInput" placeholder="Cole o ID do seu amigo aqui">
-            <button class="menu-btn purple" id="connectFriendBtn">
-                <img src="icons/connect.svg" alt="Conectar">
-                <span>Conectar Amigo</span>
-            </button>
-            <button class="menu-btn purple" id="disconnectFriendBtn">
-                <img src="icons/disconnect.svg" alt="Desconectar">
-                <span>Desconectar</span>
-            </button>
+            <button class="menu-btn purple" id="connectFriendBtn"><img src="icons/connect.svg" alt="Conectar"><span>Conectar Amigo</span></button>
+            <button class="menu-btn purple" id="disconnectFriendBtn"><img src="icons/disconnect.svg" alt="Desconectar"><span>Desconectar</span></button>
         </div>
-
         <div class="menu-section video-actions-section">
             <label for="videoUrlInput">URL do Vídeo (Link direto .mp4):</label>
             <input type="text" id="videoUrlInput" placeholder="https://exemplo.com/video.mp4">
-            <button class="menu-btn pink" id="loadUrlBtn">
-                <span>Carregar URL</span>
-            </button>
-            <hr style="border-top: 1px dashed #FF69B4; margin: 1rem 0;">
-            <button class="menu-btn pink" id="loadLocalFileBtn">
-                <span>Carregar Vídeo do PC</span>
-                <input type="file" id="videoUploadInput" accept="video/*" style="display: none;">
-            </button>
-            <button class="menu-btn pink" id="addSceneBtn">
-                <span>Adicionar Cena Atual</span>
-            </button>
-        </div>
-        
-        <div class="menu-section scenes-section">
-            <h3>Cenas Salvas</h3>
-            <div class="scenes-list-container" id="scenesListContainer"></div>
-            <div class="scroll-buttons">
-                <button aria-label="Rolar para cima" id="scrollUpScenesBtn">
-                    <img src="icons/arrow-up.svg" alt="Cima">
-                </button>
-                <button aria-label="Rolar para baixo" id="scrollDownScenesBtn">
-                    <img src="icons/arrow-down.svg" alt="Baixo">
-                </button>
-            </div>
+            <button class="menu-btn pink" id="loadUrlBtn"><span>Carregar URL</span></button>
+            <hr>
+            <button class="menu-btn pink" id="loadLocalFileBtn"><span>Carregar Vídeo do PC</span><input type="file" id="videoUploadInput" accept="video/*" style="display: none;"></button>
         </div>
     </div>
 
-    <div id="emoji-container"></div> 
+    <div id="emoji-container"></div>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="script.js"></script>
