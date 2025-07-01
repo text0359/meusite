@@ -1,0 +1,634 @@
+/* Importa a fonte 'Inter' do Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+/* Estilos Globais e do Corpo da Página */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Prevent body overflow */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Container Principal do Cinema */
+.cinema-container {
+    position: relative;
+    background-color: #ffffff;
+    border-radius: 0; /* Remove border-radius for full-screen */
+    padding: 0.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 100vw; /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-sizing: border-box;
+    overflow: hidden; /* Prevent container overflow */
+}
+
+/* --- Barra Superior --- */
+.top-bar {
+    background-color: #e0e0e0;
+    border-radius: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.id-display {
+    background-color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 9999px;
+    color: #333;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.id-display .id-icon {
+    width: 14px;
+    height: 14px;
+    filter: drop-shadow(0.5px 0.5px 1px rgba(0,0,0,0.3));
+    margin-right: 0.15rem;
+}
+
+/* Botões que contêm apenas um ícone (gerais) */
+.icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button img {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+}
+
+.icon-button:hover img {
+    transform: scale(1.1);
+}
+
+.top-bar-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+/* Estilos para o Botão de Ligar/Desligar Servidor */
+.power-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.power-button:hover {
+    transform: scale(1.05);
+}
+
+.power-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Botão de Menu Hambúrguer na barra superior */
+.menu-hamburger-btn img {
+    width: 28px;
+    height: 28px;
+    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+}
+
+/* --- Área Principal do Vídeo --- */
+.video-main-area {
+    display: flex;
+    gap: 0.4rem;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.video-player-wrapper {
+    background-color: black;
+    border-radius: 0.8rem;
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding-top: 56.25%; /* Maintain 16:9 aspect ratio */
+    height: 0;
+}
+
+.movie-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    transition: transform 0.3s ease-out, object-fit 0.3s ease;
+    transform-origin: center center;
+    object-fit: contain;
+}
+
+/* CLASSES PARA ROTAÇÃO E AJUSTE DE PREENCHIMENTO */
+.movie-player.rotated-video-fill {
+    object-fit: cover;
+}
+
+.movie-player.rotated-video-contain {
+    object-fit: contain;
+}
+
+/* Texto "ÁREA DO FILME" sobre o player */
+.overlay-text {
+    position: absolute;
+    color: white;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+}
+
+/* Esconde o texto quando um vídeo é carregado */
+video[src]:not([src=""]) + .overlay-text {
+    display: none;
+}
+
+/* --- Controles Laterais (Reações) --- */
+.right-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background-color: #e0e0e0;
+    padding: 0.4rem;
+    border-radius: 0.8rem;
+    flex-shrink: 0;
+    max-width: 60px; /* Limit width to prevent overflow */
+}
+
+/* Botão de controle individual na barra lateral */
+.control-button {
+    background-color: #333;
+    color: white;
+    width: 32px; /* Smaller buttons */
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+.control-button:hover {
+    background-color: #555;
+    transform: translateY(-2px);
+}
+.control-button img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.4));
+}
+
+/* --- NOVO CONTAINER FIXO PARA AS ANIMAÇÕES DE EMOJI --- */
+#emoji-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+/* Cada emoji com animação */
+.emoji {
+    position: absolute;
+    user-select: none;
+    will-change: transform, opacity, filter;
+    animation-timing-function: ease-out;
+    animation: floatUp var(--anim-duration) forwards ease-out var(--anim-delay);
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--initial-x-offset)), calc(-50% + var(--initial-y-offset))) scale(var(--scale-start)) rotate(var(--rotate-start));
+        filter: drop-shadow(0 0 6px rgba(255,255,255,0.7));
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(calc(-50% + var(--final-x-offset)), calc(-50% + var(--final-y-offset))) scale(var(--scale-end)) rotate(var(--rotate-end));
+        opacity: 0;
+        filter: drop-shadow(0 0 0px rgba(255,255,255,0));
+    }
+}
+
+/* --- CONTROLE DE VOLUME --- */
+.volume-control {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 1;
+    transition: opacity 0.3s ease-out;
+    z-index: 100;
+    width: 140px; /* Smaller width */
+}
+
+.volume-control.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.volume-control input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(to right, #333 var(--volume-progress, 100%), #ddd var(--volume-progress, 100%));
+    border outline: none;
+    cursor: pointer;
+}
+
+.volume-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #333;
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.volume-control input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #333;
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.volume-control .volume-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+}
+
+.volume-control .volume-icon-btn img {
+    width: 18px;
+    height: 18px;
+    filter: invert(1) drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+}
+
+/* --- Popup do Menu Principal --- */
+.menu-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    border-radius: 0.8rem;
+    border: 2px solid #333;
+    padding: 0.8rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    width: 90%;
+    max-width: 250px;
+    max-height: 60vh;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* Classe para mostrar o menu */
+.menu-popup.active {
+    display: flex;
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
+    padding-bottom: 0.3rem;
+}
+.menu-header h2 {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+/* Botão de fechar 'X' do menu */
+.close-btn {
+    background-color: white;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+}
+.close-btn img {
+    width: 16px;
+    height: 16px;
+    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+}
+
+/* Seções dentro do menu */
+.menu-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.connection-section {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.6rem;
+    border-radius: 0.6rem;
+}
+.video-actions-section {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.6rem;
+    border-radius: 0.6rem;
+}
+
+.menu-section label {
+    font-weight: bold;
+    color: #333;
+    font-size: 0.8rem;
+}
+.menu-section input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 0.3rem;
+    font-size: 0.8rem;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Botões genéricos do menu */
+.menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px RGBA(0, 0, 0, 0.1);
+}
+.menu-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Cores específicas dos botões do menu */
+.menu-btn.purple { background-color: #555; }
+.menu-btn.purple:hover { background-color: #777; }
+.menu-btn.pink { background-color: #333; }
+.menu-btn.pink:hover { background-color: #555; }
+
+/* Seção de Cenas no menu */
+.scenes-section {
+    text-align: center;
+    color: #333;
+}
+.scenes-section h3 {
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+.scenes-list-container {
+    min-height: 40px;
+    border: 2px dashed #e0e0e0;
+    border-radius: 0.4rem;
+    margin-top: 0.3rem;
+}
+.scroll-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.3rem;
+}
+.scroll-buttons button {
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 0.3rem;
+    width: 28px;
+    height: 22px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.scroll-buttons button:hover {
+    background-color: #555;
+}
+.scroll-buttons img {
+    width: 18px;
+    height: 18px;
+    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+}
+
+/* --- Ajustes para Telas Menores (Responsividade) --- */
+@media (max-width: 768px) {
+    .cinema-container {
+        padding: 0.2rem;
+        border-radius: 0;
+    }
+    .top-bar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.2rem;
+        padding: 0.2rem 0.5rem;
+    }
+    .video-main-area {
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+    .video-player-wrapper {
+        border-radius: 0.5rem;
+        padding-top: 56.25%;
+    }
+    .right-controls {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        padding: 0.2rem;
+        max-width: 100%;
+        gap: 0.3rem;
+    }
+    .control-button {
+        width: 28px;
+        height: 28px;
+    }
+    .control-button img {
+        width: 75%;
+        height: 75%;
+    }
+    .overlay-text {
+        font-size: 1.2em;
+    }
+    .menu-popup {
+        padding: 0.6rem;
+        width: 95%;
+        max-width: 220px;
+        max-height: 55vh;
+    }
+    .power-button {
+        width: 24px;
+        height: 24px;
+    }
+    .menu-hamburger-btn img {
+        width: 24px;
+        height: 24px;
+    }
+    .id-display {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+    }
+    .id-display .id-icon {
+        width: 12px;
+        height: 12px;
+    }
+    .volume-control {
+        width: 120px;
+        padding: 0.2rem 0.5rem;
+        bottom: 8px;
+    }
+    .volume-control input[type="range"] {
+        height: 4px;
+    }
+    .volume-control input[type="range"]::-webkit-slider-thumb,
+    .volume-control input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+    }
+    .volume-control .volume-icon-btn {
+        width: 16px;
+        height: 16px;
+    }
+    .volume-control .volume-icon-btn img {
+        width: 16px;
+        height: 16px;
+    }
+    .menu-header h2 {
+        font-size: 1.1rem;
+    }
+    .close-btn {
+        width: 24px;
+        height: 24px;
+    }
+    .close-btn img {
+        width: 14px;
+        height: 14px;
+    }
+    .menu-btn {
+        padding: 0.4rem;
+        font-size: 0.75rem;
+    }
+    .menu-section label,
+    .menu-section input {
+        font-size: 0.75rem;
+    }
+    .scenes-section h3 {
+        font-size: 0.85rem;
+    }
+    .scenes-list-container {
+        min-height: 30px;
+    }
+    .scroll-buttons button {
+        width: 24px;
+        height: 20px;
+    }
+    .scroll-buttons img {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* --- Ajustes para Telas Muito Pequenas (ex.: celulares menores) --- */
+@media (max-width: 480px) {
+    .cinema-container {
+        padding: 0.1rem;
+    }
+    .top-bar {
+        padding: 0.1rem 0.3rem;
+    }
+    .video-player-wrapper {
+        border-radius: 0.3rem;
+    }
+    .right-controls {
+        gap: 0.2rem;
+        padding: 0.1rem;
+    }
+    .control-button {
+        width: 24px;
+        height: 24px;
+    }
+    .control-button img {
+        width: 70%;
+        height: 70%;
+    }
+    .overlay-text {
+        font-size: 1em;
+    }
+    .menu-popup {
+        max-width: 200px;
+        max-height: 50vh;
+        padding: 0.5rem;
+    }
+    .volume-control {
+        width: 100px;
+    }
+}
