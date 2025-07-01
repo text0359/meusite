@@ -1,542 +1,136 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Permissions-Policy" content="clipboard-write=(self)">
-    <title>Assistir por Link ou Local com PeerJS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #1a1a1a;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-        .cinema-container {
-            width: 100%;
-            max-width: 100vw;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .video-main-area {
-            display: flex;
-            flex-grow: 1;
-        }
-        .video-player-wrapper {
-            background-color: black;
-            border-radius: 0.5rem;
-            flex-grow: 1;
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-            max-width: 100vw;
-            max-height: 70vh;
-            aspect-ratio: 16 / 9;
-        }
-        .movie-player, .movie-iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: black;
-            object-fit: contain;
-        }
-        .overlay-text {
-            position: absolute;
-            color: white;
-            font-size: min(1.5em, 4vw);
-            font-weight: bold;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-        video[src]:not([src=""]) + .overlay-text,
-        video[srcObject] + .overlay-text,
-        iframe[src]:not([src=""]) + .overlay-text {
-            display: none;
-        }
-        .menu-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            border-radius: 0.5rem;
-            padding: min(1rem, 3vw);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            width: 90vw;
-            max-width: min(300px, 90vw);
-            max-height: 80vh;
-            overflow-y: auto;
-            display: none;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .menu-popup.active {
-            display: flex;
-        }
-        .menu-section {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .menu-section input {
-            width: 100%;
-            padding: min(0.6rem, 2vw);
-            border: 1px solid #444;
-            border-radius: 0.3rem;
-            font-size: min(0.9rem, 3vw);
-            background-color: #333;
-            color: white;
-        }
-        .menu-btn {
-            padding: min(0.6rem, 2vw);
-            border: none;
-            border-radius: 0.3rem;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            background-color: #555;
-            font-size: min(0.9rem, 3vw);
-        }
-        .menu-btn:hover {
-            background-color: #777;
-        }
-        .video-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            padding: min(0.5rem, 1.5vw);
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .icon-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .icon-button img {
-            width: min(20px, 5vw);
-            height: min(20px, 5vw);
-            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
-            transition: transform 0.2s ease;
-        }
-        .icon-button:hover img {
-            transform: scale(1.1);
-        }
-        .seek-bar, .volume-bar {
-            width: 100%;
-            max-width: min(250px, 50vw);
-            height: 6px;
-        }
-        .time-display {
-            font-size: min(0.8rem, 3vw);
-            color: white;
-        }
-        @media (max-width: 480px) {
-            .cinema-container {
-                gap: 0.3rem;
-            }
-            .video-player-wrapper {
-                aspect-ratio: 4 / 3;
-                max-height: 60vh;
-            }
-            .overlay-text {
-                font-size: min(1.2em, 3.5vw);
-            }
-            .menu-popup {
-                width: 95vw;
-                padding: min(0.8rem, 2vw);
-            }
-            .menu-section input, .menu-btn {
-                font-size: min(0.8rem, 2.8vw);
-                padding: min(0.5rem, 1.5vw);
-            }
-            .icon-button img {
-                width: min(18px, 4.5vw);
-                height: min(18px, 4.5vw);
-            }
-            .seek-bar, .volume-bar {
-                max-width: min(200px, 45vw);
-            }
-            .time-display {
-                font-size: min(0.7rem, 2.8vw);
-            }
-        }
-        @media (max-width: 360px) {
-            .video-player-wrapper {
-                max-height: 55vh;
-            }
-            .overlay-text {
-                font-size: min(1em, 3vw);
-            }
-            .menu-section input, .menu-btn {
-                font-size: min(0.7rem, 2.5vw);
-                padding: min(0.4rem, 1vw);
-            }
-            .icon-button img {
-                width: min(16px, 4vw);
-                height: min(16px, 4vw);
-            }
-            .seek-bar, .volume-bar {
-                max-width: min(150px, 40vw);
-            }
-            .time-display {
-                font-size: min(0.6rem, 2.5vw);
-            }
-        }
-    </style>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Stream de Filmes com Amigos</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <div class="cinema-container">
-        <div class="video-main-area">
-            <div class="video-player-wrapper">
-                <video id="videoPlayer" class="movie-player" style="display: none;"></video>
-                <iframe id="videoIframe" class="movie-iframe" style="display: none;"></iframe>
-                <div class="overlay-text" id="overlayText">ÁREA DO FILME</div>
+
+        <div class="top-bar">
+            <div class="id-display" id="roomIdDisplay" style="display: none;">
+                <img src="icons/id-card.svg" alt="ID da sala" class="id-icon">
+                <span id="currentRoomId">Gerando ID...</span>
+                <button id="copyRoomIdBtn" class="icon-button" aria-label="Copiar ID da sala">
+                    <img src="icons/copy-link.svg" alt="Copiar ID">
+                </button>
+            </div>
+
+            <div class="top-bar-controls">
+                <button id="powerButton" class="power-button" aria-label="Ligar/Desligar Servidor">
+                    <img src="icons/power-button off.svg" alt="Servidor Desligado">
+                </button>
+                <button id="openMenuBtn" class="icon-button menu-hamburger-btn" aria-label="Abrir menu">
+                    <img src="icons/menu-hamburger.svg" alt="Menu">
+                </button>
             </div>
         </div>
-        <div class="video-controls">
-            <button class="icon-button" id="openMenuBtn">
-                <img src="https://via.placeholder.com/20?text=Menu" alt="Menu">
-            </button>
-            <button class="icon-button" id="copyRoomIdBtn">
-                <img src="https://via.placeholder.com/20?text=Copy" alt="Copy">
-            </button>
-            <span id="currentRoomId" class="time-display" style="display: none;">Gerando...</span>
-            <button class="icon-button" id="playPauseBtn">
-                <img src="https://via.placeholder.com/20?text=Play" id="playPauseBtnImg">
-            </button>
-            <input type="range" id="seekBar" class="seek-bar" min="0" step="0.1" value="0">
-            <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="1">
+
+        <div class="video-main-area">
+            <div class="video-player-wrapper" id="videoPlayerWrapper">
+                <video id="videoPlayer" class="movie-player"></video> 
+                <div id="overlayText" class="overlay-text">
+                    ÁREA DO FILME
+                </div>
+            </div>
+            <div class="right-controls">
+                <button class="control-button" id="rotateVideoBtn" aria-label="Girar Vídeo">
+                    <img src="icons/rotate-video.svg" alt="Girar Vídeo">
+                </button>
+                <button class="control-button" id="playPauseBtn" aria-label="Play/Pause">
+                    <img src="icons/play-button.svg" alt="Play">
+                </button>
+                <button class="control-button" id="volumeBtn" aria-label="Controle de Volume">
+                    <img src="icons/volume-high.svg" alt="Volume">
+                </button>
+                 <div id="volumeControl" class="volume-control hidden">
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+                    <button id="muteToggleBtn" class="volume-icon-btn">
+                        <img src="icons/volume-high.svg" alt="Volume Alto">
+                    </button>
+                </div>
+                <button class="control-button reaction-button" data-emoji="laugh" aria-label="Reação de risada">
+                    <img src="icons/reaction-laugh.svg" alt="Risada">
+                </button>
+                 <button class="control-button reaction-button" data-emoji="heart" aria-label="Reação de apaixonado">
+                    <img src="icons/reaction-heart.svg" alt="Coração">
+                </button>
+                 <button class="control-button reaction-button" data-emoji="cry" aria-label="Reação de choro">
+                    <img src="icons/reaction-cry.svg" alt="Choro">
+                </button>
+                <button class="control-button reaction-button" data-emoji="sleep" aria-label="Reação de sono">
+                    <img src="icons/reaction-sleep.svg" alt="Sono">
+                </button>
+                <button class="control-button reaction-button" data-emoji="cold" aria-label="Reação de frio">
+                    <img src="icons/reaction-cold.svg" alt="Frio">
+                </button>
+                <button class="control-button reaction-button" data-emoji="clap" aria-label="Reação de palmas">
+                    <img src="icons/reaction-clap.svg" alt="Palmas">
+                </button>
+            </div>
+        </div>
+
+        <div class="bottom-bar">
             <span id="currentTimeDisplay" class="time-display">00:00</span>
-            <span class="time-display">/</span>
+            <input type="range" id="seekBar" class="seek-bar" value="0" step="0.1">
             <span id="totalDurationDisplay" class="time-display">00:00</span>
         </div>
-        <div class="menu-popup" id="mainMenuPopup">
-            <div class="menu-section">
-                <label>ID do amigo:</label>
-                <input type="text" id="friendIdInput" placeholder="Insira o ID do amigo">
-                <button class="menu-btn" id="connectFriendBtn">Conectar Amigo</button>
-                <button class="menu-btn" id="disconnectFriendBtn">Desconectar</button>
-            </div>
-            <div class="menu-section">
-                <label>URL do Vídeo (Link direto ou embed):</label>
-                <input type="text" id="videoUrlInput" placeholder="Ex.: YouTube embed ou .mp4">
-                <button class="menu-btn" id="loadUrlBtn">Carregar URL</button>
-            </div>
-            <div class="menu-section">
-                <button class="menu-btn" id="loadLocalFileBtn">Carregar Vídeo do PC</button>
+        </div>
+
+    <div id="mainMenuPopup" class="menu-popup">
+        <div class="menu-header">
+            <h2>Menu Principal</h2>
+            <button id="closeMenuPopupBtn" class="icon-button close-btn" aria-label="Fechar menu">
+                <img src="icons/close-x.svg" alt="Fechar">
+            </button>
+        </div>
+        <div class="menu-section connection-section">
+            <label for="friendIdInput">ID do amigo:</label>
+            <input type="text" id="friendIdInput" placeholder="Cole o ID do seu amigo aqui">
+            <button class="menu-btn purple" id="connectFriendBtn">
+                <img src="icons/connect.svg" alt="Conectar">
+                <span>Conectar Amigo</span>
+            </button>
+            <button class="menu-btn purple" id="disconnectFriendBtn">
+                <img src="icons/disconnect.svg" alt="Desconectar">
+                <span>Desconectar</span>
+            </button>
+        </div>
+        <div class="menu-section video-actions-section">
+            <label for="videoUrlInput">URL do Vídeo (Link direto .mp4):</label>
+            <input type="text" id="videoUrlInput" placeholder="https://exemplo.com/video.mp4">
+            <button class="menu-btn pink" id="loadUrlBtn">
+                <span>Carregar URL</span>
+            </button>
+            <hr style="border-top: 1px dashed #FF69B4; margin: 1rem 0;">
+            <button class="menu-btn pink" id="loadLocalFileBtn">
+                <span>Carregar Vídeo do PC</span>
                 <input type="file" id="videoUploadInput" accept="video/*" style="display: none;">
+            </button>
+            <button class="menu-btn pink" id="addSceneBtn">
+                <span>Adicionar Cena Atual</span>
+            </button>
+        </div>
+        <div class="menu-section scenes-section">
+            <h3>Cenas Salvas</h3>
+            <div class="scenes-list-container" id="scenesListContainer"></div>
+            <div class="scroll-buttons">
+                <button aria-label="Rolar para cima" id="scrollUpScenesBtn">
+                    <img src="icons/arrow-up.svg" alt="Cima">
+                </button>
+                <button aria-label="Rolar para baixo" id="scrollDownScenesBtn">
+                    <img src="icons/arrow-down.svg" alt="Baixo">
+                </button>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const videoPlayer = document.getElementById('videoPlayer');
-            const videoIframe = document.getElementById('videoIframe');
-            const currentRoomIdSpan = document.getElementById('currentRoomId');
-            const copyRoomIdBtn = document.getElementById('copyRoomIdBtn');
-            const openMenuBtn = document.getElementById('openMenuBtn');
-            const mainMenuPopup = document.getElementById('mainMenuPopup');
-            const friendIdInput = document.getElementById('friendIdInput');
-            const connectFriendBtn = document.getElementById('connectFriendBtn');
-            const disconnectFriendBtn = document.getElementById('disconnectFriendBtn');
-            const loadUrlBtn = document.getElementById('loadUrlBtn');
-            const videoUrlInput = document.getElementById('videoUrlInput');
-            const loadLocalFileBtn = document.getElementById('loadLocalFileBtn');
-            const videoUploadInput = document.getElementById('videoUploadInput');
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            const playPauseBtnImg = document.getElementById('playPauseBtnImg');
-            const seekBar = document.getElementById('seekBar');
-            const volumeBar = document.getElementById('volumeBar');
-            const currentTimeDisplay = document.getElementById('currentTimeDisplay');
-            const totalDurationDisplay = document.getElementById('totalDurationDisplay');
-            const overlayText = document.getElementById('overlayText');
+    <div id="emoji-container"></div> 
 
-            let peer = null, dataConnection = null, mediaCall = null;
-            let isServerOn = false, isHost = false, videoStream = null;
-            let isIframeContent = false;
-
-            const peerConfig = {
-                host: '0.peerjs.com', port: 443, secure: true,
-                config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] }
-            };
-
-            function startPeer() {
-                if (peer && peer.open) return;
-                currentRoomIdSpan.textContent = 'Gerando...';
-                currentRoomIdSpan.style.display = 'inline';
-                peer = new Peer(undefined, peerConfig);
-                peer.on('open', id => {
-                    currentRoomIdSpan.textContent = id;
-                    isServerOn = true;
-                });
-                peer.on('connection', conn => {
-                    dataConnection = conn;
-                    setupDataConnectionEvents(dataConnection);
-                    if (isHost && videoStream && !isIframeContent) {
-                        startMediaCall(conn.peer);
-                    } else if (isIframeContent) {
-                        sendData({ type: 'iframe_content', url: videoIframe.src });
-                    }
-                });
-                peer.on('call', call => {
-                    mediaCall = call;
-                    mediaCall.answer();
-                    mediaCall.on('stream', remoteStream => {
-                        videoPlayer.style.display = 'block';
-                        videoIframe.style.display = 'none';
-                        isIframeContent = false;
-                        videoPlayer.srcObject = remoteStream;
-                        videoPlayer.volume = volumeBar.value;
-                        videoPlayer.play().catch(e => alert('Erro ao reproduzir stream: ' + e.message));
-                        overlayText.style.display = 'none';
-                        isHost = false;
-                    });
-                    mediaCall.on('close', () => {
-                        videoPlayer.srcObject = null;
-                        overlayText.style.display = 'block';
-                    });
-                });
-                peer.on('error', err => {
-                    alert('Erro na conexão PeerJS: ' + err.message);
-                    stopPeer();
-                });
-            }
-
-            function stopPeer() {
-                if (peer) peer.destroy();
-                peer = null;
-                isServerOn = false;
-                dataConnection = null;
-                mediaCall = null;
-                isHost = false;
-                videoStream = null;
-                isIframeContent = false;
-                currentRoomIdSpan.style.display = 'none';
-                currentRoomIdSpan.textContent = '';
-                videoPlayer.src = '';
-                videoPlayer.srcObject = null;
-                videoIframe.src = '';
-                videoPlayer.style.display = 'none';
-                videoIframe.style.display = 'none';
-                overlayText.style.display = 'block';
-            }
-
-            function startMediaCall(friendId) {
-                if (peer && videoStream) {
-                    mediaCall = peer.call(friendId, videoStream);
-                }
-            }
-
-            function setupDataConnectionEvents(conn) {
-                conn.on('data', data => {
-                    if (data.type === 'video_control' && !isHost) {
-                        switch (data.action) {
-                            case 'play': videoPlayer.play().catch(e => alert('Erro ao reproduzir: ' + e.message)); break;
-                            case 'pause': videoPlayer.pause(); break;
-                            case 'seek': videoPlayer.currentTime = data.time; break;
-                            case 'volume': 
-                                videoPlayer.volume = data.volume; 
-                                volumeBar.value = data.volume; 
-                                break;
-                        }
-                    } else if (data.type === 'iframe_content') {
-                        videoPlayer.style.display = 'none';
-                        videoIframe.style.display = 'block';
-                        isIframeContent = true;
-                        videoIframe.src = data.url;
-                        overlayText.style.display = 'none';
-                    }
-                });
-                conn.on('open', () => alert(`Conectado com ${conn.peer}!`));
-                conn.on('close', () => {
-                    alert(`Conexão com ${conn.peer} perdida.`);
-                    dataConnection = null;
-                });
-            }
-
-            function sendData(data) {
-                if (dataConnection && dataConnection.open) dataConnection.send(data);
-            }
-
-            function validateVideoUrl(url) {
-                const videoExtensions = /\.(mp4|webm|ogg)$/i;
-                const embedPatterns = [
-                    /youtube\.com\/embed\//i,
-                    /player\.vimeo\.com\/video\//i,
-                    /youtu\.be\//i
-                ];
-                return videoExtensions.test(url) || embedPatterns.some(pattern => pattern.test(url));
-            }
-
-            function normalizeYouTubeUrl(url) {
-                const youtubeShort = /youtu\.be\/([^?]+)/i;
-                const youtubeLong = /youtube\.com\/watch\?v=([^&]+)/i;
-                if (youtubeShort.test(url)) {
-                    const match = url.match(youtubeShort);
-                    return `https://www.youtube.com/embed/${match[1]}`;
-                } else if (youtubeLong.test(url)) {
-                    const match = url.match(youtubeLong);
-                    return `https://www.youtube.com/embed/${match[1]}`;
-                }
-                return url;
-            }
-
-            function loadVideoAndBecomeHost(source, isLocal = false) {
-                isHost = true;
-                isIframeContent = false;
-                videoPlayer.style.display = 'block';
-                videoIframe.style.display = 'none';
-                videoPlayer.srcObject = null;
-                videoPlayer.src = source;
-                videoPlayer.volume = volumeBar.value;
-                videoPlayer.load();
-                videoPlayer.oncanplay = () => {
-                    videoPlayer.play().catch(e => alert('Erro ao reproduzir vídeo: ' + e.message));
-                    overlayText.style.display = 'none';
-                    if (videoPlayer.captureStream) {
-                        videoStream = videoPlayer.captureStream();
-                        if (dataConnection && dataConnection.open) startMediaCall(dataConnection.peer);
-                    } else {
-                        alert('Seu navegador não suporta captura de stream.');
-                    }
-                };
-            }
-
-            function loadIframeContent(url) {
-                isHost = true;
-                isIframeContent = true;
-                videoPlayer.style.display = 'none';
-                videoIframe.style.display = 'block';
-                videoIframe.src = normalizeYouTubeUrl(url);
-                overlayText.style.display = 'none';
-                if (dataConnection && dataConnection.open) {
-                    sendData({ type: 'iframe_content', url: videoIframe.src });
-                }
-            }
-
-            copyRoomIdBtn.addEventListener('click', () => {
-                const roomId = currentRoomIdSpan.textContent;
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(roomId).then(() => {
-                        alert('ID copiado para a área de transferência!');
-                    }).catch(err => {
-                        console.error('Erro ao copiar ID:', err);
-                        alert(`Não foi possível copiar o ID. Por favor, copie manualmente: ${roomId}`);
-                    });
-                } else {
-                    alert(`API de área de transferência não suportada. Copie manualmente: ${roomId}`);
-                }
-            });
-
-            openMenuBtn.addEventListener('click', () => mainMenuPopup.classList.toggle('active'));
-            connectFriendBtn.addEventListener('click', () => {
-                const friendId = friendIdInput.value.trim();
-                if (friendId && peer && peer.open) {
-                    dataConnection = peer.connect(friendId);
-                    setupDataConnectionEvents(dataConnection);
-                } else {
-                    alert('Por favor, inicie o servidor e insira um ID válido.');
-                }
-                mainMenuPopup.classList.remove('active');
-            });
-            disconnectFriendBtn.addEventListener('click', () => {
-                if (dataConnection) dataConnection.close();
-                if (mediaCall) mediaCall.close();
-                mainMenuPopup.classList.remove('active');
-            });
-            loadUrlBtn.addEventListener('click', () => {
-                const url = videoUrlInput.value.trim();
-                if (url) {
-                    if (validateVideoUrl(url)) {
-                        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                            loadIframeContent(url);
-                        } else {
-                            loadVideoAndBecomeHost(url);
-                        }
-                    } else {
-                        alert('Por favor, insira um link de vídeo válido (.mp4, .webm, .ogg ou YouTube).');
-                    }
-                } else {
-                    alert('Insira um link de vídeo.');
-                }
-                mainMenuPopup.classList.remove('active');
-            });
-            loadLocalFileBtn.addEventListener('click', () => videoUploadInput.click());
-            videoUploadInput.addEventListener('change', e => {
-                if (e.target.files[0]) {
-                    loadVideoAndBecomeHost(URL.createObjectURL(e.target.files[0]), true);
-                }
-                mainMenuPopup.classList.remove('active');
-            });
-            playPauseBtn.addEventListener('click', () => {
-                if (!isIframeContent && videoPlayer.paused) {
-                    videoPlayer.play().catch(e => alert('Erro ao reproduzir: ' + e.message));
-                    if (isHost) sendData({ type: 'video_control', action: 'play' });
-                } else if (!isIframeContent) {
-                    videoPlayer.pause();
-                    if (isHost) sendData({ type: 'video_control', action: 'pause' });
-                }
-            });
-            videoPlayer.addEventListener('play', () => {
-                playPauseBtnImg.src = 'https://via.placeholder.com/20?text=Pause';
-            });
-            videoPlayer.addEventListener('pause', () => {
-                playPauseBtnImg.src = 'https://via.placeholder.com/20?text=Play';
-            });
-            videoPlayer.addEventListener('loadedmetadata', () => {
-                totalDurationDisplay.textContent = formatTime(videoPlayer.duration);
-                seekBar.max = videoPlayer.duration;
-                videoPlayer.volume = volumeBar.value;
-            });
-            videoPlayer.addEventListener('timeupdate', () => {
-                currentTimeDisplay.textContent = formatTime(videoPlayer.currentTime);
-                seekBar.value = videoPlayer.currentTime;
-            });
-            seekBar.addEventListener('input', () => {
-                if (isHost && !isIframeContent) {
-                    videoPlayer.currentTime = seekBar.value;
-                    sendData({ type: 'video_control', action: 'seek', time: videoPlayer.currentTime });
-                } else {
-                    seekBar.value = videoPlayer.currentTime;
-                }
-            });
-            volumeBar.addEventListener('input', () => {
-                if (!isIframeContent) {
-                    videoPlayer.volume = parseFloat(volumeBar.value);
-                    if (isHost) sendData({ type: 'video_control', action: 'volume', volume: videoPlayer.volume });
-                }
-            });
-
-            function formatTime(timeInSeconds) {
-                const minutes = Math.floor(timeInSeconds / 60);
-                const seconds = Math.floor(timeInSeconds % 60);
-                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            }
-
-            startPeer();
-        });
-    </script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
