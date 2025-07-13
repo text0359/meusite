@@ -3,134 +3,989 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stream de Filmes com Amigos</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Jogos da Letícia e Werveson!</title>
+    <!-- Importa fontes do Google Fonts para um visual moderno -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Variáveis CSS para cores e sombras, usadas por ambos os jogos */
+        :root {
+            --primary-color: #E91E63; /* Rosa vibrante */
+            --secondary-color: #BA68C8; /* Lilás suave */
+            --background-start: #FCE4EC; /* Rosa claro de fundo */
+            --background-end: #E1BEE7; /* Lilás claro de fundo */
+            --text-dark: #4A148C; /* Roxo escuro */
+            --text-light: #6A1B9A; /* Roxo médio */
+            --button-bg-light: #F8BBDA; /* Rosa bem claro para opções */
+            --correct-bg: #A5D6A7; /* Verde claro para acerto */
+            --correct-text: #2E7D32;
+            --incorrect-bg: #EF9A9A; /* Vermelho claro para erro */
+            --incorrect-text: #C62828;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.18);
+            --shadow-strong: rgba(0, 0, 0, 0.25);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to top, var(--background-start) 0%, var(--background-end) 100%);
+            margin: 0;
+            padding: 1.25rem;
+            box-sizing: border-box;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Estilos comuns para containers de jogo */
+        .game-container-common {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0.625rem 2rem var(--shadow-medium);
+            text-align: center;
+            width: 100%;
+            max-width: 37.5rem;
+            border: 2px solid var(--secondary-color);
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 2em;
+            font-weight: 700;
+            text-shadow: 0.0625rem 0.0625rem 0.125rem rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        /* Estilos para botões de controle gerais */
+        .game-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 0.25rem 0.625rem var(--shadow-medium);
+        }
+
+        .game-button:hover:not(:disabled) {
+            background-color: #C2185B;
+            transform: translateY(-0.125rem);
+            box-shadow: 0 0.375rem 0.9375rem var(--shadow-strong);
+        }
+
+        .game-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Estilos para feedback e pontuação */
+        .feedback-message { /* Classe comum para feedback */
+            margin-top: 1.5rem;
+            font-weight: 700;
+            font-size: 1.2em;
+            color: var(--text-dark);
+        }
+
+        .score-display { /* Classe comum para pontuação */
+            font-size: 1.3em;
+            color: var(--text-light);
+            font-weight: 700;
+            margin-top: 1rem;
+        }
+
+        /* Estilos para os botões de controle de música */
+        #music-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        #music-controls .music-button {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0.125rem 0.3125rem var(--shadow-light);
+        }
+
+        #music-controls .music-button:hover {
+            background-color: #8E24AA;
+            transform: translateY(-0.1rem);
+        }
+
+        /* Estilo para a mensagem de áudio */
+        #audio-message {
+            color: #E91E63; /* Cor primária para destaque */
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+            min-height: 1.2em; /* Garante que o espaço seja reservado */
+        }
+
+        /* --- Estilos Específicos do Quiz --- */
+        #quiz-container #question-text {
+            font-size: 1.4em;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        #quiz-container .question-owner {
+            font-size: 1.1em;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background-color: #FFEBEE;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.3rem;
+            display: inline-block;
+        }
+        #quiz-container #options-container button {
+            display: block;
+            width: 100%;
+            padding: 1.25rem;
+            margin-bottom: 0.875rem;
+            border: 1px solid var(--secondary-color);
+            border-radius: 0.75rem;
+            background-color: var(--button-bg-light);
+            font-size: 1.15rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-light);
+            box-shadow: 0 0.1875rem 0.5rem var(--shadow-light);
+        }
+        #quiz-container #options-container button:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            transform: translateY(-0.25rem);
+            box-shadow: 0 0.375rem 0.9375rem var(--shadow-medium);
+        }
+        #quiz-container #options-container button.correct {
+            background-color: var(--correct-bg);
+            color: var(--correct-text);
+            font-weight: 700;
+            box-shadow: 0 0.1875rem 0.5rem rgba(27, 94, 32, 0.3);
+            border: none;
+        }
+        #quiz-container #options-container button.incorrect {
+            background-color: var(--incorrect-bg);
+            color: var(--incorrect-text);
+            font-weight: 700;
+            box-shadow: 0 0.1875rem 0.5rem rgba(183, 28, 28, 0.3);
+            border: none;
+        }
+        #quiz-container #options-container button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        #quiz-container #next-button {
+            margin-top: 1.875rem;
+        }
+
+        /* --- Estilos Específicos do Adedonha --- */
+        #adedonha-container h2 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-dark);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+        #adedonha-container #category-selection {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        #adedonha-container .category-checkbox {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        #adedonha-container .category-checkbox input[type="checkbox"] {
+            margin-right: 0.5rem;
+            transform: scale(1.2);
+        }
+        #adedonha-container .category-checkbox label {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+        #adedonha-container #current-letter {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 4em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 5px var(--shadow-medium);
+        }
+        #adedonha-container .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            border: 1px solid var(--background-end);
+            border-radius: 0.5rem;
+            background-color: var(--button-bg-light);
+        }
+        #adedonha-container .category-item label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+        #adedonha-container .category-input-group {
+            display: flex;
+            width: 100%;
+            gap: 0.5rem;
+        }
+        #adedonha-container .category-input-group input[type="text"] {
+            flex-grow: 1;
+            padding: 0.6rem;
+            border: 1px solid var(--secondary-color);
+            border-radius: 0.3rem;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: white;
+        }
+        #adedonha-container .score-buttons {
+            display: flex;
+            gap: 0.3rem;
+        }
+        #adedonha-container .score-buttons button {
+            padding: 0.5rem 0.8rem;
+            border: none;
+            border-radius: 0.3rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+        #adedonha-container .score-buttons .btn-5-points {
+            background-color: #FFC107;
+        }
+        #adedonha-container .score-buttons .btn-10-points {
+            background-color: #4CAF50;
+        }
+        #adedonha-container .score-buttons button:hover:not(:disabled) {
+            transform: translateY(-0.1rem);
+            box-shadow: 0 0.125rem 0.3125rem var(--shadow-medium);
+        }
+        #adedonha-container .score-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #adedonha-container #round-info {
+            font-size: 1.1em;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        /* Responsividade para telas menores (smartphones) */
+        @media (max-width: 37.5rem) { /* Equivalente a 600px */
+            body {
+                padding: 0.75rem;
+            }
+            .game-container-common {
+                padding: 1.5rem;
+                border-radius: 0.75rem;
+            }
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 1.5rem;
+            }
+            .section-title {
+                font-size: 1.1em;
+            }
+            #music-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            #music-controls .music-button {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.85rem;
+            }
+            #audio-message {
+                font-size: 0.85rem;
+            }
+
+            /* Quiz specific adjustments */
+            #quiz-container #question-text {
+                font-size: 1.2em;
+                margin-bottom: 1rem;
+            }
+            #quiz-container .question-owner {
+                font-size: 1em;
+            }
+            #quiz-container #options-container button {
+                padding: 1rem;
+                font-size: 1.05rem;
+                margin-bottom: 0.625rem;
+            }
+            #quiz-container #next-button {
+                padding: 1rem 2rem;
+                font-size: 1.1rem;
+                margin-top: 1.5rem;
+            }
+
+            /* Adedonha specific adjustments */
+            #adedonha-container h2 {
+                font-size: 1.3em;
+            }
+            #adedonha-container #current-letter {
+                font-size: 3em;
+            }
+            #adedonha-container .category-item {
+                padding: 0.6rem;
+                margin-bottom: 0.8rem;
+            }
+            #adedonha-container .category-item label {
+                font-size: 1rem;
+            }
+            #adedonha-container .category-input-group input[type="text"] {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+            #adedonha-container .score-buttons button {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .game-button { /* Common button adjustment for smaller screens */
+                padding: 0.7rem 1.5rem;
+                font-size: 1rem;
+                margin: 0.3rem;
+            }
+            .feedback-message, .score-display, #adedonha-container #round-info {
+                font-size: 1em;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Elementos de áudio embutidos (Base64) -->
+    <!-- SUBSTITUA 'SEU_AUDIO_BASE64_AQUI_...' PELOS SEUS CÓDIGOS BASE64 REAIS -->
+    <audio id="button-click-sound">
+        <source src="data:audio/mpeg;base64,SEU_AUDIO_BASE64_AQUI_BOTAO" type="audio/mpeg">
+    </audio>
+    <audio id="correct-sound">
+        <source src="data:audio/mpeg;base64,SEU_AUDIO_BASE64_AQUI_ACERTO" type="audio/mpeg">
+    </audio>
+    <audio id="incorrect-sound">
+        <source src="data:audio/mpeg;base64,SEU_AUDIO_BASE64_AQUI_ERRO" type="audio/mpeg">
+    </audio>
 
-    <div class="cinema-container">
+    <!-- Elementos de áudio de arquivos externos (na pasta music) -->
+    <audio id="victory-sound">
+        <source src="music/victory_sound.mp3" type="audio/mpeg">
+    </audio>
 
-        <div class="top-bar">
-            <div class="id-display" id="roomIdDisplay" style="display: none;">
-                <img src="icons/id-card.svg" alt="ID da sala" class="id-icon">
-                <span id="currentRoomId">Gerando ID...</span>
-                <button id="copyRoomIdBtn" class="icon-button" aria-label="Copiar ID da sala">
-                    <img src="icons/copy-link.svg" alt="Copiar ID">
-                </button>
-            </div>
+    <!-- Player de música de fundo (controlado via JS) -->
+    <audio id="background-music-player" loop></audio>
 
-            <div class="top-bar-controls">
-                <button id="powerButton" class="power-button" aria-label="Ligar/Desligar Servidor">
-                    <img src="icons/power-button off.svg" alt="Servidor Desligado">
-                </button>
-                <button id="openMenuBtn" class="icon-button menu-hamburger-btn" aria-label="Abrir menu">
-                    <img src="icons/menu-hamburger.svg" alt="Menu">
-                </button>
-            </div>
-        </div>
+    <div id="music-controls">
+        <button id="music-toggle-button" class="music-button">Tocar Música</button>
+        <button id="next-music-button" class="music-button">Próxima Música</button>
+    </div>
+    <div id="audio-message"></div> <!-- Novo elemento para mensagens de áudio -->
 
-        <div class="video-main-area">
-            <div class="video-player-wrapper" id="videoPlayerWrapper">
-                <video id="videoPlayer" class="movie-player"></video> 
-                <div id="overlayText" class="overlay-text">
-                    ÁREA DO FILME
+    <!-- Container Principal da Aplicação - Controla qual jogo está visível -->
+    <div id="main-app-container">
+        <!-- Jogo de Quiz da Letícia e Werveson -->
+        <div id="quiz-container" class="game-container-common">
+            <h1>Teste seus conhecimentos!</h1>
+            <div id="quiz-question-area">
+                <!-- O rótulo do proprietário da pergunta será inserido aqui pelo JavaScript -->
+                <p id="quiz-question-text"></p>
+                <div id="quiz-options-container">
+                    <!-- As opções de resposta serão inseridas aqui via JavaScript -->
                 </div>
             </div>
-            <div class="right-controls">
-                <button class="control-button" id="rotateVideoBtn" aria-label="Girar Vídeo">
-                    <img src="icons/rotate-video.svg" alt="Girar Vídeo">
-                </button>
-                <button class="control-button" id="playPauseBtn" aria-label="Play/Pause">
-                    <img src="icons/play-button.svg" alt="Play">
-                </button>
-                <button class="control-button" id="volumeBtn" aria-label="Controle de Volume">
-                    <img src="icons/volume-high.svg" alt="Volume">
-                </button>
-                 <div id="volumeControl" class="volume-control hidden">
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
-                    <button id="muteToggleBtn" class="volume-icon-btn">
-                        <img src="icons/volume-high.svg" alt="Volume Alto">
-                    </button>
+            <button id="quiz-next-button" class="game-button" style="display:none;">Próxima Pergunta</button>
+            <p id="quiz-feedback" class="feedback-message"></p>
+            <p id="quiz-score" class="score-display"></p>
+            <button id="play-adedonha-button" class="game-button">Jogar Adedonha</button>
+        </div>
+
+        <!-- Jogo de Adedonha -->
+        <div id="adedonha-container" class="game-container-common" style="display:none;">
+            <h1>Jogo de Adedonha!</h1>
+
+            <div id="adedonha-start-screen">
+                <p class="section-title">Selecione até 8 categorias para jogar:</p>
+                <div id="adedonha-category-selection">
+                    <!-- Checkboxes de categorias serão inseridos aqui pelo JS -->
                 </div>
-                <button class="control-button reaction-button" data-emoji="laugh" aria-label="Reação de risada">
-                    <img src="icons/reaction-laugh.svg" alt="Risada">
-                </button>
-                 <button class="control-button reaction-button" data-emoji="heart" aria-label="Reação de apaixonado">
-                    <img src="icons/reaction-heart.svg" alt="Coração">
-                </button>
-                 <button class="control-button reaction-button" data-emoji="cry" aria-label="Reação de choro">
-                    <img src="icons/reaction-cry.svg" alt="Choro">
-                </button>
-                <button class="control-button reaction-button" data-emoji="sleep" aria-label="Reação de sono">
-                    <img src="icons/reaction-sleep.svg" alt="Sono">
-                </button>
-                <button class="control-button reaction-button" data-emoji="cold" aria-label="Reação de frio">
-                    <img src="icons/reaction-cold.svg" alt="Frio">
-                </button>
-                <button class="control-button reaction-button" data-emoji="clap" aria-label="Reação de palmas">
-                    <img src="icons/reaction-clap.svg" alt="Palmas">
-                </button>
+                <button id="adedonha-start-game-button" class="game-button">Iniciar Jogo</button>
+                <button id="adedonha-back-to-quiz-button" class="game-button">Voltar para o Quiz</button>
             </div>
-        </div>
 
-        <div class="bottom-bar">
-            <span id="currentTimeDisplay" class="time-display">00:00</span>
-            <input type="range" id="seekBar" class="seek-bar" value="0" step="0.1">
-            <span id="totalDurationDisplay" class="time-display">00:00</span>
-        </div>
-        </div>
+            <div id="adedonha-game-screen" style="display:none;">
+                <p id="adedonha-round-info"></p>
+                <p class="section-title">Letra Sorteada:</p>
+                <div id="adedonha-current-letter"></div>
+                
+                <div id="adedonha-answers-area">
+                    <!-- Categorias de resposta e inputs serão inseridos aqui pelo JS -->
+                </div>
 
-    <div id="mainMenuPopup" class="menu-popup">
-        <div class="menu-header">
-            <h2>Menu Principal</h2>
-            <button id="closeMenuPopupBtn" class="icon-button close-btn" aria-label="Fechar menu">
-                <img src="icons/close-x.svg" alt="Fechar">
-            </button>
-        </div>
-        <div class="menu-section connection-section">
-            <label for="friendIdInput">ID do amigo:</label>
-            <input type="text" id="friendIdInput" placeholder="Cole o ID do seu amigo aqui">
-            <button class="menu-btn purple" id="connectFriendBtn">
-                <img src="icons/connect.svg" alt="Conectar">
-                <span>Conectar Amigo</span>
-            </button>
-            <button class="menu-btn purple" id="disconnectFriendBtn">
-                <img src="icons/disconnect.svg" alt="Desconectar">
-                <span>Desconectar</span>
-            </button>
-        </div>
-        <div class="menu-section video-actions-section">
-            <label for="videoUrlInput">URL do Vídeo (Link direto .mp4):</label>
-            <input type="text" id="videoUrlInput" placeholder="https://exemplo.com/video.mp4">
-            <button class="menu-btn pink" id="loadUrlBtn">
-                <span>Carregar URL</span>
-            </button>
-            <hr style="border-top: 1px dashed #FF69B4; margin: 1rem 0;">
-            <button class="menu-btn pink" id="loadLocalFileBtn">
-                <span>Carregar Vídeo do PC</span>
-                <input type="file" id="videoUploadInput" accept="video/*" style="display: none;">
-            </button>
-            <button class="menu-btn pink" id="addSceneBtn">
-                <span>Adicionar Cena Atual</span>
-            </button>
-        </div>
-        <div class="menu-section scenes-section">
-            <h3>Cenas Salvas</h3>
-            <div class="scenes-list-container" id="scenesListContainer"></div>
-            <div class="scroll-buttons">
-                <button aria-label="Rolar para cima" id="scrollUpScenesBtn">
-                    <img src="icons/arrow-up.svg" alt="Cima">
-                </button>
-                <button aria-label="Rolar para baixo" id="scrollDownScenesBtn">
-                    <img src="icons/arrow-down.svg" alt="Baixo">
-                </button>
+                <button id="adedonha-confirm-answers-button" class="game-button">Confirmar Respostas</button>
+                <button id="adedonha-next-round-button" class="game-button" style="display:none;">Próxima Rodada</button>
+                <button id="adedonha-finish-game-button" class="game-button">Finalizar Jogo</button>
+                
+                <p id="adedonha-feedback-message" class="feedback-message"></p>
+                <p id="adedonha-round-score"></p>
+                <p id="adedonha-total-score" class="score-display"></p>
             </div>
         </div>
     </div>
 
-    <div id="emoji-container"></div> 
+    <script>
+        // --- Variáveis e Configurações Comuns ---
+        const backgroundMusicFiles = [
+            "music/background_music_01.mp3", "music/background_music_02.mp3", "music/background_music_03.mp3",
+            "music/background_music_04.mp3", "music/background_music_05.mp3", "music/background_music_06.mp3",
+            "music/background_music_07.mp3", "music/background_music_08.mp3", "music/background_music_09.mp3",
+            "music/background_music_10.mp3"
+        ];
+        let currentMusicIndex = 0;
+        const backgroundMusicPlayer = document.getElementById('background-music-player');
+        const musicToggleButton = document.getElementById('music-toggle-button');
+        const nextMusicButton = document.getElementById('next-music-button');
+        const buttonClickSound = document.getElementById('button-click-sound');
+        const correctSound = document.getElementById('correct-sound');
+        const incorrectSound = document.getElementById('incorrect-sound');
+        const victorySound = document.getElementById('victory-sound');
+        const audioMessageDiv = document.getElementById('audio-message');
+        let isMusicPlaying = false;
 
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="script.js"></script>
+        // --- Funções de Áudio Comuns ---
+        function playSound(soundElement) {
+            soundElement.currentTime = 0;
+            soundElement.play().catch(e => console.error("Erro ao tocar som:", e));
+        }
+
+        function toggleBackgroundMusic() {
+            if (backgroundMusicPlayer.paused) {
+                backgroundMusicPlayer.src = backgroundMusicFiles[currentMusicIndex];
+                backgroundMusicPlayer.play().then(() => {
+                    musicToggleButton.textContent = "Pausar Música";
+                    audioMessageDiv.textContent = '';
+                    isMusicPlaying = true;
+                }).catch(e => {
+                    console.error("Erro ao tentar tocar a música de fundo:", e);
+                    audioMessageDiv.textContent = "Seu navegador pode ter bloqueado a reprodução automática de áudio. Por favor, clique em 'Tocar Música'.";
+                    isMusicPlaying = false;
+                });
+            } else {
+                backgroundMusicPlayer.pause();
+                musicToggleButton.textContent = "Tocar Música";
+                audioMessageDiv.textContent = '';
+                isMusicPlaying = false;
+            }
+        }
+
+        function playNextTrack() {
+            playSound(buttonClickSound);
+            currentMusicIndex = (currentMusicIndex + 1) % backgroundMusicFiles.length;
+            backgroundMusicPlayer.src = backgroundMusicFiles[currentMusicIndex];
+            backgroundMusicPlayer.play().then(() => {
+                musicToggleButton.textContent = "Pausar Música";
+                audioMessageDiv.textContent = '';
+                isMusicPlaying = true;
+            }).catch(e => {
+                console.error("Erro ao tocar próxima música:", e);
+                audioMessageDiv.textContent = "Seu navegador pode ter bloqueado a reprodução automática de áudio. Por favor, clique em 'Tocar Música'.";
+                isMusicPlaying = false;
+            });
+        }
+
+        // --- Gerenciamento de Telas (Quiz vs Adedonha) ---
+        const quizContainer = document.getElementById('quiz-container');
+        const adedonhaContainer = document.getElementById('adedonha-container');
+        const playAdedonhaButton = document.getElementById('play-adedonha-button');
+        const adedonhaBackToQuizButton = document.getElementById('adedonha-back-to-quiz-button');
+
+        function showQuizGame() {
+            quizContainer.style.display = 'block';
+            adedonhaContainer.style.display = 'none';
+            // Pausar música do Adedonha se estiver tocando ao mudar para o Quiz
+            if (!backgroundMusicPlayer.paused) {
+                backgroundMusicPlayer.pause();
+                musicToggleButton.textContent = "Tocar Música";
+                isMusicPlaying = false;
+            }
+            // Reinicializar o Quiz para uma nova partida se necessário
+            initializeQuizGame(); 
+        }
+
+        function showAdedonhaGame() {
+            quizContainer.style.display = 'none';
+            adedonhaContainer.style.display = 'block';
+            // Pausar música do Quiz se estiver tocando ao mudar para Adedonha
+            if (!backgroundMusicPlayer.paused) {
+                backgroundMusicPlayer.pause();
+                musicToggleButton.textContent = "Tocar Música";
+                isMusicPlaying = false;
+            }
+            // Reinicializar Adedonha para uma nova partida se necessário
+            resetAdedonhaGame(); 
+        }
+
+        // --- Jogo de Quiz ---
+        const leticiaQuestions = [
+            { question: "Qual o sabor de mousse favorito da Letícia?", options: ["Morango", "Chocolate", "Maracujá", "Limão"], answer: "Limão", owner: "a Letícia" },
+            { question: "Que tipo de música a Letícia mais gosta?", options: ["Sertanejo", "Rock", "Gospel e Internacional", "Forró"], answer: "Gospel e Internacional", owner: "a Letícia" },
+            { question: "Qual desses filmes a Letícia queria assistir ou já assistiu e gostou?", options: ["Camp Rock", "Velozes e Furiosos", "Titanic", "A Lagoa Azul"], answer: "Camp Rock", owner: "a Letícia" },
+            { question: "A Letícia prefere qual tipo de bebida?", options: ["Refrigerante de guaraná", "Suco de laranja", "Água", "Biscoito (snack)"], answer: "Biscoito (snack)", owner: "a Letícia" },
+            { question: "Qual a atitude que a Letícia mais valoriza em um relacionamento?", options: ["Apressar as coisas", "Lembrar de pequenos detalhes", "Fazer muitas pegadinhas (trollagem)", "Não dar satisfação"], answer: "Lembrar de pequenos detalhes", owner: "a Letícia" },
+            { question: "No TikTok, a Letícia gosta de ver vídeos de qual categoria?", options: ["Notícias", "Finanças", "Comprinhas de meninas e bichinhos", "Esportes radicais"], answer: "Comprinhas de meninas e bichinhos", owner: "a Letícia" },
+            { question: "Qual é a data de aniversário da Letícia?", options: ["21 de maio", "21 de junho", "12 de julho", "18 de maio"], answer: "21 de junho", owner: "a Letícia" },
+            { question: "Sobre pets, qual opção melhor representa o gosto da Letícia?", options: ["Ela tem medo de todos os animais", "Ela gosta de animais de fazenda", "Ela gosta de gato, cachorro e panda", "Ela só gosta de pássaros"], answer: "Ela gosta de gato, cachorro e panda", owner: "a Letícia" },
+            { question: "Qual o sentimento da Letícia quando é deixada 'no vácuo'?", options: ["Fica feliz", "Não se importa", "Fica estressada", "Acha engraçado"], answer: "Fica estressada", owner: "a Letícia" },
+            { question: "O que a Letícia valoriza em relação ao planejamento de eventos?", options: ["Planejar com muita antecedência", "Não planejar nada", "Planejar, mas não muito cedo para não ficar ansiosa", "Deixar tudo para a última hora"], answer: "Planejar, mas não muito cedo para não ficar ansiosa", owner: "a Letícia" }
+        ];
+
+        // Perguntas sobre VOCÊ (Preencha com suas informações e adicione a propriedade 'owner' como "o Werveson" ou "o [Seu Nome]!")
+        const userQuestions = [
+            { question: "Qual a sua cor favorita?", options: ["Azul", "Verde", "Preto", "Vermelho"], answer: "Azul", owner: "o Werveson" },
+            { question: "Qual o seu hobby preferido?", options: ["Ler livros", "Jogar videogame", "Cozinhar", "Assistir filmes/séries"], answer: "Assistir filmes/séries", owner: "o Werveson" },
+            { question: "Qual a sua comida favorita?", options: ["Pizza", "Churrasco", "Massas", "Comida japonesa"], answer: "Pizza", owner: "o Werveson" },
+            { question: "Qual o seu estilo musical preferido?", options: ["Rock", "Pop", "Sertanejo", "Eletrônica"], answer: "Sertanejo", owner: "o Werveson" },
+            { question: "Qual o seu animal de estimação dos sonhos?", options: ["Cachorro", "Gato", "Pássaro", "Peixe"], answer: "Cachorro", owner: "o Werveson" }
+        ];
+
+        let allQuizQuestions = [...leticiaQuestions, ...userQuestions];
+        let shuffledQuizQuestions = [];
+        let currentQuizQuestionIndex = 0;
+        let quizScore = 0;
+
+        const quizQuestionText = document.getElementById('quiz-question-text');
+        const quizOptionsContainer = document.getElementById('quiz-options-container');
+        const quizNextButton = document.getElementById('quiz-next-button');
+        const quizFeedbackElement = document.getElementById('quiz-feedback');
+        const quizScoreElement = document.getElementById('quiz-score');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function loadQuizQuestion() {
+            quizFeedbackElement.textContent = '';
+            quizOptionsContainer.innerHTML = '';
+            quizNextButton.style.display = 'none';
+
+            const existingOwnerLabel = document.querySelector('#quiz-container .question-owner');
+            if (existingOwnerLabel) {
+                existingOwnerLabel.remove();
+            }
+
+            if (currentQuizQuestionIndex < shuffledQuizQuestions.length) {
+                const q = shuffledQuizQuestions[currentQuizQuestionIndex];
+                const ownerLabel = document.createElement('p');
+                ownerLabel.classList.add('question-owner');
+                ownerLabel.textContent = `Pergunta sobre ${q.owner}:`;
+                quizQuestionText.before(ownerLabel);
+                quizQuestionText.textContent = q.question;
+                const shuffledOptions = shuffleArray([...q.options]);
+
+                shuffledOptions.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.addEventListener('click', () => {
+                        playSound(buttonClickSound);
+                        selectQuizOption(option, q.answer);
+                    });
+                    quizOptionsContainer.appendChild(button);
+                });
+            } else {
+                showQuizFinalScore();
+            }
+        }
+
+        function selectQuizOption(selectedOption, correctAnswer) {
+            Array.from(quizOptionsContainer.children).forEach(button => {
+                button.disabled = true;
+                if (button.textContent === correctAnswer) {
+                    button.classList.add('correct');
+                } else if (button.textContent === selectedOption) {
+                    button.classList.add('incorrect');
+                }
+            });
+
+            if (selectedOption === correctAnswer) {
+                quizFeedbackElement.textContent = "Parabéns! Você acertou!";
+                quizScore++;
+                playSound(correctSound);
+            } else {
+                quizFeedbackElement.textContent = `Que pena! A resposta correta era: ${correctAnswer}.`;
+                playSound(incorrectSound);
+            }
+            quizScoreElement.textContent = `Pontuação: ${quizScore}/${shuffledQuizQuestions.length}`;
+            quizNextButton.style.display = 'block';
+        }
+
+        function showQuizFinalScore() {
+            quizQuestionText.textContent = "Jogo Concluído!";
+            quizOptionsContainer.innerHTML = '';
+            const existingOwnerLabel = document.querySelector('#quiz-container .question-owner');
+            if (existingOwnerLabel) {
+                existingOwnerLabel.remove();
+            }
+            quizFeedbackElement.textContent = `Sua pontuação final é: ${quizScore} de ${shuffledQuizQuestions.length}.`;
+            let finalMessage = "";
+            if (quizScore === shuffledQuizQuestions.length) {
+                finalMessage = "Parabéns! Você conhece a Letícia e a si mesmo(a) muito bem!";
+                playSound(victorySound);
+            } else if (quizScore >= shuffledQuizQuestions.length * 0.7) {
+                finalMessage = "Ótimo! Você conhece bem a Letícia e a si mesmo(a)!";
+                playSound(victorySound);
+            } else if (quizScore >= shuffledQuizQuestions.length * 0.5) {
+                finalMessage = "Você está no caminho certo! Continue jogando para descobrir mais!";
+            } else {
+                finalMessage = "Ainda há muito a aprender! Tente novamente para melhorar sua pontuação!";
+            }
+            quizScoreElement.textContent = finalMessage;
+            quizNextButton.style.display = 'none';
+        }
+
+        quizNextButton.addEventListener('click', () => {
+            playSound(buttonClickSound);
+            currentQuizQuestionIndex++;
+            loadQuizQuestion();
+        });
+
+        function initializeQuizGame() {
+            shuffledQuizQuestions = shuffleArray([...allQuizQuestions]);
+            currentQuizQuestionIndex = 0;
+            quizScore = 0;
+            loadQuizQuestion();
+        }
+
+        // --- Jogo de Adedonha ---
+        const allCategories = [
+            "Pessoa", "Lugar", "Comida", "Animal", "Parte do corpo", 
+            "Profissão", "Filme/Programa de TV/Série", "Meu namorado(a) é", 
+            "Marca famosa", "Marca de carro", "Objetos"
+        ];
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVXZ";
+
+        let adedonhaSelectedCategories = [];
+        let adedonhaUsedLetters = [];
+        let adedonhaCurrentLetter = '';
+        let adedonhaCurrentRound = 0;
+        let adedonhaTotalScore = 0;
+        let adedonhaCurrentRoundScore = 0;
+
+        const adedonhaStartScreen = document.getElementById('adedonha-start-screen');
+        const adedonhaGameScreen = document.getElementById('adedonha-game-screen');
+        const adedonhaCategorySelectionDiv = document.getElementById('adedonha-category-selection');
+        const adedonhaStartGameButton = document.getElementById('adedonha-start-game-button');
+        const adedonhaCurrentLetterDiv = document.getElementById('adedonha-current-letter');
+        const adedonhaAnswersArea = document.getElementById('adedonha-answers-area');
+        const adedonhaConfirmAnswersButton = document.getElementById('adedonha-confirm-answers-button');
+        const adedonhaNextRoundButton = document.getElementById('adedonha-next-round-button');
+        const adedonhaFinishGameButton = document.getElementById('adedonha-finish-game-button');
+        const adedonhaFeedbackMessage = document.getElementById('adedonha-feedback-message');
+        const adedonhaRoundScoreDisplay = document.getElementById('adedonha-round-score');
+        const adedonhaTotalScoreDisplay = document.getElementById('adedonha-total-score');
+        const adedonhaRoundInfoDisplay = document.getElementById('adedonha-round-info');
+
+        function generateAdedonhaCategoryCheckboxes() {
+            adedonhaCategorySelectionDiv.innerHTML = '';
+            allCategories.forEach(category => {
+                const div = document.createElement('div');
+                div.classList.add('category-checkbox');
+                div.innerHTML = `
+                    <input type="checkbox" id="adedonha-cat-${category}" value="${category}">
+                    <label for="adedonha-cat-${category}">${category}</label>
+                `;
+                adedonhaCategorySelectionDiv.appendChild(div);
+            });
+        }
+
+        function updateAdedonhaStartButtonState() {
+            const checkedBoxes = Array.from(adedonhaCategorySelectionDiv.querySelectorAll('input[type="checkbox"]:checked'));
+            adedonhaStartGameButton.disabled = checkedBoxes.length === 0 || checkedBoxes.length > 8;
+        }
+
+        function getAdedonhaRandomLetter() {
+            const availableLetters = alphabet.split('').filter(letter => !adedonhaUsedLetters.includes(letter));
+            if (availableLetters.length === 0) {
+                adedonhaUsedLetters = [];
+                audioMessageDiv.textContent = "Todas as letras foram usadas! O jogo irá reiniciar o pool de letras.";
+                setTimeout(() => audioMessageDiv.textContent = '', 3000);
+                return getAdedonhaRandomLetter(); 
+            }
+            const randomIndex = Math.floor(Math.random() * availableLetters.length);
+            const letter = availableLetters[randomIndex];
+            adedonhaUsedLetters.push(letter);
+            return letter;
+        }
+
+        function startAdedonhaNewRound() {
+            playSound(buttonClickSound);
+            adedonhaFeedbackMessage.textContent = '';
+            adedonhaRoundScoreDisplay.textContent = '';
+            adedonhaCurrentRoundScore = 0;
+            adedonhaCurrentRound++;
+            adedonhaRoundInfoDisplay.textContent = `Rodada: ${adedonhaCurrentRound}`;
+            
+            adedonhaCurrentLetter = getAdedonhaRandomLetter();
+            adedonhaCurrentLetterDiv.textContent = adedonhaCurrentLetter;
+            adedonhaAnswersArea.innerHTML = '';
+
+            adedonhaSelectedCategories.forEach(category => {
+                const categoryItem = document.createElement('div');
+                categoryItem.classList.add('category-item');
+                categoryItem.innerHTML = `
+                    <label>${category}:</label>
+                    <div class="category-input-group">
+                        <input type="text" data-category="${category}" placeholder="Começa com ${adedonhaCurrentLetter}">
+                        <div class="score-buttons" style="display:none;">
+                            <button class="btn-5-points" data-points="5">5 pontos (Comum)</button>
+                            <button class="btn-10-points" data-points="10">10 pontos (Original)</button>
+                        </div>
+                    </div>
+                `;
+                adedonhaAnswersArea.appendChild(categoryItem);
+            });
+
+            adedonhaConfirmAnswersButton.style.display = 'inline-block';
+            adedonhaNextRoundButton.style.display = 'none';
+            adedonhaFinishGameButton.disabled = false;
+        }
+
+        function confirmAdedonhaAnswers() {
+            playSound(buttonClickSound);
+            const inputs = adedonhaAnswersArea.querySelectorAll('input[type="text"]');
+            
+            inputs.forEach(input => {
+                const answer = input.value.trim();
+                const scoreButtonsDiv = input.nextElementSibling;
+
+                input.disabled = true; // Desabilita o input de texto
+
+                if (answer.length > 0 && answer.toUpperCase().startsWith(adedonhaCurrentLetter)) {
+                    scoreButtonsDiv.style.display = 'flex'; // Mostra os botões de pontuação
+                    const btn5 = scoreButtonsDiv.querySelector('.btn-5-points');
+                    const btn10 = scoreButtonsDiv.querySelector('.btn-10-points');
+
+                    btn5.disabled = false; // Habilita o botão de 5 pontos
+                    btn10.disabled = false; // Habilita o botão de 10 pontos
+
+                    btn5.onclick = () => scoreAdedonhaAnswer(input, 5);
+                    btn10.onclick = () => scoreAdedonhaAnswer(input, 10);
+
+                } else {
+                    scoreButtonsDiv.style.display = 'flex'; // Mostra os botões mesmo para resposta inválida
+                    const btn5 = scoreButtonsDiv.querySelector('.btn-5-points');
+                    const btn10 = scoreButtonsDiv.querySelector('.btn-10-points');
+                    btn5.disabled = true; // Desabilita os botões para resposta inválida
+                    btn10.disabled = true; // Desabilita os botões para resposta inválida
+                    input.style.backgroundColor = '#EF9A9A'; /* Cor de fundo para inválido */
+                    input.style.color = '#C62828'; /* Cor do texto para inválido */
+                }
+            });
+
+            adedonhaConfirmAnswersButton.style.display = 'none';
+            adedonhaNextRoundButton.style.display = 'inline-block';
+            adedonhaNextRoundButton.textContent = "Finalizar Rodada";
+            audioMessageDiv.textContent = "Agora, pontue cada uma das suas respostas!";
+            setTimeout(() => audioMessageDiv.textContent = '', 3000);
+        }
+
+        function scoreAdedonhaAnswer(inputElement, points) {
+            playSound(buttonClickSound);
+            const scoreButtonsDiv = inputElement.nextElementSibling;
+            const btn5 = scoreButtonsDiv.querySelector('.btn-5-points');
+            const btn10 = scoreButtonsDiv.querySelector('.btn-10-points');
+
+            btn5.disabled = true;
+            btn10.disabled = true;
+
+            currentRoundScore += points;
+            adedonhaRoundScoreDisplay.textContent = `Pontos da Rodada: ${currentRoundScore}`;
+            adedonhaTotalScoreDisplay.textContent = `Pontuação Total: ${adedonhaTotalScore + currentRoundScore}`; // Atualiza o total provisório
+            
+            if (points === 10) {
+                playSound(correctSound);
+                inputElement.style.backgroundColor = '#A5D6A7'; /* Verde para 10 pontos */
+                inputElement.style.color = '#2E7D32'; /* Texto verde */
+            } else { // points === 5
+                playSound(incorrectSound); /* Som para 5 pontos */
+                inputElement.style.backgroundColor = '#FFC107'; /* Amarelo para 5 pontos */
+                inputElement.style.color = '#B8860B'; /* Texto amarelo */
+            }
+        }
+
+        function endAdedonhaRound() {
+            playSound(buttonClickSound);
+            adedonhaTotalScore += currentRoundScore; // Adiciona a pontuação da rodada ao total geral
+            adedonhaTotalScoreDisplay.textContent = `Pontuação Total: ${adedonhaTotalScore}`; // Atualiza o total final da rodada
+            adedonhaFeedbackMessage.textContent = `Rodada ${adedonhaCurrentRound} finalizada! Você fez ${currentRoundScore} pontos.`;
+
+            if (adedonhaCurrentRound % 5 === 0 && adedonhaCurrentRound > 0) {
+                adedonhaFeedbackMessage.textContent += ` 🎉 Total acumulado: ${adedonhaTotalScore} pontos! 🎉`;
+            }
+
+            if (adedonhaUsedLetters.length < alphabet.length && adedonhaCurrentRound < 10) {
+                setTimeout(startAdedonhaNewRound, 2000);
+            } else {
+                finishAdedonhaGame();
+            }
+        }
+
+        function finishAdedonhaGame() {
+            playSound(buttonClickSound);
+            // Garante que a pontuação da última rodada seja adicionada se o botão "Finalizar Jogo"
+            // foi clicado antes de "Finalizar Rodada" para a rodada atual.
+            adedonhaTotalScore += currentRoundScore; 
+            
+            adedonhaFeedbackMessage.textContent = "Jogo Finalizado!";
+            adedonhaRoundInfoDisplay.textContent = '';
+            adedonhaRoundScoreDisplay.textContent = '';
+            adedonhaConfirmAnswersButton.style.display = 'none';
+            adedonhaNextRoundButton.style.display = 'none';
+            adedonhaFinishGameButton.style.display = 'none';
+
+            adedonhaTotalScoreDisplay.textContent = `Pontuação Total: ${adedonhaTotalScore}`; // Exibe a pontuação total final
+
+            if (adedonhaTotalScore > (adedonhaSelectedCategories.length * 10 * (adedonhaCurrentRound / 2))) { 
+                playSound(victorySound);
+            }
+
+            const restartButton = document.createElement('button');
+            restartButton.textContent = "Jogar Novamente";
+            restartButton.classList.add('game-button');
+            restartButton.addEventListener('click', () => {
+                playSound(buttonClickSound);
+                resetAdedonhaGame();
+            });
+            adedonhaGameScreen.appendChild(restartButton);
+
+            const backToQuizBtn = document.createElement('button');
+            backToQuizBtn.textContent = "Voltar para o Quiz";
+            backToQuizBtn.classList.add('game-button');
+            backToQuizBtn.addEventListener('click', () => {
+                playSound(buttonClickSound);
+                showQuizGame(); // Volta para o Quiz
+            });
+            adedonhaGameScreen.appendChild(backToQuizBtn);
+        }
+
+        function resetAdedonhaGame() {
+            adedonhaSelectedCategories = [];
+            adedonhaUsedLetters = [];
+            currentRound = 0;
+            adedonhaTotalScore = 0;
+            currentRoundScore = 0;
+            adedonhaFeedbackMessage.textContent = '';
+            adedonhaRoundScoreDisplay.textContent = '';
+            adedonhaTotalScoreDisplay.textContent = '';
+            adedonhaRoundInfoDisplay.textContent = '';
+            audioMessageDiv.textContent = '';
+            
+            adedonhaConfirmAnswersButton.style.display = 'inline-block';
+            adedonhaNextRoundButton.style.display = 'none'; // Esconde na reinicialização
+            adedonhaFinishGameButton.style.display = 'inline-block';
+            
+            const restartBtn = adedonhaGameScreen.querySelector('.game-button:nth-last-child(2)');
+            const backBtn = adedonhaGameScreen.querySelector('.game-button:last-child');
+            if (restartBtn) restartBtn.remove();
+            if (backBtn) backBtn.remove();
+
+            adedonhaStartScreen.style.display = 'block';
+            adedonhaGameScreen.style.display = 'none';
+            generateAdedonhaCategoryCheckboxes();
+            updateAdedonhaStartButtonState();
+            if (!backgroundMusicPlayer.paused) {
+                backgroundMusicPlayer.pause();
+                musicToggleButton.textContent = "Tocar Música";
+            }
+        }
+
+        // --- Event Listeners Comuns ---
+        musicToggleButton.addEventListener('click', toggleBackgroundMusic);
+        nextMusicButton.addEventListener('click', playNextTrack);
+
+        // --- Event Listeners do Quiz ---
+        quizNextButton.addEventListener('click', () => {
+            playSound(buttonClickSound);
+            currentQuizQuestionIndex++;
+            loadQuizQuestion();
+        });
+        playAdedonhaButton.addEventListener('click', () => {
+            playSound(buttonClickSound);
+            showAdedonhaGame();
+        });
+
+        // --- Event Listeners do Adedonha ---
+        adedonhaStartGameButton.addEventListener('click', () => {
+            playSound(buttonClickSound);
+            adedonhaSelectedCategories = Array.from(adedonhaCategorySelectionDiv.querySelectorAll('input[type="checkbox"]:checked'))
+                                    .map(cb => cb.value);
+            if (adedonhaSelectedCategories.length > 0 && adedonhaSelectedCategories.length <= 8) {
+                adedonhaStartScreen.style.display = 'none';
+                adedonhaGameScreen.style.display = 'block';
+                startAdedonhaNewRound();
+                backgroundMusicPlayer.src = backgroundMusicFiles[currentMusicIndex];
+                backgroundMusicPlayer.play().then(() => {
+                    musicToggleButton.textContent = "Pausar Música";
+                    audioMessageDiv.textContent = '';
+                }).catch(e => console.error("Erro ao tocar música de fundo:", e));
+            } else {
+                audioMessageDiv.textContent = "Por favor, selecione entre 1 e 8 categorias.";
+                setTimeout(() => audioMessageDiv.textContent = '', 3000);
+            }
+        });
+
+        adedonhaCategorySelectionDiv.addEventListener('change', updateAdedonhaStartButtonState);
+        adedonhaConfirmAnswersButton.addEventListener('click', confirmAdedonhaAnswers);
+        adedonhaNextRoundButton.addEventListener('click', endAdedonhaRound);
+        adedonhaFinishGameButton.addEventListener('click', finishAdedonhaGame);
+        adedonhaBackToQuizButton.addEventListener('click', () => {
+            playSound(buttonClickSound);
+            showQuizGame(); // Volta para o Quiz
+        });
+
+        // --- Inicialização da Aplicação ---
+        initializeQuizGame(); // Inicia o Quiz por padrão
+        generateAdedonhaCategoryCheckboxes(); // Prepara as categorias do Adedonha
+        updateAdedonhaStartButtonState(); // Atualiza o estado inicial do botão de Adedonha
+    </script>
 </body>
 </html>
